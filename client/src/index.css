@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 18px;
+  }
+}
+
+@layer components {
+  .block-title__title {
+    position: relative;
+    display: inline-block;
+    background: #124874;
+    color: #ffffff;
+    line-height: 37px;
+    padding: 0 18px;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .block-title__title::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: -20px;
+    width: 0;
+    height: 0;
+    display: inline-block;
+    border-bottom: 35px solid #7b848a;
+    border-right: 20px solid transparent;
+  }
+}
