@@ -16,46 +16,8 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const mockQuestions: Question[] = [
-  {
-    id: 'q1',
-    content: 'Giao thức TCP hoạt động ở tầng nào trong mô hình OSI?',
-    options: ['Tầng Vật lý', 'Tầng Liên kết dữ liệu', 'Tầng Mạng', 'Tầng Giao vận'],
-    correctAnswer: 3,
-    chapter: 'Chương 1',
-    topic: 'Mô hình OSI',
-    knowledgeType: 'concept',
-    difficulty: 'easy'
-  },
-  {
-    id: 'q2',
-    content: 'Địa chỉ IP nào sau đây là địa chỉ IP private?',
-    options: ['8.8.8.8', '192.168.1.1', '1.1.1.1', '172.217.0.0'],
-    correctAnswer: 1,
-    chapter: 'Chương 2',
-    topic: 'Địa chỉ IP',
-    knowledgeType: 'concept',
-    difficulty: 'medium'
-  }
-];
-
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [quizzes, setQuizzes] = useState<Quiz[]>([
-    {
-      id: '1',
-      title: 'Kiểm tra Chương 1 - Mô hình OSI',
-      description: 'Bài kiểm tra về mô hình OSI và các tầng giao thức',
-      questions: mockQuestions,
-      duration: 30,
-      createdBy: '1',
-      createdAt: new Date(),
-      settings: {
-        chapter: 'Chương 1',
-        questionCount: 2
-      }
-    }
-  ]);
-
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
 
   const addQuiz = (quiz: Quiz) => {
