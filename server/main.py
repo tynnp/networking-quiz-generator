@@ -72,6 +72,7 @@ Mỗi câu hỏi phải có định dạng JSON chính xác như sau:
 
 Lưu ý:
 - "correctAnswer" là chỉ số (index) của phần tử đúng trong mảng "options", bắt đầu từ 0.
+- Các đáp án phải tương tự nhau, đáp án đúng nằm ở vị trí ngẫu nhiên khác nhau, không dễ đoán.
 - Chỉ trả về DỮ LIỆU JSON THUẦN ở dạng một mảng, không kèm giải thích hoặc mô tả bên ngoài.
 
 Trả về một mảng JSON chứa {params.count} câu hỏi."""
