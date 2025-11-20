@@ -10,11 +10,13 @@ import Analytics from './components/Analytics';
 import MyResults from './components/MyResults';
 import Profile from './components/Profile';
 import QuizPreview from './components/QuizPreview';
+import AttemptDetail from './components/AttemptDetail';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
   const [currentView, setCurrentView] = useState('quiz-list');
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+  const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
 
   if (!isAuthenticated) {
     return <Login />;
@@ -22,12 +24,14 @@ function AppContent() {
 
   const handleTakeQuiz = (quizId: string) => {
     setSelectedQuizId(quizId);
+    setSelectedAttemptId(null);
     setCurrentView('take-quiz');
   };
 
-  const handleQuizComplete = () => {
+  const handleQuizComplete = (attemptId: string) => {
     setSelectedQuizId(null);
-    setCurrentView('my-results');
+    setSelectedAttemptId(attemptId);
+    setCurrentView('attempt-detail');
   };
 
   const handlePreviewQuiz = (quizId: string) => {
@@ -43,6 +47,16 @@ function AppContent() {
   const handleNavigate = (view: string) => {
     setCurrentView(view);
     setSelectedQuizId(null);
+    setSelectedAttemptId(null);
+  };
+
+  const handleViewAttemptDetail = (attemptId: string) => {
+    setSelectedAttemptId(attemptId);
+    setCurrentView('attempt-detail');
+  };
+
+  const handleBackFromAttemptDetail = () => {
+    setCurrentView('my-results');
   };
 
   const renderContent = () => {
@@ -62,7 +76,11 @@ function AppContent() {
       case 'analytics':
         return <Analytics />;
       case 'my-results':
-        return <MyResults />;
+        return <MyResults onViewAttemptDetail={handleViewAttemptDetail} />;
+      case 'attempt-detail':
+        return selectedAttemptId
+          ? <AttemptDetail attemptId={selectedAttemptId} onBack={handleBackFromAttemptDetail} />
+          : <MyResults onViewAttemptDetail={handleViewAttemptDetail} />;
       case 'profile':
         return <Profile />;
       default:

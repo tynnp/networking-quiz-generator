@@ -5,7 +5,7 @@ import { QuizAttempt } from '../types';
 
 interface TakeQuizProps {
   quizId: string;
-  onComplete: () => void;
+  onComplete: (attemptId: string) => void;
 }
 
 export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
@@ -94,7 +94,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
     };
 
     addAttempt(attempt);
-    onComplete();
+    onComplete(attempt.id);
   };
 
   return (

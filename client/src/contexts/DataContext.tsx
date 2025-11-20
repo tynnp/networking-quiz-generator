@@ -12,6 +12,7 @@ interface DataContextType {
   getQuizById: (id: string) => Quiz | undefined;
   getAttemptsByStudent: (studentId: string) => QuizAttempt[];
   getAttemptsByQuiz: (quizId: string) => QuizAttempt[];
+  getAttemptById: (id: string) => QuizAttempt | undefined;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -72,6 +73,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return attempts.filter(a => a.quizId === quizId);
   };
 
+  const getAttemptById = (id: string) => {
+    return attempts.find(a => a.id === id);
+  };
+
   return (
     <DataContext.Provider value={{
       quizzes,
@@ -83,7 +88,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       deleteQuestion,
       getQuizById,
       getAttemptsByStudent,
-      getAttemptsByQuiz
+      getAttemptsByQuiz,
+      getAttemptById
     }}>
       {children}
     </DataContext.Provider>

@@ -1,7 +1,12 @@
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { Eye } from 'lucide-react';
 
-export default function MyResults() {
+interface MyResultsProps {
+  onViewAttemptDetail?: (attemptId: string) => void;
+}
+
+export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
   const { attempts, quizzes } = useData();
   const { user } = useAuth();
 
@@ -88,6 +93,19 @@ export default function MyResults() {
                       />
                     </div>
                   </div>
+
+                  {onViewAttemptDetail && (
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => onViewAttemptDetail(attempt.id)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-[#124874] text-[#124874] hover:bg-blue-50 transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        <span>Xem chi tiết bài làm</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
