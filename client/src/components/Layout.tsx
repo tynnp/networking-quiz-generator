@@ -6,16 +6,20 @@ import {
   FileText,
   BarChart3,
   User,
-  UserCircle
+  UserCircle,
+  Sparkles
 } from 'lucide-react';
+import Snowfall from './Snowfall';
 
 interface LayoutProps {
   children: ReactNode;
   currentView: string;
   onNavigate: (view: string) => void;
+  isSnowEnabled: boolean;
+  onToggleSnow: () => void;
 }
 
-export default function Layout({ children, currentView, onNavigate }: LayoutProps) {
+export default function Layout({ children, currentView, onNavigate, isSnowEnabled, onToggleSnow }: LayoutProps) {
   const { user, logout } = useAuth();
   const menuItems = [
     { id: 'quiz-list', label: 'Danh sách đề', icon: FileText },
@@ -26,7 +30,7 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
   ];
 
   return (
-    <div className="h-screen bg-gray-50 pt-16 overflow-hidden">
+    <div className="relative h-screen bg-gray-50 pt-16 overflow-hidden">
       <header className="fixed top-0 left-0 right-0 bg-[#124874] text-white shadow-md z-20">
         <div className="px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -41,6 +45,14 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
           </div>
 
           <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={onToggleSnow}
+              className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded hover:bg-white/20 transition-colors text-sm"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>{isSnowEnabled ? 'Tắt tuyết' : 'Bật tuyết'}</span>
+            </button>
             <div className="flex items-center gap-2">
               <User className="w-4 h-4" />
               <div className="text-sm">
@@ -58,7 +70,7 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
         </div>
       </header>
 
-      <div className="flex h-[calc(100vh-4rem)]">
+      <div className="relative flex h-[calc(100vh-4rem)] z-10">
         <aside className="fixed top-16 left-0 w-64 bg-[#124874] shadow-md h-[calc(100vh-4rem)] overflow-y-auto border-r border-black/40">
           <nav className="p-3">
             {menuItems.map((item) => {
@@ -87,6 +99,7 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
           {children}
         </main>
       </div>
+      {isSnowEnabled && <Snowfall />}
     </div>
   );
 }

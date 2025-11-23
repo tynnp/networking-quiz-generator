@@ -17,6 +17,7 @@ function AppContent() {
   const [currentView, setCurrentView] = useState('quiz-list');
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
+  const [isSnowEnabled, setIsSnowEnabled] = useState(true);
 
   if (!isAuthenticated) {
     return <Login />;
@@ -89,7 +90,12 @@ function AppContent() {
   };
 
   return (
-    <Layout currentView={currentView} onNavigate={handleNavigate}>
+    <Layout
+      currentView={currentView}
+      onNavigate={handleNavigate}
+      isSnowEnabled={isSnowEnabled}
+      onToggleSnow={() => setIsSnowEnabled(prev => !prev)}
+    >
       {renderContent()}
     </Layout>
   );
