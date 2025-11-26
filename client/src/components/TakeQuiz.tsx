@@ -33,7 +33,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
 
   if (!quiz) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="bg-white rounded-xl shadow-md p-5">
           <p className="text-center text-gray-500">Không tìm thấy đề thi</p>
         </div>
@@ -98,7 +98,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
@@ -181,8 +181,25 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
       </div>
 
       <div className="mt-4 bg-white rounded-xl shadow-md p-4">
-        <h3 className="font-medium text-gray-700 mb-3 text-sm">Tổng quan</h3>
-        <div className="grid grid-cols-10 gap-2">
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <h3 className="font-medium text-gray-700 text-sm">Tổng quan câu hỏi</h3>
+          <div className="hidden sm:flex items-center gap-3 text-[11px] text-gray-500">
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-[#124874]" />
+              Hiện tại
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-green-100 border border-green-400" />
+              Đã trả lời
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="inline-block w-3 h-3 rounded bg-gray-100 border border-gray-300" />
+              Chưa trả lời
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
           {quiz.questions.map((question, index) => {
             const isAnswered = answers[question.id] !== undefined;
             const isCurrent = index === currentQuestionIndex;
@@ -191,7 +208,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
               <button
                 key={question.id}
                 onClick={() => setCurrentQuestionIndex(index)}
-                className={`w-8 h-8 rounded text-xs font-medium transition-colors ${
+                className={`h-9 min-w-[2.25rem] rounded text-xs font-medium flex items-center justify-center transition-colors ${
                   isCurrent
                     ? 'bg-[#124874] text-white ring-2 ring-[#124874] ring-offset-2'
                     : isAnswered

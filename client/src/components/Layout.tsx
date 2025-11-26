@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut,
@@ -21,6 +21,7 @@ interface LayoutProps {
 
 export default function Layout({ children, currentView, onNavigate, isSnowEnabled, onToggleSnow }: LayoutProps) {
   const { user, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const menuItems = [
     { id: 'quiz-list', label: 'Danh sách đề', icon: FileText },
     { id: 'create-quiz', label: 'Tạo đề mới', icon: PlusCircle },
@@ -44,28 +45,55 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
             </h1>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="relative flex items-center">
             <button
               type="button"
-              onClick={onToggleSnow}
+              onClick={() => setIsUserMenuOpen(prev => !prev)}
               className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded hover:bg-white/20 transition-colors text-sm"
             >
-              <Sparkles className="w-4 h-4" />
-              <span>{isSnowEnabled ? 'Tắt tuyết' : 'Bật tuyết'}</span>
-            </button>
-            <div className="flex items-center gap-2">
               <User className="w-4 h-4" />
               <div className="text-sm">
                 <p className="font-medium">{user?.name}</p>
               </div>
-            </div>
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#CF373D] rounded hover:bg-[#b52f34] transition-colors text-sm"
-            >
-              <LogOut className="w-4 h-4" />
-              Đăng xuất
             </button>
+
+            {isUserMenuOpen && (
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white text-gray-800 rounded shadow-lg border border-gray-200 py-1 z-30">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onNavigate('profile');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  <UserCircle className="w-4 h-4 text-[#124874]" />
+                  <span>Thông tin cá nhân</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onToggleSnow();
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  <Sparkles className="w-4 h-4 text-[#124874]" />
+                  <span>{isSnowEnabled ? 'Tắt tuyết rơi' : 'Bật tuyết rơi'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    logout();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Đăng xuất</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>

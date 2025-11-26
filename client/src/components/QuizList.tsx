@@ -70,7 +70,7 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                             : 'bg-red-50 text-red-700'
                         }`}>
                           {quiz.settings.difficulty === 'easy' ? 'Dễ' :
-                           quiz.settings.difficulty === 'medium' ? 'TB' : 'Khó'}
+                           quiz.settings.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
                         </div>
                       )}
                     </div>

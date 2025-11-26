@@ -143,7 +143,7 @@ export default function Profile() {
               </label>
               <input
                 type="text"
-                value={user.role === 'student' ? 'Học sinh' : user.role}
+                value={user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
               />

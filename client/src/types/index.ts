@@ -2,7 +2,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'student';
+  role: 'student' | 'admin';
   dob?: string;
   phone?: string;
 }
@@ -53,4 +53,12 @@ export interface KnowledgeAnalysis {
   totalQuestions: number;
   correctAnswers: number;
   accuracy: number;
+}
+
+export interface AiResultFeedback {
+  overallFeedback: string;
+  strengths: string[];
+  weaknesses: string[];
+  suggestedTopics: string[];
+  suggestedNextActions: string[];
 }

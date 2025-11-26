@@ -11,6 +11,7 @@ import MyResults from './components/MyResults';
 import Profile from './components/Profile';
 import QuizPreview from './components/QuizPreview';
 import AttemptDetail from './components/AttemptDetail';
+import AiResultFeedback from './components/AiResultFeedback';
 
 function AppContent() {
   const { isAuthenticated } = useAuth();
@@ -33,6 +34,11 @@ function AppContent() {
     setSelectedQuizId(null);
     setSelectedAttemptId(attemptId);
     setCurrentView('attempt-detail');
+  };
+
+  const handleAiAnalyzeAttempt = (attemptId: string) => {
+    setSelectedAttemptId(attemptId);
+    setCurrentView('attempt-ai-feedback');
   };
 
   const handlePreviewQuiz = (quizId: string) => {
@@ -75,9 +81,19 @@ function AppContent() {
           ? <QuizPreview quizId={selectedQuizId} onBack={handleClosePreview} />
           : <QuizList onTakeQuiz={handleTakeQuiz} onPreviewQuiz={handlePreviewQuiz} />;
       case 'analytics':
-        return <Analytics />;
+        return <Analytics onAiAnalyzeAttempt={handleAiAnalyzeAttempt} />;
       case 'my-results':
         return <MyResults onViewAttemptDetail={handleViewAttemptDetail} />;
+      case 'attempt-ai-feedback':
+        return selectedAttemptId
+          ? (
+            <AiResultFeedback
+              attemptId={selectedAttemptId}
+              onViewDetail={() => setCurrentView('attempt-detail')}
+              onBack={handleBackFromAttemptDetail}
+            />
+          )
+          : <MyResults onViewAttemptDetail={handleViewAttemptDetail} />;
       case 'attempt-detail':
         return selectedAttemptId
           ? <AttemptDetail attemptId={selectedAttemptId} onBack={handleBackFromAttemptDetail} />

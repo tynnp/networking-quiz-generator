@@ -1,12 +1,20 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
-import { KnowledgeAnalysis } from '../types';
+import { KnowledgeAnalysis, QuizAttempt, AiResultFeedback as AiResultFeedbackType } from '../types';
+import { analyzeOverall } from '../services/gemini';
 
-export default function Analytics() {
+interface AnalyticsProps {
+  onAiAnalyzeAttempt?: (attemptId: string) => void;
+}
+
+export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
   const { quizzes, attempts } = useData();
   const { user } = useAuth();
   const [selectedQuiz, setSelectedQuiz] = useState<string>('');
+  const [overallFeedback, setOverallFeedback] = useState<AiResultFeedbackType | null>(null);
+  const [overallLoading, setOverallLoading] = useState(false);
+  const [overallError, setOverallError] = useState<string | null>(null);
 
   const analyzeQuiz = (quizId: string) => {
     const quiz = quizzes.find(q => q.id === quizId);
@@ -116,13 +124,71 @@ export default function Analytics() {
   const quizAnalysis = selectedQuiz ? analyzeQuiz(selectedQuiz) : null;
   const studentAnalysis = user ? analyzeStudent(user.id) : null;
 
-  const handleAiAnalysis = () => {
-    if (!quizAnalysis && !studentAnalysis) {
-      alert('Chưa có dữ liệu để phân tích. Vui lòng chọn một đề thi hoặc làm ít nhất một bài kiểm tra.');
+  const handleAiAnalysis = async () => {
+    if (!user) {
+      alert('Bạn cần đăng nhập để sử dụng phân tích với AI.');
       return;
     }
 
-    alert('Tính năng "Phân tích với AI" sẽ sử dụng mô hình ngôn ngữ để gợi ý kiến thức cần cải thiện dựa trên kết quả làm bài.');
+    const myAttempts = attempts.filter(a => a.studentId === user.id);
+
+    if (myAttempts.length === 0) {
+      alert('Bạn chưa có bài làm nào để phân tích. Hãy làm ít nhất một bài kiểm tra trước.');
+      return;
+    }
+
+    // Nếu đang chọn một đề thi cụ thể: phân tích theo bài làm gần nhất của đề đó (giữ nguyên flow cũ)
+    if (selectedQuiz) {
+      let targetAttempt: QuizAttempt | undefined;
+
+      const myQuizAttempts = myAttempts.filter(a => a.quizId === selectedQuiz);
+
+      if (myQuizAttempts.length === 0) {
+        alert('Bạn chưa có bài làm nào cho đề thi này. Hãy làm đề thi trước khi phân tích với AI.');
+        return;
+      }
+
+      targetAttempt = myQuizAttempts[myQuizAttempts.length - 1];
+
+      if (!onAiAnalyzeAttempt) {
+        alert('Chức năng điều hướng đến màn hình phân tích với AI chưa được cấu hình.');
+        return;
+      }
+
+      onAiAnalyzeAttempt(targetAttempt.id);
+      return;
+    }
+
+    // Không chọn đề thi: AI phân tích tổng quan toàn bộ lịch sử làm bài
+    if (!studentAnalysis) {
+      alert('Không có dữ liệu phân tích tổng quan. Hãy làm ít nhất một bài kiểm tra.');
+      return;
+    }
+
+    try {
+      setOverallLoading(true);
+      setOverallError(null);
+      setOverallFeedback(null);
+
+      const avgScoreValue =
+        typeof studentAnalysis.avgScore === 'number'
+          ? studentAnalysis.avgScore
+          : parseFloat(studentAnalysis.avgScore as string);
+
+      const result = await analyzeOverall({
+        studentName: user.name,
+        attemptCount: studentAnalysis.attemptCount,
+        avgScore: avgScoreValue,
+        knowledgeAnalysis: studentAnalysis.knowledgeAnalysis,
+      });
+
+      setOverallFeedback(result);
+    } catch (error) {
+      console.error('Error analyzing overall results with AI:', error);
+      setOverallError('Không thể phân tích tổng quan bằng AI. Vui lòng thử lại sau.');
+    } finally {
+      setOverallLoading(false);
+    }
   };
 
   return (
@@ -300,6 +366,79 @@ export default function Analytics() {
                 ))}
               </div>
             </div>
+
+            {overallLoading && (
+              <div className="mt-4 text-sm text-gray-500">
+                Đang phân tích tổng quan lịch sử làm bài bằng AI...
+              </div>
+            )}
+
+            {overallError && (
+              <div className="mt-4 text-sm text-red-600">
+                {overallError}
+              </div>
+            )}
+
+            {overallFeedback && !overallLoading && !overallError && (
+              <div className="mt-4 border-t border-gray-200 pt-4 space-y-3 text-sm">
+                <h4 className="font-semibold text-[#124874]">Nhận xét tổng quan từ AI</h4>
+                <p className="text-gray-700 whitespace-pre-line">
+                  {overallFeedback.overallFeedback}
+                </p>
+
+                {(overallFeedback.strengths.length > 0 || overallFeedback.weaknesses.length > 0) && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h5 className="font-semibold text-green-700 mb-2 text-sm">Điểm mạnh chính</h5>
+                      {overallFeedback.strengths.length === 0 ? (
+                        <p className="text-gray-500 text-xs">Chưa có thông tin cụ thể.</p>
+                      ) : (
+                        <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
+                          {overallFeedback.strengths.slice(0, 4).map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div>
+                      <h5 className="font-semibold text-red-700 mb-2 text-sm">Điểm cần cải thiện</h5>
+                      {overallFeedback.weaknesses.length === 0 ? (
+                        <p className="text-gray-500 text-xs">Chưa có thông tin cụ thể.</p>
+                      ) : (
+                        <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
+                          {overallFeedback.weaknesses.slice(0, 4).map((item, index) => (
+                            <li key={index}>{item}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {overallFeedback.suggestedTopics.length > 0 && (
+                  <div>
+                    <h5 className="font-semibold text-[#124874] mb-1 text-sm">Chủ đề nên ưu tiên ôn</h5>
+                    <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
+                      {overallFeedback.suggestedTopics.slice(0, 5).map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {overallFeedback.suggestedNextActions.length > 0 && (
+                  <div>
+                    <h5 className="font-semibold text-[#124874] mb-1 text-sm">Hành động gợi ý tiếp theo</h5>
+                    <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
+                      {overallFeedback.suggestedNextActions.slice(0, 5).map((item, index) => (
+                        <li key={index}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
