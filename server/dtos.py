@@ -1,4 +1,4 @@
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict
 from pydantic import BaseModel, Field
 
 class GenerateQuestionsRequest(BaseModel):
@@ -21,3 +21,31 @@ class Question(BaseModel):
 
 class GenerateQuestionsResponse(BaseModel):
     questions: List[Question]
+
+class AnalyzeResultRequest(BaseModel):
+    quizTitle: str
+    questions: List[Question]
+    answers: Dict[str, int]
+    score: float
+    timeSpent: int
+
+class AnalyzeResultResponse(BaseModel):
+    overallFeedback: str
+    strengths: List[str]
+    weaknesses: List[str]
+    suggestedTopics: List[str]
+    suggestedNextActions: List[str]
+
+class KnowledgeAnalysisItem(BaseModel):
+    knowledgeType: str
+    chapter: str
+    topic: str
+    totalQuestions: int
+    correctAnswers: int
+    accuracy: float
+
+class AnalyzeOverallRequest(BaseModel):
+    studentName: Optional[str] = None
+    attemptCount: int
+    avgScore: float
+    knowledgeAnalysis: List[KnowledgeAnalysisItem]
