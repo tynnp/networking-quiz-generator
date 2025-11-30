@@ -75,7 +75,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database
 init_db()
 
 security = HTTPBearer()
@@ -250,14 +249,14 @@ def parse_generated_questions(
                     correctAnswer=q["correctAnswer"],
                     chapter=chapter,
                     topic=topic,
-                    knowledgeType=knowledge_type,  # type: ignore[arg-type]
-                    difficulty=difficulty,  # type: ignore[arg-type]
+                    knowledgeType=knowledge_type,
+                    difficulty=difficulty,
                     explanation=q.get("explanation"),
                 )
             )
 
         return questions
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print("Error parsing questions from LLM:", exc)
         raise
 
@@ -269,7 +268,6 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     try:
-        # Remove "Bearer " prefix if present
         token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
         payload = verify_token(token)
         if not payload:
@@ -301,27 +299,18 @@ def get_admin_user(
 def root():
     return {"status": "running"}
 
-# Register endpoint disabled - only admin can create users
-# @app.post("/api/auth/register", response_model=AuthResponse)
-# def register(request: RegisterRequest, db: Database = Depends(get_db)):
-#     ...
-
 @app.post("/api/auth/login", response_model=AuthResponse)
 def login(request: LoginRequest, db: Database = Depends(get_db)):
-    # Find user by email
     user = get_user_by_email(db, request.email)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    # Check if user is locked
     if user.get("isLocked", False):
         raise HTTPException(status_code=403, detail="Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.")
     
-    # Verify password
     if not verify_password(request.password, user["hashed_password"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    # Create access token
     access_token = create_access_token(data={"sub": user["id"]})
     
     return AuthResponse(

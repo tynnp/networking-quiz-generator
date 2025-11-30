@@ -77,7 +77,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const removeToast = (id: string) => {
     setRemovingIds(prev => new Set(prev).add(id));
-    // Wait for animation to complete before removing from DOM
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
       setRemovingIds(prev => {
@@ -85,7 +84,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         newSet.delete(id);
         return newSet;
       });
-    }, 300); // Match animation duration
+    }, 300);
   };
 
   return (

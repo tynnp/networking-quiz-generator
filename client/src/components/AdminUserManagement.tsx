@@ -16,12 +16,10 @@ export default function AdminUserManagement() {
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isLocking, setIsLocking] = useState<string | null>(null);
   
-  // Search and pagination state
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Create user form state
   const [newUser, setNewUser] = useState<CreateUserRequest>({
     email: '',
     password: '',
@@ -33,7 +31,6 @@ export default function AdminUserManagement() {
     loadUsers();
   }, []);
 
-  // Filter users based on search query
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim()) {
       return users;
@@ -47,13 +44,11 @@ export default function AdminUserManagement() {
     );
   }, [users, searchQuery]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);

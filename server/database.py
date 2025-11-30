@@ -23,7 +23,6 @@ def get_db():
     try:
         yield db
     finally:
-        # Connection is managed globally, no need to close here
         pass
 
 def seed_admin_user():
@@ -35,7 +34,6 @@ def seed_admin_user():
     admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
     admin_name = os.getenv("ADMIN_NAME", "Administrator")
     
-    # Check if admin already exists
     existing_admin = get_user_by_email(db, admin_email)
     if not existing_admin:
         create_user(db, admin_email, admin_password, admin_name, role="admin")
@@ -46,17 +44,12 @@ def seed_admin_user():
 def init_db():
     """Initialize database - create indexes and seed admin user"""
     db = get_database()
-    # Create unique index on email
     db.users.create_index("email", unique=True)
-    # Create index on id
     db.users.create_index("id", unique=True)
-    # Create indexes for quizzes
     db.quizzes.create_index("id", unique=True)
     db.quizzes.create_index("createdBy")
     db.quizzes.create_index("createdAt")
-    # Create indexes for attempts
     db.attempts.create_index("id", unique=True)
     db.attempts.create_index("quizId")
     db.attempts.create_index("studentId")
-    # Seed admin user
     seed_admin_user()

@@ -42,7 +42,6 @@ export async function apiRequest<T>(
   return response.json();
 }
 
-// Auth API functions
 export interface UpdateProfileRequest {
   name?: string;
   dob?: string;
