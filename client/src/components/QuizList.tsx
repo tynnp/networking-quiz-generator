@@ -76,15 +76,18 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                           {quiz.settings.chapter}
                         </div>
                       )}
-                      {quiz.settings.difficulty && (
+                      {quiz.settings.difficulty !== undefined && (
                         <div className={`px-2 py-0.5 rounded ${
-                          quiz.settings.difficulty === 'easy'
+                          !quiz.settings.difficulty || quiz.settings.difficulty === ''
+                            ? 'bg-gray-50 text-gray-700'
+                            : quiz.settings.difficulty === 'easy'
                             ? 'bg-green-50 text-green-700'
                             : quiz.settings.difficulty === 'medium'
                             ? 'bg-yellow-50 text-yellow-700'
                             : 'bg-red-50 text-red-700'
                         }`}>
-                          {quiz.settings.difficulty === 'easy' ? 'Dễ' :
+                          {!quiz.settings.difficulty || quiz.settings.difficulty === '' ? 'Hỗn hợp' :
+                           quiz.settings.difficulty === 'easy' ? 'Dễ' :
                            quiz.settings.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
                         </div>
                       )}
