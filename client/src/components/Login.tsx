@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import Snowfall from './Snowfall';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,8 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 relative">
+      <Snowfall />
       {/* Left: large image (3/5 on desktop) */}
       <div className="hidden md:block md:w-2/3">
         <img
