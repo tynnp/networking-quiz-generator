@@ -108,6 +108,16 @@ export default function CreateQuiz() {
       return;
     }
 
+    if (questionCount < 1 || questionCount > 30) {
+      showToast('Số câu hỏi phải từ 1 đến 30', 'warning');
+      return;
+    }
+
+    if (duration < 1 || duration > 600) {
+      showToast('Thời gian phải từ 1 đến 600 phút', 'warning');
+      return;
+    }
+
     setGenerating(true);
 
     try {
@@ -284,11 +294,29 @@ export default function CreateQuiz() {
               <input
                 type="number"
                 value={questionCount}
-                onChange={(e) => setQuestionCount(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 1 && value <= 30) {
+                    setQuestionCount(value);
+                  } else if (value > 30) {
+                    setQuestionCount(30);
+                  } else if (value < 1 && e.target.value !== '') {
+                    setQuestionCount(1);
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = Number(e.target.value);
+                  if (value < 1 || isNaN(value)) {
+                    setQuestionCount(1);
+                  } else if (value > 30) {
+                    setQuestionCount(30);
+                  }
+                }}
                 min="1"
-                max="50"
+                max="30"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
               />
+              <p className="text-xs text-gray-400 mt-1">Từ 1 đến 30 câu hỏi</p>
             </div>
 
             <div>
@@ -298,11 +326,29 @@ export default function CreateQuiz() {
               <input
                 type="number"
                 value={duration}
-                onChange={(e) => setDuration(Number(e.target.value))}
-                min="5"
-                max="180"
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 1 && value <= 600) {
+                    setDuration(value);
+                  } else if (value > 600) {
+                    setDuration(600);
+                  } else if (value < 1 && e.target.value !== '') {
+                    setDuration(1);
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = Number(e.target.value);
+                  if (value < 1 || isNaN(value)) {
+                    setDuration(1);
+                  } else if (value > 600) {
+                    setDuration(600);
+                  }
+                }}
+                min="1"
+                max="600"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
               />
+              <p className="text-xs text-gray-400 mt-1">Từ 1 đến 600 phút</p>
             </div>
           </div>
 

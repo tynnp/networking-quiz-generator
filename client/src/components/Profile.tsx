@@ -14,6 +14,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{dob?: string; phone?: string}>({});
 
   // Sync state when user changes
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function Profile() {
   const handleStartEdit = () => {
     setIsEditing(true);
     setProfileError(null);
+    setFieldErrors({});
   };
 
   const handleCancelEdit = () => {
@@ -42,19 +44,62 @@ export default function Profile() {
     setPhone(user?.phone ?? '');
     setIsEditing(false);
     setProfileError(null);
+    setFieldErrors({});
+  };
+
+  const validateProfile = (): boolean => {
+    const errors: {dob?: string; phone?: string} = {};
+    
+    if (dob) {
+      const dobDate = new Date(dob);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (dobDate > today) {
+        errors.dob = 'Ngày sinh không thể là ngày trong tương lai';
+      }
+      
+      const minDate = new Date();
+      minDate.setFullYear(today.getFullYear() - 150);
+      if (dobDate < minDate) {
+        errors.dob = 'Ngày sinh không hợp lệ';
+      }
+    }
+    
+    if (phone) {
+      const phoneDigits = phone.replace(/\D/g, '');
+      
+      if (phoneDigits.length > 10) {
+        errors.phone = 'Số điện thoại tối đa 10 số';
+      } else if (phoneDigits.length > 0 && phoneDigits.length < 10) {
+        errors.phone = 'Số điện thoại phải có đủ 10 số';
+      }
+    }
+    
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSaveProfile = async () => {
     if (!user) return;
     
+    if (!validateProfile()) {
+      setProfileError('Vui lòng kiểm tra lại thông tin đã nhập');
+      return;
+    }
+    
     setIsSaving(true);
     setProfileError(null);
     
     try {
+      const cleanPhone = phone ? phone.replace(/\D/g, '') : '';
+      
       const updates: { name?: string; dob?: string; phone?: string } = {};
       if (fullName !== user.name) updates.name = fullName;
       if (dob !== user.dob) updates.dob = dob || undefined;
-      if (phone !== user.phone) updates.phone = phone || undefined;
+      if (cleanPhone !== (user.phone?.replace(/\D/g, '') || '')) {
+        updates.phone = cleanPhone || undefined;
+      }
 
       // Only call API if there are changes
       if (Object.keys(updates).length > 0) {
@@ -64,6 +109,7 @@ export default function Profile() {
       }
       
       setIsEditing(false);
+      setFieldErrors({});
     } catch (error) {
       setProfileError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật thông tin');
     } finally {
@@ -177,14 +223,25 @@ export default function Profile() {
               <input
                 type="date"
                 value={dob}
-                onChange={(e) => setDob(e.target.value)}
+                onChange={(e) => {
+                  setDob(e.target.value);
+                  if (fieldErrors.dob) {
+                    setFieldErrors({...fieldErrors, dob: undefined});
+                  }
+                }}
                 disabled={!isEditing}
+                max={new Date().toISOString().split('T')[0]}
                 className={`w-full px-3 py-2 border rounded-lg text-sm ${
                   isEditing
-                    ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
+                    ? fieldErrors.dob
+                      ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
+                      : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
                     : 'border-gray-200 bg-gray-50 text-gray-700'
                 }`}
               />
+              {fieldErrors.dob && (
+                <p className="text-xs text-red-600 mt-1">{fieldErrors.dob}</p>
+              )}
             </div>
 
             <div>
@@ -194,14 +251,33 @@ export default function Profile() {
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const digitsOnly = value.replace(/\D/g, '');
+                  if (digitsOnly.length <= 10) {
+                    setPhone(digitsOnly);
+                    if (fieldErrors.phone) {
+                      setFieldErrors({...fieldErrors, phone: undefined});
+                    }
+                  }
+                }}
                 disabled={!isEditing}
+                maxLength={10}
+                placeholder="0123456789"
                 className={`w-full px-3 py-2 border rounded-lg text-sm ${
                   isEditing
-                    ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
+                    ? fieldErrors.phone
+                      ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
+                      : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
                     : 'border-gray-200 bg-gray-50 text-gray-700'
                 }`}
               />
+              {fieldErrors.phone && (
+                <p className="text-xs text-red-600 mt-1">{fieldErrors.phone}</p>
+              )}
+              {!fieldErrors.phone && isEditing && (
+                <p className="text-xs text-gray-400 mt-1">Tối đa 10 số</p>
+              )}
             </div>
 
             <div>
