@@ -265,34 +265,34 @@ def get_current_user(
     db: Database = Depends(get_db)
 ) -> dict:
     if not authorization:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+        raise HTTPException(status_code=401, detail="Chưa xác thực")
     
     try:
         token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
         payload = verify_token(token)
         if not payload:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Token không hợp lệ")
         
         user_id = payload.get("sub")
         if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token")
+            raise HTTPException(status_code=401, detail="Token không hợp lệ")
         
         user = get_user_by_id(db, user_id)
         if not user:
-            raise HTTPException(status_code=401, detail="User not found")
+            raise HTTPException(status_code=401, detail="Không tìm thấy người dùng")
         
         return user
     except HTTPException:
         raise
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Token không hợp lệ")
 
 def get_admin_user(
     current_user: dict = Depends(get_current_user)
 ) -> dict:
     """Dependency to check if user is admin"""
     if current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="Forbidden: Admin access required")
+        raise HTTPException(status_code=403, detail="Truy cập bị từ chối: Yêu cầu quyền quản trị viên")
     return current_user
 
 @app.get("/")
@@ -303,13 +303,13 @@ def root():
 def login(request: LoginRequest, db: Database = Depends(get_db)):
     user = get_user_by_email(db, request.email)
     if not user:
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng")
     
     if user.get("isLocked", False):
         raise HTTPException(status_code=403, detail="Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.")
     
     if not verify_password(request.password, user["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng")
     
     access_token = create_access_token(data={"sub": user["id"]})
     
@@ -356,7 +356,7 @@ def update_profile(
     
     updated_user = update_user(db, current_user["id"], updates)
     if not updated_user:
-        raise HTTPException(status_code=400, detail="Failed to update profile")
+        raise HTTPException(status_code=400, detail="Không thể cập nhật thông tin cá nhân")
     
     return UserResponse(
         id=updated_user["id"],
@@ -377,14 +377,14 @@ def change_password(
     """Change user password"""
     # Verify current password
     if not verify_password(request.current_password, current_user["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Current password is incorrect")
+        raise HTTPException(status_code=401, detail="Mật khẩu hiện tại không đúng")
     
     # Update password
     success = update_user_password(db, current_user["id"], request.new_password)
     if not success:
-        raise HTTPException(status_code=400, detail="Failed to update password")
+        raise HTTPException(status_code=400, detail="Không thể cập nhật mật khẩu")
     
-    return {"message": "Password updated successfully"}
+    return {"message": "Đổi mật khẩu thành công"}
 
 # Admin endpoints
 @app.get("/api/admin/users", response_model=List[UserResponse])
@@ -417,7 +417,7 @@ def create_user_admin(
     # Check if user already exists
     existing_user = get_user_by_email(db, request.email)
     if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=400, detail="Email đã được đăng ký")
     
     # Create new user
     user = create_user(db, request.email, request.password, request.name, request.role)
@@ -441,13 +441,13 @@ def delete_user_admin(
     """Delete a user (admin only)"""
     # Prevent deleting yourself
     if user_id == admin_user["id"]:
-        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+        raise HTTPException(status_code=400, detail="Không thể xóa tài khoản của chính bạn")
     
     success = delete_user(db, user_id)
     if not success:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
     
-    return {"message": "User deleted successfully"}
+    return {"message": "Xóa người dùng thành công"}
 
 @app.put("/api/admin/users/{user_id}/lock")
 def lock_user_admin(
@@ -458,13 +458,13 @@ def lock_user_admin(
     """Lock a user (admin only)"""
     # Prevent locking yourself
     if user_id == admin_user["id"]:
-        raise HTTPException(status_code=400, detail="Cannot lock your own account")
+        raise HTTPException(status_code=400, detail="Không thể khóa tài khoản của chính bạn")
     
     success = lock_user(db, user_id)
     if not success:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
     
-    return {"message": "User locked successfully"}
+    return {"message": "Khóa người dùng thành công"}
 
 @app.put("/api/admin/users/{user_id}/unlock")
 def unlock_user_admin(
@@ -475,9 +475,9 @@ def unlock_user_admin(
     """Unlock a user (admin only)"""
     success = unlock_user(db, user_id)
     if not success:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
     
-    return {"message": "User unlocked successfully"}
+    return {"message": "Mở khóa người dùng thành công"}
 
 @app.post("/api/generate-questions", response_model=GenerateQuestionsResponse)
 def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
@@ -485,7 +485,7 @@ def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsRe
         # Không có API key thì không thể gọi LLM
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY or GEMINI_API_KEY is not configured on the server",
+            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
         )
 
     prompt = build_prompt(request)
@@ -504,14 +504,14 @@ def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsRe
         raise
     except Exception as exc:  # noqa: BLE001
         print("Error calling Gemini API:", exc)
-        raise HTTPException(status_code=500, detail="Error calling Gemini API")
+        raise HTTPException(status_code=500, detail="Lỗi khi gọi Gemini API")
 
 @app.post("/api/analyze-result", response_model=AnalyzeResultResponse)
 def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
     if client is None:
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY or GEMINI_API_KEY is not configured on the server",
+            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
         )
 
     prompt = build_analysis_prompt(request)
@@ -546,7 +546,7 @@ def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
     except Exception as exc:  # noqa: BLE001
         print("Error calling Gemini API for analysis:", exc)
         raise HTTPException(
-            status_code=500, detail="Error calling Gemini API for analysis"
+            status_code=500, detail="Lỗi khi gọi Gemini API để phân tích"
         )
 
 @app.post("/api/analyze-overall", response_model=AnalyzeResultResponse)
@@ -554,7 +554,7 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
     if client is None:
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY or GEMINI_API_KEY is not configured on the server",
+            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
         )
 
     prompt = build_overall_analysis_prompt(request)
@@ -590,7 +590,7 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
         print("Error calling Gemini API for overall analysis:", exc)
         raise HTTPException(
             status_code=500,
-            detail="Error calling Gemini API for overall analysis",
+            detail="Lỗi khi gọi Gemini API để phân tích tổng quan",
         )
 
 # Quiz endpoints
@@ -625,7 +625,7 @@ def get_quiz(
     """Get a specific quiz by ID"""
     quiz = get_quiz_by_id(db, quiz_id)
     if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
     return QuizResponse(
         id=quiz["id"],
@@ -680,11 +680,11 @@ def update_quiz_endpoint(
     """Update a quiz"""
     quiz = get_quiz_by_id(db, quiz_id)
     if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
     # Check if user is the creator or admin
     if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="You don't have permission to update this quiz")
+        raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
     updates = {}
     if request.title is not None:
@@ -702,7 +702,7 @@ def update_quiz_endpoint(
     
     updated_quiz = update_quiz(db, quiz_id, updates)
     if not updated_quiz:
-        raise HTTPException(status_code=400, detail="Failed to update quiz")
+        raise HTTPException(status_code=400, detail="Không thể cập nhật đề thi")
     
     return QuizResponse(
         id=updated_quiz["id"],
@@ -724,17 +724,17 @@ def delete_quiz_endpoint(
     """Delete a quiz"""
     quiz = get_quiz_by_id(db, quiz_id)
     if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
     # Check if user is the creator or admin
     if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="You don't have permission to delete this quiz")
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xóa đề thi này")
     
     success = delete_quiz(db, quiz_id)
     if not success:
-        raise HTTPException(status_code=400, detail="Failed to delete quiz")
+        raise HTTPException(status_code=400, detail="Không thể xóa đề thi")
     
-    return {"message": "Quiz deleted successfully"}
+    return {"message": "Xóa đề thi thành công"}
 
 @app.put("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse)
 def update_question_endpoint(
@@ -747,11 +747,11 @@ def update_question_endpoint(
     """Update a question in a quiz"""
     quiz = get_quiz_by_id(db, quiz_id)
     if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
     # Check if user is the creator or admin
     if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="You don't have permission to update this quiz")
+        raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
     updates = {}
     if request.content is not None:
@@ -773,7 +773,7 @@ def update_question_endpoint(
     
     updated_quiz = update_question_in_quiz(db, quiz_id, question_id, updates)
     if not updated_quiz:
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy câu hỏi")
     
     return QuizResponse(
         id=updated_quiz["id"],
@@ -796,15 +796,15 @@ def delete_question_endpoint(
     """Delete a question from a quiz"""
     quiz = get_quiz_by_id(db, quiz_id)
     if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
     # Check if user is the creator or admin
     if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="You don't have permission to update this quiz")
+        raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
     updated_quiz = delete_question_from_quiz(db, quiz_id, question_id)
     if not updated_quiz:
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy câu hỏi")
     
     return QuizResponse(
         id=updated_quiz["id"],
@@ -827,7 +827,7 @@ def create_attempt_endpoint(
     """Create a new quiz attempt"""
     quiz = get_quiz_by_id(db, request.quizId)
     if not quiz:
-        raise HTTPException(status_code=404, detail="Quiz not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
     attempt_id = f"attempt-{int(time.time() * 1000)}"
     attempt_data = {
@@ -886,10 +886,10 @@ def get_attempt_endpoint(
     """Get a specific attempt by ID"""
     attempt = get_attempt_by_id(db, attempt_id)
     if not attempt:
-        raise HTTPException(status_code=404, detail="Attempt not found")
+        raise HTTPException(status_code=404, detail="Không tìm thấy bài làm")
     
     if attempt["studentId"] != current_user["id"] and current_user.get("role") != "admin":
-        raise HTTPException(status_code=403, detail="You don't have permission to view this attempt")
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xem bài làm này")
     
     return AttemptResponse(
         id=attempt["id"],
