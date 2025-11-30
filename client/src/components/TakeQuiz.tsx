@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { QuizAttempt } from '../types';
+import { createAttempt } from '../services/api';
 
 interface TakeQuizProps {
   quizId: string;
@@ -11,6 +13,7 @@ interface TakeQuizProps {
 export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
   const { getQuizById, addAttempt } = useData();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const quiz = getQuizById(quizId);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -70,31 +73,38 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    let correctCount = 0;
-    quiz.questions.forEach(question => {
-      if (answers[question.id] === question.correctAnswer) {
-        correctCount++;
-      }
-    });
+    try {
+      let correctCount = 0;
+      quiz.questions.forEach(question => {
+        if (answers[question.id] === question.correctAnswer) {
+          correctCount++;
+        }
+      });
 
-    const score = (correctCount / quiz.questions.length) * 100;
+      const score = (correctCount / quiz.questions.length) * 100;
+      const timeSpent = (quiz.duration * 60) - timeLeft;
 
-    const attempt: QuizAttempt = {
-      id: `attempt-${Date.now()}`,
-      quizId: quiz.id,
-      studentId: user?.id || '',
-      answers,
-      score,
-      completedAt: new Date(),
-      timeSpent: (quiz.duration * 60) - timeLeft
-    };
+      // Save attempt to server
+      const createdAttempt = await createAttempt({
+        quizId: quiz.id,
+        answers,
+        score,
+        timeSpent
+      });
 
-    addAttempt(attempt);
-    onComplete(attempt.id);
+      // Also add to local state for immediate UI update
+      addAttempt(createdAttempt);
+      showToast('Nộp bài thành công!', 'success');
+      onComplete(createdAttempt.id);
+    } catch (error) {
+      console.error('Error submitting quiz:', error);
+      showToast('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.', 'error');
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -50,5 +50,13 @@ def init_db():
     db.users.create_index("email", unique=True)
     # Create index on id
     db.users.create_index("id", unique=True)
+    # Create indexes for quizzes
+    db.quizzes.create_index("id", unique=True)
+    db.quizzes.create_index("createdBy")
+    db.quizzes.create_index("createdAt")
+    # Create indexes for attempts
+    db.attempts.create_index("id", unique=True)
+    db.attempts.create_index("quizId")
+    db.attempts.create_index("studentId")
     # Seed admin user
     seed_admin_user()

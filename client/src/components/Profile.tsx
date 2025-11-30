@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { UserCircle } from 'lucide-react';
 import { updateProfile, changePassword } from '../services/api';
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
+  const { showToast } = useToast();
 
   const [fullName, setFullName] = useState(user?.name ?? '');
   const [dob, setDob] = useState(user?.dob ?? '');
@@ -58,6 +60,7 @@ export default function Profile() {
       if (Object.keys(updates).length > 0) {
         await updateProfile(updates);
         await refreshUser(); // Refresh user data from server
+        showToast('Cập nhật thông tin thành công!', 'success');
       }
       
       setIsEditing(false);
@@ -95,6 +98,7 @@ export default function Profile() {
       });
       
       setPasswordSuccess('Đổi mật khẩu thành công!');
+      showToast('Đổi mật khẩu thành công!', 'success');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

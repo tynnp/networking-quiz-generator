@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import { ToastProvider } from './contexts/ToastContext';
 import Login from './components/Login';
 import Layout from './components/Layout';
 import CreateQuiz from './components/CreateQuiz';
@@ -130,11 +131,13 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <AppContent />
-      </DataProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <DataProvider>
+          <AppContent />
+        </DataProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

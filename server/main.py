@@ -1,7 +1,8 @@
-from fastapi import FastAPI, HTTPException, Depends, Header
+from fastapi import FastAPI, HTTPException, Depends, Header, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional
+from datetime import datetime
 import os
 import json
 import re
@@ -23,6 +24,13 @@ from dtos import (
     UpdateProfileRequest,
     ChangePasswordRequest,
     CreateUserRequest,
+    CreateQuizRequest,
+    UpdateQuizRequest,
+    QuizResponse,
+    QuizSettings,
+    UpdateQuestionRequest,
+    CreateAttemptRequest,
+    AttemptResponse,
 )
 from database import get_db, init_db
 from auth import (
@@ -38,6 +46,17 @@ from auth import (
     delete_user,
     lock_user,
     unlock_user,
+    create_quiz,
+    get_quiz_by_id,
+    get_all_quizzes,
+    update_quiz,
+    delete_quiz,
+    update_question_in_quiz,
+    delete_question_from_quiz,
+    create_attempt,
+    get_attempt_by_id,
+    get_attempts_by_student,
+    get_attempts_by_quiz,
 )
 
 load_dotenv()
@@ -584,3 +603,227 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
             status_code=500,
             detail="Error calling Gemini API for overall analysis",
         )
+
+# Quiz endpoints
+@app.get("/api/quizzes", response_model=List[QuizResponse])
+def get_quizzes(
+    created_by: Optional[str] = Query(None),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get all quizzes, optionally filtered by creator"""
+    quizzes = get_all_quizzes(db, created_by)
+    return [
+        QuizResponse(
+            id=q["id"],
+            title=q["title"],
+            description=q.get("description", ""),
+            questions=q["questions"],
+            duration=q["duration"],
+            createdBy=q["createdBy"],
+            createdAt=q.get("createdAt", datetime.utcnow().isoformat()),
+            settings=QuizSettings(**q.get("settings", {"questionCount": len(q.get("questions", []))}))
+        )
+        for q in quizzes
+    ]
+
+@app.get("/api/quizzes/{quiz_id}", response_model=QuizResponse)
+def get_quiz(
+    quiz_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get a specific quiz by ID"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    return QuizResponse(
+        id=quiz["id"],
+        title=quiz["title"],
+        description=quiz.get("description", ""),
+        questions=quiz["questions"],
+        duration=quiz["duration"],
+        createdBy=quiz["createdBy"],
+        createdAt=quiz.get("createdAt", datetime.utcnow().isoformat()),
+        settings=QuizSettings(**quiz.get("settings", {"questionCount": len(quiz.get("questions", []))}))
+    )
+
+@app.post("/api/quizzes", response_model=QuizResponse)
+def create_quiz_endpoint(
+    request: CreateQuizRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Create a new quiz"""
+    quiz_id = f"quiz-{int(time.time() * 1000)}"
+    quiz_data = {
+        "id": quiz_id,
+        "title": request.title,
+        "description": request.description,
+        "questions": [q.model_dump() for q in request.questions],
+        "duration": request.duration,
+        "createdBy": current_user["id"],
+        "createdAt": datetime.utcnow().isoformat(),
+        "settings": request.settings.model_dump()
+    }
+    
+    created_quiz = create_quiz(db, quiz_data)
+    
+    return QuizResponse(
+        id=created_quiz["id"],
+        title=created_quiz["title"],
+        description=created_quiz.get("description", ""),
+        questions=created_quiz["questions"],
+        duration=created_quiz["duration"],
+        createdBy=created_quiz["createdBy"],
+        createdAt=created_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        settings=QuizSettings(**created_quiz.get("settings", {"questionCount": len(created_quiz.get("questions", []))}))
+    )
+
+@app.put("/api/quizzes/{quiz_id}", response_model=QuizResponse)
+def update_quiz_endpoint(
+    quiz_id: str,
+    request: UpdateQuizRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Update a quiz"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Check if user is the creator or admin
+    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="You don't have permission to update this quiz")
+    
+    updates = {}
+    if request.title is not None:
+        updates["title"] = request.title
+    if request.description is not None:
+        updates["description"] = request.description
+    if request.duration is not None:
+        updates["duration"] = request.duration
+    if request.questions is not None:
+        updates["questions"] = [q.model_dump() if hasattr(q, 'model_dump') else q for q in request.questions]
+        # Update questionCount in settings
+        settings = quiz.get("settings", {})
+        settings["questionCount"] = len(request.questions)
+        updates["settings"] = settings
+    
+    updated_quiz = update_quiz(db, quiz_id, updates)
+    if not updated_quiz:
+        raise HTTPException(status_code=400, detail="Failed to update quiz")
+    
+    return QuizResponse(
+        id=updated_quiz["id"],
+        title=updated_quiz["title"],
+        description=updated_quiz.get("description", ""),
+        questions=updated_quiz["questions"],
+        duration=updated_quiz["duration"],
+        createdBy=updated_quiz["createdBy"],
+        createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
+    )
+
+@app.delete("/api/quizzes/{quiz_id}")
+def delete_quiz_endpoint(
+    quiz_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Delete a quiz"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Check if user is the creator or admin
+    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="You don't have permission to delete this quiz")
+    
+    success = delete_quiz(db, quiz_id)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to delete quiz")
+    
+    return {"message": "Quiz deleted successfully"}
+
+@app.put("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse)
+def update_question_endpoint(
+    quiz_id: str,
+    question_id: str,
+    request: UpdateQuestionRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Update a question in a quiz"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Check if user is the creator or admin
+    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="You don't have permission to update this quiz")
+    
+    updates = {}
+    if request.content is not None:
+        updates["content"] = request.content
+    if request.options is not None:
+        updates["options"] = request.options
+    if request.correctAnswer is not None:
+        updates["correctAnswer"] = request.correctAnswer
+    if request.chapter is not None:
+        updates["chapter"] = request.chapter
+    if request.topic is not None:
+        updates["topic"] = request.topic
+    if request.knowledgeType is not None:
+        updates["knowledgeType"] = request.knowledgeType
+    if request.difficulty is not None:
+        updates["difficulty"] = request.difficulty
+    if request.explanation is not None:
+        updates["explanation"] = request.explanation
+    
+    updated_quiz = update_question_in_quiz(db, quiz_id, question_id, updates)
+    if not updated_quiz:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    return QuizResponse(
+        id=updated_quiz["id"],
+        title=updated_quiz["title"],
+        description=updated_quiz.get("description", ""),
+        questions=updated_quiz["questions"],
+        duration=updated_quiz["duration"],
+        createdBy=updated_quiz["createdBy"],
+        createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
+    )
+
+@app.delete("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse)
+def delete_question_endpoint(
+    quiz_id: str,
+    question_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Delete a question from a quiz"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    # Check if user is the creator or admin
+    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="You don't have permission to update this quiz")
+    
+    updated_quiz = delete_question_from_quiz(db, quiz_id, question_id)
+    if not updated_quiz:
+        raise HTTPException(status_code=404, detail="Question not found")
+    
+    return QuizResponse(
+        id=updated_quiz["id"],
+        title=updated_quiz["title"],
+        description=updated_quiz.get("description", ""),
+        questions=updated_quiz["questions"],
+        duration=updated_quiz["duration"],
+        createdBy=updated_quiz["createdBy"],
+        createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
+    )

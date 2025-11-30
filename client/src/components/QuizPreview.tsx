@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
+import { useToast } from '../contexts/ToastContext';
 import { Pencil, Trash2 } from 'lucide-react';
 
 interface QuizPreviewProps {
@@ -8,7 +9,8 @@ interface QuizPreviewProps {
 }
 
 export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
-  const { getQuizById, updateQuestion, deleteQuestion } = useData();
+  const { getQuizById, updateQuestion, deleteQuestion, refreshQuizzes } = useData();
+  const { showToast } = useToast();
   const quiz = getQuizById(quizId);
   const [showAnswers, setShowAnswers] = useState(false);
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
@@ -16,6 +18,8 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
   const [editingOptions, setEditingOptions] = useState<string[]>([]);
   const [editingCorrectAnswer, setEditingCorrectAnswer] = useState(0);
   const [editingExplanation, setEditingExplanation] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const startEditQuestion = (questionId: string) => {
     if (!quiz) return;
@@ -32,25 +36,51 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
     setEditingQuestionId(null);
   };
 
-  const saveQuestion = (questionId: string) => {
+  const saveQuestion = async (questionId: string) => {
     if (!quiz || !editingQuestionId) return;
-    updateQuestion(quiz.id, questionId, {
-      content: editingContent,
-      options: editingOptions,
-      correctAnswer: editingCorrectAnswer,
-      explanation: editingExplanation
-    });
-    setEditingQuestionId(null);
+    
+    setIsSaving(true);
+    try {
+      await updateQuestion(quiz.id, questionId, {
+        content: editingContent,
+        options: editingOptions,
+        correctAnswer: editingCorrectAnswer,
+        explanation: editingExplanation
+      });
+      await refreshQuizzes();
+      setEditingQuestionId(null);
+      showToast('Lưu câu hỏi thành công!', 'success');
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi lưu câu hỏi.',
+        'error'
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteQuestion = (questionId: string) => {
+  const handleDeleteQuestion = async (questionId: string) => {
     if (!quiz) return;
     if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi đề thi?')) {
       return;
     }
-    deleteQuestion(quiz.id, questionId);
-    if (editingQuestionId === questionId) {
-      setEditingQuestionId(null);
+    
+    setIsDeleting(questionId);
+    try {
+      await deleteQuestion(quiz.id, questionId);
+      await refreshQuizzes();
+      if (editingQuestionId === questionId) {
+        setEditingQuestionId(null);
+      }
+      showToast('Xóa câu hỏi thành công!', 'success');
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa câu hỏi.',
+        'error'
+      );
+    } finally {
+      setIsDeleting(null);
     }
   };
 
@@ -106,7 +136,9 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
           <div className="flex flex-wrap gap-3 text-xs text-gray-500">
             <span>{quiz.questions.length} câu hỏi</span>
             <span>{quiz.duration} phút làm bài</span>
-            {quiz.settings.chapter && <span>Chương: {quiz.settings.chapter}</span>}
+            {quiz.settings.chapter && (
+              <span>{quiz.settings.chapter.startsWith('Chương') ? quiz.settings.chapter : `Chương: ${quiz.settings.chapter}`}</span>
+            )}
             {quiz.settings.difficulty && (
               <span>Độ khó: {getDifficultyLabel(quiz.settings.difficulty)}</span>
             )}
@@ -156,7 +188,8 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                     <button
                       type="button"
                       onClick={() => handleDeleteQuestion(question.id)}
-                      className="px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 text-xs"
+                      disabled={isDeleting === question.id}
+                      className="px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                       title="Xóa câu hỏi"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -242,7 +275,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                 )}
 
                 <div className="mt-3 flex flex-wrap gap-3 text-[11px] text-gray-500">
-                  <span>Chương: {question.chapter}</span>
+                  <span>{question.chapter.startsWith('Chương') ? question.chapter : `Chương: ${question.chapter}`}</span>
                   <span>Chủ đề: {question.topic}</span>
                 </div>
 
@@ -258,9 +291,10 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                     <button
                       type="button"
                       onClick={() => saveQuestion(question.id)}
-                      className="px-3 py-1.5 rounded-lg bg-[#124874] text-white hover:bg-[#0d3351] text-xs"
+                      disabled={isSaving}
+                      className="px-3 py-1.5 rounded-lg bg-[#124874] text-white hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                     >
-                      Lưu câu hỏi
+                      {isSaving ? 'Đang lưu...' : 'Lưu câu hỏi'}
                     </button>
                   </div>
                 )}

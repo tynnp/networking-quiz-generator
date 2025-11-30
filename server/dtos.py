@@ -1,4 +1,5 @@
 from typing import List, Optional, Literal, Dict
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 class GenerateQuestionsRequest(BaseModel):
@@ -87,3 +88,60 @@ class UpdateProfileRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     current_password: str
     new_password: str = Field(..., min_length=6)
+
+# Quiz DTOs
+class QuizSettings(BaseModel):
+    chapter: Optional[str] = None
+    topic: Optional[str] = None
+    knowledgeTypes: Optional[List[str]] = None
+    difficulty: Optional[str] = None
+    questionCount: int
+
+class CreateQuizRequest(BaseModel):
+    title: str
+    description: str = ""
+    questions: List[Question]
+    duration: int = Field(..., gt=0)
+    settings: QuizSettings
+
+class UpdateQuizRequest(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    duration: Optional[int] = Field(None, gt=0)
+    questions: Optional[List[Question]] = None
+
+class QuizResponse(BaseModel):
+    id: str
+    title: str
+    description: str
+    questions: List[Question]
+    duration: int
+    createdBy: str
+    createdAt: str
+    settings: QuizSettings
+
+class UpdateQuestionRequest(BaseModel):
+    content: Optional[str] = None
+    options: Optional[List[str]] = None
+    correctAnswer: Optional[int] = None
+    chapter: Optional[str] = None
+    topic: Optional[str] = None
+    knowledgeType: Optional[str] = None
+    difficulty: Optional[str] = None
+    explanation: Optional[str] = None
+
+# Quiz Attempt DTOs
+class CreateAttemptRequest(BaseModel):
+    quizId: str
+    answers: Dict[str, int]
+    score: float
+    timeSpent: int
+
+class AttemptResponse(BaseModel):
+    id: str
+    quizId: str
+    studentId: str
+    answers: Dict[str, int]
+    score: float
+    completedAt: str
+    timeSpent: int

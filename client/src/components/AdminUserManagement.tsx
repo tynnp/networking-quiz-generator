@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { User } from '../types';
 import { getUsers, createUser, deleteUser, lockUser, unlockUser, CreateUserRequest } from '../services/api';
 import { UserPlus, Trash2, Lock, Unlock, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AdminUserManagement() {
   const { user: currentUser } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,8 +91,11 @@ export default function AdminUserManagement() {
       setShowCreateModal(false);
       setNewUser({ email: '', password: '', name: '', role: 'student' });
       await loadUsers();
+      showToast('Tạo người dùng thành công!', 'success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không thể tạo người dùng');
+      const errorMessage = err instanceof Error ? err.message : 'Không thể tạo người dùng';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsCreating(false);
     }
@@ -107,8 +112,11 @@ export default function AdminUserManagement() {
     try {
       await deleteUser(userId);
       await loadUsers();
+      showToast('Xóa người dùng thành công!', 'success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không thể xóa người dùng');
+      const errorMessage = err instanceof Error ? err.message : 'Không thể xóa người dùng';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsDeleting(null);
     }
@@ -121,8 +129,11 @@ export default function AdminUserManagement() {
     try {
       await lockUser(userId);
       await loadUsers();
+      showToast('Khóa người dùng thành công!', 'success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không thể khóa người dùng');
+      const errorMessage = err instanceof Error ? err.message : 'Không thể khóa người dùng';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLocking(null);
     }
@@ -135,8 +146,11 @@ export default function AdminUserManagement() {
     try {
       await unlockUser(userId);
       await loadUsers();
+      showToast('Mở khóa người dùng thành công!', 'success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Không thể mở khóa người dùng');
+      const errorMessage = err instanceof Error ? err.message : 'Không thể mở khóa người dùng';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsLocking(null);
     }

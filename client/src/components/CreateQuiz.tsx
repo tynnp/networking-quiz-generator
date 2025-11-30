@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Quiz } from '../types';
 import { generateQuestions } from '../services/gemini';
 
@@ -90,6 +91,7 @@ const difficulties = [
 export default function CreateQuiz() {
   const { addQuiz } = useData();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedChapter, setSelectedChapter] = useState('');
@@ -102,7 +104,7 @@ export default function CreateQuiz() {
 
   const handleGenerateQuiz = async () => {
     if (!title) {
-      alert('Vui lòng nhập tiêu đề đề thi');
+      showToast('Vui lòng nhập tiêu đề đề thi', 'warning');
       return;
     }
 
@@ -134,11 +136,14 @@ export default function CreateQuiz() {
         }
       };
 
-      addQuiz(newQuiz);
-      alert('Tạo đề thành công!');
+      await addQuiz(newQuiz);
+      showToast('Tạo đề thành công!', 'success');
       resetForm();
     } catch (error) {
-      alert('Có lỗi xảy ra khi tạo đề. Vui lòng thử lại.');
+      showToast(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo đề. Vui lòng thử lại.',
+        'error'
+      );
       console.error('Error creating quiz:', error);
     } finally {
       setGenerating(false);

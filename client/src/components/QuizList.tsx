@@ -1,5 +1,6 @@
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { Eye, PlayCircle, Trash2 } from 'lucide-react';
 
 interface QuizListProps {
@@ -8,10 +9,11 @@ interface QuizListProps {
 }
 
 export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
-  const { quizzes, deleteQuiz } = useData();
+  const { quizzes, deleteQuiz, loading } = useData();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
-  const handleDeleteQuiz = (quizId: string) => {
+  const handleDeleteQuiz = async (quizId: string) => {
     const quiz = quizzes.find(q => q.id === quizId);
     if (!quiz) return;
 
@@ -19,7 +21,15 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
       return;
     }
 
-    deleteQuiz(quizId);
+    try {
+      await deleteQuiz(quizId);
+      showToast('Xóa đề thành công!', 'success');
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa đề.',
+        'error'
+      );
+    }
   };
 
   return (
@@ -28,12 +38,17 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
         <h2 className="block-title__title">DANH SÁCH ĐỀ THI</h2>
       </div>
       <div className="bg-white rounded-xl shadow-md p-5">
-        <div className="space-y-3">
-          {quizzes.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              Chưa có đề thi nào
-            </div>
-          ) : (
+        {loading ? (
+          <div className="text-center py-8 text-gray-500">
+            Đang tải danh sách đề thi...
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {quizzes.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Chưa có đề thi nào
+              </div>
+            ) : (
             quizzes.map(quiz => (
               <div
                 key={quiz.id}
@@ -112,8 +127,9 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                 </div>
               </div>
             ))
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye } from 'lucide-react';
@@ -7,8 +8,13 @@ interface MyResultsProps {
 }
 
 export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
-  const { attempts, quizzes } = useData();
+  const { attempts, quizzes, attemptsLoading, refreshAttempts } = useData();
   const { user } = useAuth();
+
+  // Refresh attempts when component mounts
+  useEffect(() => {
+    refreshAttempts();
+  }, []);
 
   const myAttempts = attempts.filter(a => a.studentId === user?.id);
 
@@ -34,8 +40,11 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
         <h2 className="block-title__title">KẾT QUẢ CỦA TÔI</h2>
       </div>
       <div className="bg-white rounded-xl shadow-md p-5">
-
-        {myAttempts.length === 0 ? (
+        {attemptsLoading ? (
+          <div className="text-center py-8 text-gray-500">
+            Đang tải kết quả...
+          </div>
+        ) : myAttempts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             Bạn chưa làm bài thi nào
           </div>

@@ -86,6 +86,111 @@ def unlock_user(db: Database, user_id: str) -> bool:
     )
     return result.modified_count > 0
 
+# Quiz functions
+def create_quiz(db: Database, quiz_data: dict) -> dict:
+    """Create a new quiz"""
+    db.quizzes.insert_one(quiz_data)
+    return quiz_data
+
+def get_quiz_by_id(db: Database, quiz_id: str) -> Optional[dict]:
+    """Get quiz by ID"""
+    return db.quizzes.find_one({"id": quiz_id})
+
+def get_all_quizzes(db: Database, created_by: Optional[str] = None) -> List[dict]:
+    """Get all quizzes, optionally filtered by creator"""
+    query = {} if not created_by else {"createdBy": created_by}
+    return list(db.quizzes.find(query).sort("createdAt", -1))
+
+def update_quiz(db: Database, quiz_id: str, updates: dict) -> Optional[dict]:
+    """Update quiz information"""
+    update_data = {k: v for k, v in updates.items() if v is not None and k != "id"}
+    
+    if not update_data:
+        return get_quiz_by_id(db, quiz_id)
+    
+    result = db.quizzes.update_one(
+        {"id": quiz_id},
+        {"$set": update_data}
+    )
+    
+    if result.modified_count > 0 or result.matched_count > 0:
+        return get_quiz_by_id(db, quiz_id)
+    return None
+
+def delete_quiz(db: Database, quiz_id: str) -> bool:
+    """Delete a quiz"""
+    result = db.quizzes.delete_one({"id": quiz_id})
+    return result.deleted_count > 0
+
+def update_question_in_quiz(db: Database, quiz_id: str, question_id: str, updates: dict) -> Optional[dict]:
+    """Update a question in a quiz"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        return None
+    
+    questions = quiz.get("questions", [])
+    updated_questions = []
+    found = False
+    
+    for q in questions:
+        if q.get("id") == question_id:
+            updated_questions.append({**q, **updates})
+            found = True
+        else:
+            updated_questions.append(q)
+    
+    if not found:
+        return None
+    
+    result = db.quizzes.update_one(
+        {"id": quiz_id},
+        {"$set": {"questions": updated_questions}}
+    )
+    
+    if result.modified_count > 0:
+        return get_quiz_by_id(db, quiz_id)
+    return None
+
+def delete_question_from_quiz(db: Database, quiz_id: str, question_id: str) -> Optional[dict]:
+    """Delete a question from a quiz"""
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        return None
+    
+    questions = quiz.get("questions", [])
+    updated_questions = [q for q in questions if q.get("id") != question_id]
+    
+    # Update questionCount in settings
+    settings = quiz.get("settings", {})
+    settings["questionCount"] = len(updated_questions)
+    
+    result = db.quizzes.update_one(
+        {"id": quiz_id},
+        {"$set": {"questions": updated_questions, "settings": settings}}
+    )
+    
+    if result.modified_count > 0:
+        return get_quiz_by_id(db, quiz_id)
+    return None
+
+# Attempt functions
+def create_attempt(db: Database, attempt_data: dict) -> dict:
+    """Create a new quiz attempt"""
+    db.attempts.insert_one(attempt_data)
+    return attempt_data
+
+def get_attempt_by_id(db: Database, attempt_id: str) -> Optional[dict]:
+    """Get attempt by ID"""
+    return db.attempts.find_one({"id": attempt_id})
+
+def get_attempts_by_student(db: Database, student_id: str) -> List[dict]:
+    """Get all attempts by a student"""
+    return list(db.attempts.find({"studentId": student_id}).sort("completedAt", -1))
+
+def get_attempts_by_quiz(db: Database, quiz_id: str) -> List[dict]:
+    """Get all attempts for a quiz"""
+    return list(db.attempts.find({"quizId": quiz_id}).sort("completedAt", -1))
+
 def update_user(db: Database, user_id: str, updates: dict) -> Optional[dict]:
     """Update user information"""
     # Remove None values and id from updates
