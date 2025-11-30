@@ -1,21 +1,37 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { UserCircle } from 'lucide-react';
+import { updateProfile, changePassword } from '../services/api';
 
 export default function Profile() {
-  const { user, updateUser } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const [fullName, setFullName] = useState(user?.name ?? '');
   const [dob, setDob] = useState(user?.dob ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Sync state when user changes
+  useEffect(() => {
+    if (user) {
+      setFullName(user.name ?? '');
+      setDob(user.dob ?? '');
+      setPhone(user.phone ?? '');
+    }
+  }, [user]);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   const handleStartEdit = () => {
     setIsEditing(true);
+    setProfileError(null);
   };
 
   const handleCancelEdit = () => {
@@ -23,30 +39,70 @@ export default function Profile() {
     setDob(user?.dob ?? '');
     setPhone(user?.phone ?? '');
     setIsEditing(false);
+    setProfileError(null);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     if (!user) return;
-    updateUser({ name: fullName, dob, phone });
-    setIsEditing(false);
-    alert('Đã lưu thông tin cá nhân (demo, chưa lưu lên server).');
+    
+    setIsSaving(true);
+    setProfileError(null);
+    
+    try {
+      const updates: { name?: string; dob?: string; phone?: string } = {};
+      if (fullName !== user.name) updates.name = fullName;
+      if (dob !== user.dob) updates.dob = dob || undefined;
+      if (phone !== user.phone) updates.phone = phone || undefined;
+
+      // Only call API if there are changes
+      if (Object.keys(updates).length > 0) {
+        await updateProfile(updates);
+        await refreshUser(); // Refresh user data from server
+      }
+      
+      setIsEditing(false);
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật thông tin');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      alert('Vui lòng nhập đầy đủ thông tin mật khẩu.');
+      setPasswordError('Vui lòng nhập đầy đủ thông tin mật khẩu.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert('Mật khẩu mới và xác nhận mật khẩu không khớp.');
+      setPasswordError('Mật khẩu mới và xác nhận mật khẩu không khớp.');
       return;
     }
 
-    alert('Đổi mật khẩu chỉ là giao diện demo, chưa kết nối server.');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    setIsChangingPassword(true);
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    try {
+      await changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      
+      setPasswordSuccess('Đổi mật khẩu thành công!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      setPasswordError(error instanceof Error ? error.message : 'Có lỗi xảy ra khi đổi mật khẩu');
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   if (!user) {
@@ -69,6 +125,13 @@ export default function Profile() {
 
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="space-y-6">
+          {/* Error message for profile update */}
+          {profileError && (
+            <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {profileError}
+            </div>
+          )}
+
           {/* Thông tin tài khoản */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -166,16 +229,18 @@ export default function Profile() {
                 <button
                   type="button"
                   onClick={handleCancelEdit}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
                   Hủy
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveProfile}
-                  className="px-4 py-2 bg-[#124874] text-white rounded-lg text-sm hover:bg-[#0d3351]"
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-[#124874] text-white rounded-lg text-sm hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Lưu thông tin
+                  {isSaving ? 'Đang lưu...' : 'Lưu thông tin'}
                 </button>
               </>
             )}
@@ -184,6 +249,21 @@ export default function Profile() {
           {/* Đổi mật khẩu */}
           <div className="pt-4 mt-2 border-t border-gray-200">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">Đổi mật khẩu</h3>
+            
+            {/* Success message */}
+            {passwordSuccess && (
+              <div className="mb-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
+                {passwordSuccess}
+              </div>
+            )}
+
+            {/* Error message */}
+            {passwordError && (
+              <div className="mb-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                {passwordError}
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -193,7 +273,8 @@ export default function Profile() {
                   type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  disabled={isChangingPassword}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50"
                 />
               </div>
 
@@ -205,7 +286,8 @@ export default function Profile() {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  disabled={isChangingPassword}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50"
                 />
               </div>
 
@@ -217,7 +299,8 @@ export default function Profile() {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  disabled={isChangingPassword}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50"
                 />
               </div>
             </div>
@@ -226,9 +309,10 @@ export default function Profile() {
               <button
                 type="button"
                 onClick={handleChangePassword}
-                className="px-4 py-2 bg-[#124874] text-white rounded-lg text-sm hover:bg-[#0d3351]"
+                disabled={isChangingPassword}
+                className="px-4 py-2 bg-[#124874] text-white rounded-lg text-sm hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Đổi mật khẩu
+                {isChangingPassword ? 'Đang xử lý...' : 'Đổi mật khẩu'}
               </button>
             </div>
           </div>

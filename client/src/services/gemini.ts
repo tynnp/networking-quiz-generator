@@ -1,4 +1,5 @@
 import { Question, AiResultFeedback, KnowledgeAnalysis } from '../types';
+import { apiRequest } from './api';
 
 interface GenerateQuestionsParams {
   chapter?: string;
@@ -25,20 +26,11 @@ interface AnalyzeOverallParams {
 
 export async function generateQuestions(params: GenerateQuestionsParams): Promise<Question[]> {
   try {
-    const response = await fetch('http://localhost:8000/api/generate-questions', {
+    const data = await apiRequest<{ questions: Question[] }>('/api/generate-questions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(params),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to generate questions');
-    }
-
-    const data = await response.json();
-    return data.questions as Question[];
+    return data.questions;
   } catch (error) {
     console.error('Error generating questions:', error);
     throw error;
@@ -47,20 +39,11 @@ export async function generateQuestions(params: GenerateQuestionsParams): Promis
 
 export async function analyzeResult(params: AnalyzeResultParams): Promise<AiResultFeedback> {
   try {
-    const response = await fetch('http://localhost:8000/api/analyze-result', {
+    const data = await apiRequest<AiResultFeedback>('/api/analyze-result', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(params),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to analyze result');
-    }
-
-    const data = await response.json();
-    return data as AiResultFeedback;
+    return data;
   } catch (error) {
     console.error('Error analyzing result:', error);
     throw error;
@@ -69,20 +52,11 @@ export async function analyzeResult(params: AnalyzeResultParams): Promise<AiResu
 
 export async function analyzeOverall(params: AnalyzeOverallParams): Promise<AiResultFeedback> {
   try {
-    const response = await fetch('http://localhost:8000/api/analyze-overall', {
+    const data = await apiRequest<AiResultFeedback>('/api/analyze-overall', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(params),
     });
-
-    if (!response.ok) {
-      throw new Error('Failed to analyze overall results');
-    }
-
-    const data = await response.json();
-    return data as AiResultFeedback;
+    return data;
   } catch (error) {
     console.error('Error analyzing overall results:', error);
     throw error;

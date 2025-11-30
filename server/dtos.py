@@ -49,3 +49,34 @@ class AnalyzeOverallRequest(BaseModel):
     attemptCount: int
     avgScore: float
     knowledgeAnalysis: List[KnowledgeAnalysisItem]
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    name: str
+
+class UserResponse(BaseModel):
+    id: str
+    email: str
+    name: str
+    role: Literal["student", "admin"]
+    dob: Optional[str] = None
+    phone: Optional[str] = None
+
+class AuthResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+class UpdateProfileRequest(BaseModel):
+    name: Optional[str] = None
+    dob: Optional[str] = None
+    phone: Optional[str] = None
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6)

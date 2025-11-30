@@ -3,3 +3,7 @@ uvicorn[standard]
 requests
 google-genai
 python-dotenv
+python-jose[cryptography]
+bcrypt
+python-multipart
+pymongo

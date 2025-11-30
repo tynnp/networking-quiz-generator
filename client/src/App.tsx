@@ -14,11 +14,19 @@ import AttemptDetail from './components/AttemptDetail';
 import AiResultFeedback from './components/AiResultFeedback';
 
 function AppContent() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [currentView, setCurrentView] = useState('quiz-list');
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
   const [isSnowEnabled, setIsSnowEnabled] = useState(true);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Đang tải...</div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Login />;

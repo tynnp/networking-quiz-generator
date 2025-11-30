@@ -1,12 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from typing import List, Optional
 import os
 import json
 import re
 import time
 from dotenv import load_dotenv
 from google import genai
+from pymongo.database import Database
 from dtos import (
     AnalyzeOverallRequest,
     AnalyzeResultRequest,
@@ -14,6 +16,23 @@ from dtos import (
     GenerateQuestionsRequest,
     Question,
     GenerateQuestionsResponse,
+    LoginRequest,
+    RegisterRequest,
+    AuthResponse,
+    UserResponse,
+    UpdateProfileRequest,
+    ChangePasswordRequest,
+)
+from database import get_db, init_db
+from auth import (
+    verify_password,
+    create_access_token,
+    verify_token,
+    get_user_by_email,
+    create_user,
+    get_user_by_id,
+    update_user,
+    update_user_password,
 )
 
 load_dotenv()
@@ -31,6 +50,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Initialize database
+init_db()
+
+security = HTTPBearer()
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
 print("GOOGLE_API_KEY configured:", bool(API_KEY))
@@ -213,9 +237,147 @@ def parse_generated_questions(
         print("Error parsing questions from LLM:", exc)
         raise
 
+def get_current_user(
+    authorization: Optional[str] = Header(None),
+    db: Database = Depends(get_db)
+) -> dict:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        # Remove "Bearer " prefix if present
+        token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
+        payload = verify_token(token)
+        if not payload:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        user = get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return user
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 @app.get("/")
 def root():
     return {"status": "running"}
+
+@app.post("/api/auth/register", response_model=AuthResponse)
+def register(request: RegisterRequest, db: Database = Depends(get_db)):
+    # Check if user already exists
+    existing_user = get_user_by_email(db, request.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user = create_user(db, request.email, request.password, request.name)
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user["id"]})
+    
+    return AuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user["id"],
+            email=user["email"],
+            name=user["name"],
+            role=user["role"],  # type: ignore[arg-type]
+            dob=user.get("dob"),
+            phone=user.get("phone")
+        )
+    )
+
+@app.post("/api/auth/login", response_model=AuthResponse)
+def login(request: LoginRequest, db: Database = Depends(get_db)):
+    # Find user by email
+    user = get_user_by_email(db, request.email)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Verify password
+    if not verify_password(request.password, user["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Create access token
+    access_token = create_access_token(data={"sub": user["id"]})
+    
+    return AuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user["id"],
+            email=user["email"],
+            name=user["name"],
+            role=user["role"],  # type: ignore[arg-type]
+            dob=user.get("dob"),
+            phone=user.get("phone")
+        )
+    )
+
+@app.get("/api/auth/me", response_model=UserResponse)
+def get_me(current_user: dict = Depends(get_current_user)):
+    return UserResponse(
+        id=current_user["id"],
+        email=current_user["email"],
+        name=current_user["name"],
+        role=current_user["role"],  # type: ignore[arg-type]
+        dob=current_user.get("dob"),
+        phone=current_user.get("phone")
+    )
+
+@app.put("/api/auth/profile", response_model=UserResponse)
+def update_profile(
+    request: UpdateProfileRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Update user profile information"""
+    updates = {}
+    if request.name is not None:
+        updates["name"] = request.name
+    if request.dob is not None:
+        updates["dob"] = request.dob
+    if request.phone is not None:
+        updates["phone"] = request.phone
+    
+    updated_user = update_user(db, current_user["id"], updates)
+    if not updated_user:
+        raise HTTPException(status_code=400, detail="Failed to update profile")
+    
+    return UserResponse(
+        id=updated_user["id"],
+        email=updated_user["email"],
+        name=updated_user["name"],
+        role=updated_user["role"],  # type: ignore[arg-type]
+        dob=updated_user.get("dob"),
+        phone=updated_user.get("phone")
+    )
+
+@app.put("/api/auth/change-password")
+def change_password(
+    request: ChangePasswordRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Change user password"""
+    # Verify current password
+    if not verify_password(request.current_password, current_user["hashed_password"]):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    
+    # Update password
+    success = update_user_password(db, current_user["id"], request.new_password)
+    if not success:
+        raise HTTPException(status_code=400, detail="Failed to update password")
+    
+    return {"message": "Password updated successfully"}
 
 @app.post("/api/generate-questions", response_model=GenerateQuestionsResponse)
 def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
