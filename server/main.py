@@ -816,3 +816,87 @@ def delete_question_endpoint(
         createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
+
+# Attempt endpoints
+@app.post("/api/attempts", response_model=AttemptResponse)
+def create_attempt_endpoint(
+    request: CreateAttemptRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Create a new quiz attempt"""
+    quiz = get_quiz_by_id(db, request.quizId)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    
+    attempt_id = f"attempt-{int(time.time() * 1000)}"
+    attempt_data = {
+        "id": attempt_id,
+        "quizId": request.quizId,
+        "studentId": current_user["id"],
+        "answers": request.answers,
+        "score": request.score,
+        "timeSpent": request.timeSpent,
+        "completedAt": datetime.utcnow().isoformat()
+    }
+    
+    created_attempt = create_attempt(db, attempt_data)
+    
+    return AttemptResponse(
+        id=created_attempt["id"],
+        quizId=created_attempt["quizId"],
+        studentId=created_attempt["studentId"],
+        answers=created_attempt["answers"],
+        score=created_attempt["score"],
+        completedAt=created_attempt["completedAt"],
+        timeSpent=created_attempt["timeSpent"]
+    )
+
+@app.get("/api/attempts", response_model=List[AttemptResponse])
+def get_attempts_endpoint(
+    quiz_id: Optional[str] = Query(None, alias="quiz_id"),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get all attempts, optionally filtered by quiz_id"""
+    if quiz_id:
+        attempts = get_attempts_by_quiz(db, quiz_id)
+    else:
+        attempts = get_attempts_by_student(db, current_user["id"])
+    
+    return [
+        AttemptResponse(
+            id=a["id"],
+            quizId=a["quizId"],
+            studentId=a["studentId"],
+            answers=a["answers"],
+            score=a["score"],
+            completedAt=a["completedAt"],
+            timeSpent=a["timeSpent"]
+        )
+        for a in attempts
+    ]
+
+@app.get("/api/attempts/{attempt_id}", response_model=AttemptResponse)
+def get_attempt_endpoint(
+    attempt_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get a specific attempt by ID"""
+    attempt = get_attempt_by_id(db, attempt_id)
+    if not attempt:
+        raise HTTPException(status_code=404, detail="Attempt not found")
+    
+    if attempt["studentId"] != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="You don't have permission to view this attempt")
+    
+    return AttemptResponse(
+        id=attempt["id"],
+        quizId=attempt["quizId"],
+        studentId=attempt["studentId"],
+        answers=attempt["answers"],
+        score=attempt["score"],
+        completedAt=attempt["completedAt"],
+        timeSpent=attempt["timeSpent"]
+    )
