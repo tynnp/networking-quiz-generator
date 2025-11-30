@@ -162,7 +162,14 @@ export default function AdminUserManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map((user) => (
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                    Chưa có người dùng nào
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                     {user.name}
@@ -194,41 +201,47 @@ export default function AdminUserManagement() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
-                      {user.id !== currentUser?.id && (
+                      {user.id !== currentUser?.id ? (
                         <>
                           {user.isLocked ? (
                             <button
                               onClick={() => handleUnlockUser(user.id)}
                               disabled={isLocking === user.id}
-                              className="text-green-600 hover:text-green-800 disabled:opacity-50"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               title="Mở khóa"
                             >
                               <Unlock className="w-4 h-4" />
+                              <span className="text-xs font-medium">Mở khóa</span>
                             </button>
                           ) : (
                             <button
                               onClick={() => handleLockUser(user.id)}
                               disabled={isLocking === user.id}
-                              className="text-yellow-600 hover:text-yellow-800 disabled:opacity-50"
+                              className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               title="Khóa"
                             >
                               <Lock className="w-4 h-4" />
+                              <span className="text-xs font-medium">Khóa</span>
                             </button>
                           )}
                           <button
                             onClick={() => handleDeleteUser(user.id)}
                             disabled={isDeleting === user.id}
-                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             title="Xóa"
                           >
                             <Trash2 className="w-4 h-4" />
+                            <span className="text-xs font-medium">Xóa</span>
                           </button>
                         </>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Tài khoản của bạn</span>
                       )}
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>
