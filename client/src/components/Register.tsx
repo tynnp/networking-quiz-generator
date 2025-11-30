@@ -1,0 +1,183 @@
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+
+interface RegisterProps {
+  onSwitchToLogin: () => void;
+}
+
+export default function Register({ onSwitchToLogin }: RegisterProps) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { register } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    // Validation
+    if (!name.trim()) {
+      setError('Vui lòng nhập họ và tên.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự.');
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      await register(email, password, name);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50">
+      {/* Left: large image (3/5 on desktop) */}
+      <div className="hidden md:block md:w-2/3">
+        <img
+          src="/login.png"
+          alt="Hình trường Đại học Sư phạm Thành phố Hồ Chí Minh"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Right: register area (2/5 on desktop) */}
+      <div className="flex-1 md:w-1/3 flex items-center justify-center py-6 md:py-8 px-4 md:px-6 bg-[#dddddd]">
+        <div className="w-full max-w-md">
+          {/* Logo + system title */}
+          <div className="flex flex-col items-center mb-6">
+            <img
+              src="/logo-hcmue.png"
+              alt="Logo trường Đại học Sư phạm Thành phố Hồ Chí Minh"
+              className="w-44 h-22 object-contain mb-2"
+            />
+            <h1 className="text-center text-xl md:text-2xl font-extrabold text-[#124874] tracking-wide uppercase">
+              HỆ THỐNG TRẮC NGHIỆM
+              <br />
+              MẠNG MÁY TÍNH
+            </h1>
+          </div>
+
+          {/* Register card */}
+          <div className="bg-white rounded-2xl shadow-md w-full px-5 pt-4 pb-6 md:px-6 md:pt-5 md:pb-7">
+            <h2 className="text-2xl font-extrabold text-[#CF373D] text-center mb-4 uppercase">
+              Đăng ký
+            </h2>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Họ và tên
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  placeholder="Nguyễn Văn A"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  placeholder="student@example.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mật khẩu
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+                <p className="text-xs text-gray-400 mt-1">Mật khẩu phải có ít nhất 6 ký tự.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Xác nhận mật khẩu
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  placeholder="••••••••"
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#124874] text-white py-2 rounded-xl hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm"
+              >
+                {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+              </button>
+            </form>
+
+            {/* Switch to login */}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Đã có tài khoản?{' '}
+                <button
+                  type="button"
+                  onClick={onSwitchToLogin}
+                  className="text-[#124874] font-semibold hover:underline"
+                >
+                  Đăng nhập ngay
+                </button>
+              </p>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <p className="mt-4 text-xs text-gray-500 text-center">
+            © 2025 Nhóm đồ án Trí tuệ nhân tạo của Nguyễn Ngọc Phú Tỷ
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+

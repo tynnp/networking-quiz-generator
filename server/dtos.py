@@ -66,6 +66,13 @@ class UserResponse(BaseModel):
     role: Literal["student", "admin"]
     dob: Optional[str] = None
     phone: Optional[str] = None
+    isLocked: bool = False
+
+class CreateUserRequest(BaseModel):
+    email: str
+    password: str = Field(..., min_length=6)
+    name: str
+    role: Literal["student", "admin"] = "student"
 
 class AuthResponse(BaseModel):
     access_token: str

@@ -22,6 +22,7 @@ from dtos import (
     UserResponse,
     UpdateProfileRequest,
     ChangePasswordRequest,
+    CreateUserRequest,
 )
 from database import get_db, init_db
 from auth import (
@@ -33,6 +34,10 @@ from auth import (
     get_user_by_id,
     update_user,
     update_user_password,
+    get_all_users,
+    delete_user,
+    lock_user,
+    unlock_user,
 )
 
 load_dotenv()
@@ -265,35 +270,22 @@ def get_current_user(
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+def get_admin_user(
+    current_user: dict = Depends(get_current_user)
+) -> dict:
+    """Dependency to check if user is admin"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Forbidden: Admin access required")
+    return current_user
+
 @app.get("/")
 def root():
     return {"status": "running"}
 
-@app.post("/api/auth/register", response_model=AuthResponse)
-def register(request: RegisterRequest, db: Database = Depends(get_db)):
-    # Check if user already exists
-    existing_user = get_user_by_email(db, request.email)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Create new user
-    user = create_user(db, request.email, request.password, request.name)
-    
-    # Create access token
-    access_token = create_access_token(data={"sub": user["id"]})
-    
-    return AuthResponse(
-        access_token=access_token,
-        token_type="bearer",
-        user=UserResponse(
-            id=user["id"],
-            email=user["email"],
-            name=user["name"],
-            role=user["role"],  # type: ignore[arg-type]
-            dob=user.get("dob"),
-            phone=user.get("phone")
-        )
-    )
+# Register endpoint disabled - only admin can create users
+# @app.post("/api/auth/register", response_model=AuthResponse)
+# def register(request: RegisterRequest, db: Database = Depends(get_db)):
+#     ...
 
 @app.post("/api/auth/login", response_model=AuthResponse)
 def login(request: LoginRequest, db: Database = Depends(get_db)):
@@ -301,6 +293,10 @@ def login(request: LoginRequest, db: Database = Depends(get_db)):
     user = get_user_by_email(db, request.email)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    # Check if user is locked
+    if user.get("isLocked", False):
+        raise HTTPException(status_code=403, detail="Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.")
     
     # Verify password
     if not verify_password(request.password, user["hashed_password"]):
@@ -318,7 +314,8 @@ def login(request: LoginRequest, db: Database = Depends(get_db)):
             name=user["name"],
             role=user["role"],  # type: ignore[arg-type]
             dob=user.get("dob"),
-            phone=user.get("phone")
+            phone=user.get("phone"),
+            isLocked=user.get("isLocked", False)
         )
     )
 
@@ -330,7 +327,8 @@ def get_me(current_user: dict = Depends(get_current_user)):
         name=current_user["name"],
         role=current_user["role"],  # type: ignore[arg-type]
         dob=current_user.get("dob"),
-        phone=current_user.get("phone")
+        phone=current_user.get("phone"),
+        isLocked=current_user.get("isLocked", False)
     )
 
 @app.put("/api/auth/profile", response_model=UserResponse)
@@ -358,7 +356,8 @@ def update_profile(
         name=updated_user["name"],
         role=updated_user["role"],  # type: ignore[arg-type]
         dob=updated_user.get("dob"),
-        phone=updated_user.get("phone")
+        phone=updated_user.get("phone"),
+        isLocked=updated_user.get("isLocked", False)
     )
 
 @app.put("/api/auth/change-password")
@@ -378,6 +377,99 @@ def change_password(
         raise HTTPException(status_code=400, detail="Failed to update password")
     
     return {"message": "Password updated successfully"}
+
+# Admin endpoints
+@app.get("/api/admin/users", response_model=List[UserResponse])
+def get_all_users_admin(
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Get all users (admin only)"""
+    users = get_all_users(db)
+    return [
+        UserResponse(
+            id=u["id"],
+            email=u["email"],
+            name=u["name"],
+            role=u["role"],  # type: ignore[arg-type]
+            dob=u.get("dob"),
+            phone=u.get("phone"),
+            isLocked=u.get("isLocked", False)
+        )
+        for u in users
+    ]
+
+@app.post("/api/admin/users", response_model=UserResponse)
+def create_user_admin(
+    request: CreateUserRequest,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Create a new user (admin only)"""
+    # Check if user already exists
+    existing_user = get_user_by_email(db, request.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user = create_user(db, request.email, request.password, request.name, request.role)
+    
+    return UserResponse(
+        id=user["id"],
+        email=user["email"],
+        name=user["name"],
+        role=user["role"],  # type: ignore[arg-type]
+        dob=user.get("dob"),
+        phone=user.get("phone"),
+        isLocked=user.get("isLocked", False)
+    )
+
+@app.delete("/api/admin/users/{user_id}")
+def delete_user_admin(
+    user_id: str,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Delete a user (admin only)"""
+    # Prevent deleting yourself
+    if user_id == admin_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    success = delete_user(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User deleted successfully"}
+
+@app.put("/api/admin/users/{user_id}/lock")
+def lock_user_admin(
+    user_id: str,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Lock a user (admin only)"""
+    # Prevent locking yourself
+    if user_id == admin_user["id"]:
+        raise HTTPException(status_code=400, detail="Cannot lock your own account")
+    
+    success = lock_user(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User locked successfully"}
+
+@app.put("/api/admin/users/{user_id}/unlock")
+def unlock_user_admin(
+    user_id: str,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Unlock a user (admin only)"""
+    success = unlock_user(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {"message": "User unlocked successfully"}
 
 @app.post("/api/generate-questions", response_model=GenerateQuestionsResponse)
 def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:

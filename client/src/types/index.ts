@@ -5,6 +5,7 @@ export interface User {
   role: 'student' | 'admin';
   dob?: string;
   phone?: string;
+  isLocked?: boolean;
 }
 
 export interface Question {

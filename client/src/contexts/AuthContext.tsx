@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-import { apiRequest, setAuthToken, removeAuthToken, getAuthToken } from '../services/api';
+import { apiRequest, setAuthToken, removeAuthToken, getAuthToken, AuthResponse } from '../services/api';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   updateUser: (updates: Partial<User>) => void;
@@ -13,12 +14,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-interface AuthResponse {
-  access_token: string;
-  token_type: string;
-  user: User;
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -53,6 +48,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(response.user);
   };
 
+  const register = async (email: string, password: string, name: string) => {
+    const response = await apiRequest<AuthResponse>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name }),
+    });
+
+    setAuthToken(response.access_token);
+    setUser(response.user);
+  };
+
   const logout = () => {
     removeAuthToken();
     setUser(null);
@@ -76,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{
       user,
       login,
+      register,
       logout,
       isAuthenticated: !!user,
       updateUser,

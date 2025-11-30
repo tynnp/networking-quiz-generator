@@ -12,6 +12,7 @@ import Profile from './components/Profile';
 import QuizPreview from './components/QuizPreview';
 import AttemptDetail from './components/AttemptDetail';
 import AiResultFeedback from './components/AiResultFeedback';
+import AdminUserManagement from './components/AdminUserManagement';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -108,6 +109,8 @@ function AppContent() {
           : <MyResults onViewAttemptDetail={handleViewAttemptDetail} />;
       case 'profile':
         return <Profile />;
+      case 'admin-users':
+        return <AdminUserManagement />;
       default:
         return <QuizList onTakeQuiz={handleTakeQuiz} onPreviewQuiz={handlePreviewQuiz} />;
     }

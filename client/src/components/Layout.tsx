@@ -7,7 +7,8 @@ import {
   BarChart3,
   User,
   UserCircle,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import Snowfall from './Snowfall';
 
@@ -27,7 +28,8 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
     { id: 'create-quiz', label: 'Tạo đề mới', icon: PlusCircle },
     { id: 'analytics', label: 'Phân tích kiến thức', icon: BarChart3 },
     { id: 'my-results', label: 'Kết quả của tôi', icon: BarChart3 },
-    { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle }
+    { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
+    ...(user?.role === 'admin' ? [{ id: 'admin-users', label: 'Quản lý người dùng', icon: Users }] : [])
   ];
 
   return (

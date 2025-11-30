@@ -54,6 +54,25 @@ export interface ChangePasswordRequest {
   new_password: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+export async function register(data: RegisterRequest): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function updateProfile(data: UpdateProfileRequest): Promise<User> {
   return apiRequest<User>('/api/auth/profile', {
     method: 'PUT',
@@ -65,6 +84,45 @@ export async function changePassword(data: ChangePasswordRequest): Promise<{ mes
   return apiRequest<{ message: string }>('/api/auth/change-password', {
     method: 'PUT',
     body: JSON.stringify(data),
+  });
+}
+
+// Admin API functions
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  name: string;
+  role?: 'student' | 'admin';
+}
+
+export async function getUsers(): Promise<User[]> {
+  return apiRequest<User[]>('/api/admin/users', {
+    method: 'GET',
+  });
+}
+
+export async function createUser(data: CreateUserRequest): Promise<User> {
+  return apiRequest<User>('/api/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteUser(userId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/admin/users/${userId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function lockUser(userId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/admin/users/${userId}/lock`, {
+    method: 'PUT',
+  });
+}
+
+export async function unlockUser(userId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/admin/users/${userId}/unlock`, {
+    method: 'PUT',
   });
 }
 

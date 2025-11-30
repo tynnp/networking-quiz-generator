@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 from jose import JWTError, jwt
 import bcrypt
 from pymongo.database import Database
@@ -55,10 +55,36 @@ def create_user(db: Database, email: str, password: str, name: str, role: str = 
         "email": email,
         "name": name,
         "hashed_password": hashed_password,
-        "role": role
+        "role": role,
+        "isLocked": False
     }
     db.users.insert_one(user)
     return user
+
+def get_all_users(db: Database) -> List[dict]:
+    """Get all users"""
+    return list(db.users.find({}, {"hashed_password": 0}))  # Exclude password
+
+def delete_user(db: Database, user_id: str) -> bool:
+    """Delete a user"""
+    result = db.users.delete_one({"id": user_id})
+    return result.deleted_count > 0
+
+def lock_user(db: Database, user_id: str) -> bool:
+    """Lock a user"""
+    result = db.users.update_one(
+        {"id": user_id},
+        {"$set": {"isLocked": True}}
+    )
+    return result.modified_count > 0
+
+def unlock_user(db: Database, user_id: str) -> bool:
+    """Unlock a user"""
+    result = db.users.update_one(
+        {"id": user_id},
+        {"$set": {"isLocked": False}}
+    )
+    return result.modified_count > 0
 
 def update_user(db: Database, user_id: str, updates: dict) -> Optional[dict]:
     """Update user information"""
