@@ -37,9 +37,9 @@ def seed_admin_user():
     existing_admin = get_user_by_email(db, admin_email)
     if not existing_admin:
         create_user(db, admin_email, admin_password, admin_name, role="admin")
-        print(f"✓ Admin user created: {admin_email}")
+        print(f"Admin user created: {admin_email}")
     else:
-        print(f"✓ Admin user already exists: {admin_email}")
+        print(f"Admin user already exists: {admin_email}")
 
 def init_db():
     """Initialize database - create indexes and seed admin user"""
