@@ -71,7 +71,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
-                  placeholder="student@example.com"
+                  placeholder="Email đăng nhập"
                   required
                 />
               </div>
@@ -85,7 +85,7 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
-                  placeholder="••••••••"
+                  placeholder="Mật khẩu đăng nhập"
                   required
                 />
               </div>
