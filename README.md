@@ -123,3 +123,7 @@ Xem `client/README.md` để biết hướng dẫn phát triển frontend.
 ### Backend
 
 Xem `server/README.md` để biết hướng dẫn phát triển backend.
+
+## Giấy phép
+
+Dự án này được cấp phép theo Giấy phép MIT. Xem tệp [LICENSE](LICENSE) để biết chi tiết.
