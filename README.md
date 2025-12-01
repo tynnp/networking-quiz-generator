@@ -83,9 +83,23 @@ networking-quiz-generator/
 
 ## Bắt đầu
 
+### Cách 1: Chạy thủ công
 Xem hướng dẫn cài đặt chi tiết trong:
 - [`client/README.md`](client/README.md) - Hướng dẫn cài đặt và chạy frontend
 - [`server/README.md`](server/README.md) - Hướng dẫn cài đặt và chạy backend
+
+### Cách 2: Sử dụng file run.bat (Dành cho Windows)
+
+1. Đảm bảo đã cài đặt Node.js, npm và Python 3.8+ 
+2. Mở Command Prompt hoặc PowerShell
+3. Chạy lệnh sau để khởi động cả frontend và backend:
+   ```bash
+   run.bat
+   ```
+   - Frontend sẽ chạy tại: http://localhost:5173
+   - Backend API sẽ chạy tại: http://localhost:8000
+
+Lưu ý: File run.bat sẽ mở 2 cửa sổ terminal riêng biệt cho frontend và backend.
 
 ## Tài khoản Admin mặc định
 
