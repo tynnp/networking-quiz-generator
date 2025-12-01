@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import ReactMarkdown from 'react-markdown';
 
 interface AttemptDetailProps {
   attemptId: string;
@@ -164,10 +165,13 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
               className="bg-white rounded-xl shadow-md p-4 border border-gray-200"
             >
               <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-1">
-                    Câu {index + 1}. {question.content}
-                  </p>
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-gray-700 mb-1">
+                    <span className="mr-1">Câu {index + 1}.</span>
+                  </div>
+                  <div className="prose prose-sm max-w-none text-gray-700">
+                    <ReactMarkdown>{question.content}</ReactMarkdown>
+                  </div>
                   <p className="text-[11px] text-gray-500">
                     {question.chapter.startsWith('Chương') ? question.chapter : `Chương: ${question.chapter}`} • Chủ đề: {question.topic} • Mức độ: {question.difficulty === 'easy' ? 'Dễ' : question.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
                   </p>
@@ -239,9 +243,9 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
                   {String.fromCharCode(65 + question.correctAnswer)}. {question.options[question.correctAnswer]}
                 </p>
                 <p className="font-semibold text-gray-700 mb-1">Giải thích:</p>
-                <p className="text-gray-700 whitespace-pre-line">
-                  {question.explanation || 'Chưa có giải thích cho câu hỏi này.'}
-                </p>
+                <div className="text-gray-700 prose prose-sm max-w-none">
+                  <ReactMarkdown>{question.explanation || 'Chưa có giải thích cho câu hỏi này.'}</ReactMarkdown>
+                </div>
               </div>
             </div>
           );

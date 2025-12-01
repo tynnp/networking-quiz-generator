@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useToast } from '../contexts/ToastContext';
 import { Pencil, Trash2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface QuizPreviewProps {
   quizId: string;
@@ -168,9 +169,9 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                           rows={2}
                         />
                       ) : (
-                        <p className="text-sm font-medium text-gray-800">
-                          {question.content}
-                        </p>
+                        <div className="text-sm font-medium text-gray-800 prose prose-sm max-w-none">
+                          <ReactMarkdown>{question.content}</ReactMarkdown>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -265,9 +266,12 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                           Đáp án đúng: {getOptionLabel(question.correctAnswer)}
                         </p>
                         {question.explanation && (
-                          <p className="text-gray-700">
-                            Giải thích: {question.explanation}
-                          </p>
+                          <div className="text-gray-700">
+                            <p className="font-semibold mb-1">Giải thích:</p>
+                            <div className="prose prose-sm max-w-none">
+                              <ReactMarkdown>{question.explanation}</ReactMarkdown>
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}

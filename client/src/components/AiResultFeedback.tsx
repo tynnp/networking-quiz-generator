@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { analyzeResult } from '../services/gemini';
 import type { AiResultFeedback, QuizAttempt, Quiz } from '../types';
+import ReactMarkdown from 'react-markdown';
 
 interface AiResultFeedbackProps {
   attemptId: string;
@@ -100,7 +101,9 @@ export default function AiResultFeedback({ attemptId, onViewDetail, onBack }: Ai
           <div className="space-y-6 text-sm">
             <div>
               <h4 className="font-semibold text-[#124874] mb-2">Nhận xét tổng quan</h4>
-              <p className="text-gray-700 whitespace-pre-line">{feedback.overallFeedback}</p>
+              <div className="text-gray-700 prose prose-sm max-w-none">
+                <ReactMarkdown>{feedback.overallFeedback}</ReactMarkdown>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -111,7 +114,15 @@ export default function AiResultFeedback({ attemptId, onViewDetail, onBack }: Ai
                 ) : (
                   <ul className="list-disc list-inside space-y-1 text-gray-700">
                     {feedback.strengths.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index} className="prose prose-sm max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <span>{children}</span>,
+                          }}
+                        >
+                          {item}
+                        </ReactMarkdown>
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -124,7 +135,15 @@ export default function AiResultFeedback({ attemptId, onViewDetail, onBack }: Ai
                 ) : (
                   <ul className="list-disc list-inside space-y-1 text-gray-700">
                     {feedback.weaknesses.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index} className="prose prose-sm max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <span>{children}</span>,
+                          }}
+                        >
+                          {item}
+                        </ReactMarkdown>
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -139,7 +158,15 @@ export default function AiResultFeedback({ attemptId, onViewDetail, onBack }: Ai
                 ) : (
                   <ul className="list-disc list-inside space-y-1 text-gray-700">
                     {feedback.suggestedTopics.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index} className="prose prose-sm max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <span>{children}</span>,
+                          }}
+                        >
+                          {item}
+                        </ReactMarkdown>
+                      </li>
                     ))}
                   </ul>
                 )}
@@ -152,7 +179,15 @@ export default function AiResultFeedback({ attemptId, onViewDetail, onBack }: Ai
                 ) : (
                   <ul className="list-disc list-inside space-y-1 text-gray-700">
                     {feedback.suggestedNextActions.map((item, index) => (
-                      <li key={index}>{item}</li>
+                      <li key={index} className="prose prose-sm max-w-none">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => <span>{children}</span>,
+                          }}
+                        >
+                          {item}
+                        </ReactMarkdown>
+                      </li>
                     ))}
                   </ul>
                 )}

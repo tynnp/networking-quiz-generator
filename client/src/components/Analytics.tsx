@@ -3,6 +3,7 @@ import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { KnowledgeAnalysis, QuizAttempt, AiResultFeedback as AiResultFeedbackType } from '../types';
 import { analyzeOverall } from '../services/gemini';
+import ReactMarkdown from 'react-markdown';
 
 interface AnalyticsProps {
   onAiAnalyzeAttempt?: (attemptId: string) => void;
@@ -382,9 +383,9 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
             {overallFeedback && !overallLoading && !overallError && (
               <div className="mt-4 border-t border-gray-200 pt-4 space-y-3 text-sm">
                 <h4 className="font-semibold text-[#124874]">Nhận xét tổng quan từ AI</h4>
-                <p className="text-gray-700 whitespace-pre-line">
-                  {overallFeedback.overallFeedback}
-                </p>
+                <div className="text-gray-700 prose prose-sm max-w-none">
+                  <ReactMarkdown>{overallFeedback.overallFeedback}</ReactMarkdown>
+                </div>
 
                 {(overallFeedback.strengths.length > 0 || overallFeedback.weaknesses.length > 0) && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -395,7 +396,15 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                       ) : (
                         <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
                           {overallFeedback.strengths.slice(0, 4).map((item, index) => (
-                            <li key={index}>{item}</li>
+                            <li key={index} className="prose prose-sm max-w-none">
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => <span>{children}</span>,
+                                }}
+                              >
+                                {item}
+                              </ReactMarkdown>
+                            </li>
                           ))}
                         </ul>
                       )}
@@ -408,7 +417,15 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                       ) : (
                         <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
                           {overallFeedback.weaknesses.slice(0, 4).map((item, index) => (
-                            <li key={index}>{item}</li>
+                            <li key={index} className="prose prose-sm max-w-none">
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => <span>{children}</span>,
+                                }}
+                              >
+                                {item}
+                              </ReactMarkdown>
+                            </li>
                           ))}
                         </ul>
                       )}
@@ -421,7 +438,15 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                     <h5 className="font-semibold text-[#124874] mb-1 text-sm">Chủ đề nên ưu tiên ôn</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
                       {overallFeedback.suggestedTopics.slice(0, 5).map((item, index) => (
-                        <li key={index}>{item}</li>
+                        <li key={index} className="prose prose-sm max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => <span>{children}</span>,
+                            }}
+                          >
+                            {item}
+                          </ReactMarkdown>
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -432,7 +457,15 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                     <h5 className="font-semibold text-[#124874] mb-1 text-sm">Hành động gợi ý tiếp theo</h5>
                     <ul className="list-disc list-inside space-y-1 text-gray-700 text-xs">
                       {overallFeedback.suggestedNextActions.slice(0, 5).map((item, index) => (
-                        <li key={index}>{item}</li>
+                        <li key={index} className="prose prose-sm max-w-none">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => <span>{children}</span>,
+                            }}
+                          >
+                            {item}
+                          </ReactMarkdown>
+                        </li>
                       ))}
                     </ul>
                   </div>

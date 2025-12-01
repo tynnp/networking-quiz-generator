@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { QuizAttempt } from '../types';
 import { createAttempt } from '../services/api';
+import ReactMarkdown from 'react-markdown';
 
 interface TakeQuizProps {
   quizId: string;
@@ -133,9 +134,9 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
 
         <div className="mb-6">
           <div className="mb-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">
-              {currentQuestion.content}
-            </p>
+            <div className="text-sm font-medium text-gray-700 mb-3 prose prose-sm max-w-none">
+              <ReactMarkdown>{currentQuestion.content}</ReactMarkdown>
+            </div>
             <div className="space-y-2">
               {currentQuestion.options.map((option, index) => (
                 <button
