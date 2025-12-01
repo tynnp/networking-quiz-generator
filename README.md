@@ -84,8 +84,8 @@ networking-quiz-generator/
 ## Bắt đầu
 
 Xem hướng dẫn cài đặt chi tiết trong:
-- `client/README.md` - Hướng dẫn cài đặt và chạy frontend
-- `server/README.md` - Hướng dẫn cài đặt và chạy backend
+- [`client/README.md`](client/README.md) - Hướng dẫn cài đặt và chạy frontend
+- [`server/README.md`](server/README.md) - Hướng dẫn cài đặt và chạy backend
 
 ## Tài khoản Admin mặc định
 
@@ -118,11 +118,11 @@ Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến th�
 
 ### Frontend
 
-Xem `client/README.md` để biết hướng dẫn phát triển frontend.
+Xem [`client/README.md`](client/README.md) để biết hướng dẫn phát triển frontend.
 
 ### Backend
 
-Xem `server/README.md` để biết hướng dẫn phát triển backend.
+Xem [`server/README.md`](server/README.md) để biết hướng dẫn phát triển backend.
 
 ## Giấy phép
 
