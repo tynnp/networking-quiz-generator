@@ -1,8 +1,4 @@
 @echo off
 
-REM Chạy client trong terminal hiện tại
-cd client
-npm run dev
-
-REM Mở terminal mới chạy server
-start cmd /k "cd server && uvicorn main:app --reload --port 8000"
+start "Client" cmd /k "cd /d client && npm run dev"
+start "Server" cmd /k "cd /d server && uvicorn main:app --reload --port 8000"
