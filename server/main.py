@@ -10,7 +10,7 @@ import time
 from dotenv import load_dotenv
 from google import genai
 from pymongo.database import Database
-from dtos import (
+from server.dtos import (
     AnalyzeOverallRequest,
     AnalyzeResultRequest,
     AnalyzeResultResponse,
@@ -32,8 +32,8 @@ from dtos import (
     CreateAttemptRequest,
     AttemptResponse,
 )
-from database import get_db, init_db
-from auth import (
+from server.database import get_db, init_db
+from server.auth import (
     verify_password,
     create_access_token,
     verify_token,
@@ -58,6 +58,16 @@ from auth import (
     get_attempts_by_student,
     get_attempts_by_quiz,
 )
+from fastapi import FastAPI
+from server.routers import exams, results
+
+app = FastAPI(
+    title="Networking Quiz Generator API",
+    version="1.0.0"
+)
+
+app.include_router(exams.router)
+app.include_router(results.router)
 
 load_dotenv()
 app = FastAPI()

@@ -10,26 +10,22 @@ _client: Optional[MongoClient] = None
 _db: Optional[Database] = None
 
 def get_database() -> Database:
-    global _db
+    global _db, _client
     if _db is None:
-        global _client
         _client = MongoClient(MONGODB_URL)
         _db = _client[DATABASE_NAME]
     return _db
 
+db: Database = get_database()
+
 def get_db():
     """Dependency for FastAPI to get database instance"""
-    db = get_database()
-    try:
-        yield db
-    finally:
-        pass
+    yield db
 
 def seed_admin_user():
     """Seed admin user if not exists"""
-    from auth import get_user_by_email, create_user
+    from server.auth import get_user_by_email, create_user
     
-    db = get_database()
     admin_email = os.getenv("ADMIN_EMAIL", "admin@example.com")
     admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
     admin_name = os.getenv("ADMIN_NAME", "Administrator")
@@ -43,7 +39,6 @@ def seed_admin_user():
 
 def init_db():
     """Initialize database - create indexes and seed admin user"""
-    db = get_database()
     db.users.create_index("email", unique=True)
     db.users.create_index("id", unique=True)
     db.quizzes.create_index("id", unique=True)
@@ -53,3 +48,13 @@ def init_db():
     db.attempts.create_index("quizId")
     db.attempts.create_index("studentId")
     seed_admin_user()
+
+def ensure_indexes():
+    try:
+        db.exams.create_index([("title", "text")], default_language="none")
+        db.results.create_index([("exam_title", "text")], default_language="none")
+        db.exams.create_index([("created_by", 1)])
+    except Exception as e:
+        print("Index creation error:", e)
+
+ensure_indexes()

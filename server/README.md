@@ -64,7 +64,7 @@ ADMIN_NAME=Administrator
 
 Khởi động development server:
 ```bash
-uvicorn main:app --reload --port 8000
+uvicorn server.main:app --reload --port 8000 // thêm server.
 ```
 
 API sẽ có sẵn tại `http://localhost:8000`

@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye } from 'lucide-react';
+import { Eye, Search } from 'lucide-react';
 
 interface MyResultsProps {
   onViewAttemptDetail?: (attemptId: string) => void;
@@ -11,12 +11,21 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
   const { attempts, quizzes, attemptsLoading, refreshAttempts } = useData();
   const { user } = useAuth();
 
-  // Refresh attempts when component mounts
+  // NEW: search state
+  const [search, setSearch] = useState('');
+
   useEffect(() => {
     refreshAttempts();
   }, []);
 
+  // Filter attempts → only current user
   const myAttempts = attempts.filter(a => a.studentId === user?.id);
+
+  // NEW: Filter by quiz title
+  const filteredAttempts = myAttempts.filter(attempt => {
+    const quiz = quizzes.find(q => q.id === attempt.quizId);
+    return quiz?.title.toLowerCase().includes(search.toLowerCase());
+  });
 
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleDateString('vi-VN', {
@@ -39,18 +48,31 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
       <div className="mb-2">
         <h2 className="block-title__title">KẾT QUẢ CỦA TÔI</h2>
       </div>
+
+      {/* 🔍 NEW: Search bar */}
+      <div className="mb-4 flex items-center gap-2 bg-white p-3 rounded-xl shadow">
+        <Search className="w-4 h-4 text-gray-500" />
+        <input
+          type="text"
+          placeholder="Tìm theo tên đề thi..."
+          className="flex-1 outline-none text-sm"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       <div className="bg-white rounded-xl shadow-md p-5">
         {attemptsLoading ? (
           <div className="text-center py-8 text-gray-500">
             Đang tải kết quả...
           </div>
-        ) : myAttempts.length === 0 ? (
+        ) : filteredAttempts.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
-            Bạn chưa làm bài thi nào
+            Không tìm thấy kết quả phù hợp
           </div>
         ) : (
           <div className="space-y-3">
-            {myAttempts.map(attempt => {
+            {filteredAttempts.map(attempt => {
               const quiz = quizzes.find(q => q.id === attempt.quizId);
               if (!quiz) return null;
 
