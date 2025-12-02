@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// App.tsx
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -14,6 +15,25 @@ import QuizPreview from './components/QuizPreview';
 import AttemptDetail from './components/AttemptDetail';
 import AiResultFeedback from './components/AiResultFeedback';
 import AdminUserManagement from './components/AdminUserManagement';
+import api from './services/api';
+
+function ProtectedAdminRoute({ children }: { children: JSX.Element }) {
+  const [user, setUser] = useState<{ role: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/api/auth/me')
+      .then(res => setUser(res.data))
+      .catch(() => localStorage.removeItem('auth_token'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Login />;
+  if (user.role !== 'admin') return <div>Không có quyền truy cập</div>;
+
+  return children;
+}
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -111,7 +131,11 @@ function AppContent() {
       case 'profile':
         return <Profile />;
       case 'admin-users':
-        return <AdminUserManagement />;
+        return (
+          <ProtectedAdminRoute>
+            <AdminUserManagement />
+          </ProtectedAdminRoute>
+        );
       default:
         return <QuizList onTakeQuiz={handleTakeQuiz} onPreviewQuiz={handlePreviewQuiz} />;
     }

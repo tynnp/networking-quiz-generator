@@ -298,9 +298,9 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" }
 });
 
-// Add auth token interceptor if you use JWT stored in localStorage
+// Interceptor thêm Authorization header từ localStorage
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("auth_token"); // đồng bộ với fetch
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -308,3 +308,4 @@ api.interceptors.request.use((config) => {
 });
 
 export default api;
+
