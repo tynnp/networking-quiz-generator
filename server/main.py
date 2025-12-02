@@ -72,6 +72,17 @@ app.include_router(results.router)
 load_dotenv()
 app = FastAPI()
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv(dotenv_path="server/.env")  
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+print("GOOGLE_API_KEY:", GOOGLE_API_KEY)
+
+@app.get("/test-key")
+def test_key():
+    return {"GOOGLE_API_KEY": GOOGLE_API_KEY is not None}
+
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",

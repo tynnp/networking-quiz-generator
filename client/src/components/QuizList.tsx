@@ -66,15 +66,16 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
         </div>
 
         {/* Checkbox "Đề của tôi" */}
-        <label className="flex items-center gap-2 cursor-pointer select-none">
+        <label className="flex items-center gap-3 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={filterMine}
             onChange={e => setFilterMine(e.target.checked)}
-            className="checkbox"
+            className="w-4 h-4 rounded border-gray-300 checked:bg-blue-300 checked:border-blue-300 focus:ring-2 focus:ring-blue-300 cursor-pointer"
           />
-          <span className="text-sm font-medium text-gray-700">Đề của tôi</span>
+          <span className="text-lg font-semibold text-gray-700">Đề của tôi</span>
         </label>
+
       </div>
 
       {/* Danh sách đề */}
