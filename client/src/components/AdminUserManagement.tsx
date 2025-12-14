@@ -15,7 +15,7 @@ export default function AdminUserManagement() {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isLocking, setIsLocking] = useState<string | null>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -26,6 +26,9 @@ export default function AdminUserManagement() {
     name: '',
     role: 'student',
   });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -96,21 +99,25 @@ export default function AdminUserManagement() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
-      return;
-    }
+  const handleDeleteUser = (userId: string) => {
+    setUserToDelete(userId);
+    setShowDeleteModal(true);
+  };
 
-    setIsDeleting(userId);
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    setIsDeleting(userToDelete);
     setError(null);
 
     try {
-      await deleteUser(userId);
+      await deleteUser(userToDelete);
       await loadUsers();
       showToast('Xóa người dùng thành công!', 'success');
+      setShowDeleteModal(false);
+      setUserToDelete(null);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Không thể xóa người dùng';
-      setError(errorMessage);
       showToast(errorMessage, 'error');
     } finally {
       setIsDeleting(null);
@@ -228,77 +235,76 @@ export default function AdminUserManagement() {
                 </tr>
               ) : (
                 paginatedUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {user.name}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {user.email}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        user.role === 'admin'
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {user.name}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {user.email}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
                           ? 'bg-purple-100 text-purple-800'
                           : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
-                      {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                    {user.isLocked ? (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        Đã khóa
+                          }`}
+                      >
+                        {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
                       </span>
-                    ) : (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Hoạt động
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      {user.id !== currentUser?.id ? (
-                        <>
-                          {user.isLocked ? (
-                            <button
-                              onClick={() => handleUnlockUser(user.id)}
-                              disabled={isLocking === user.id}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              title="Mở khóa"
-                            >
-                              <Unlock className="w-4 h-4" />
-                              <span className="text-xs font-medium">Mở khóa</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handleLockUser(user.id)}
-                              disabled={isLocking === user.id}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              title="Khóa"
-                            >
-                              <Lock className="w-4 h-4" />
-                              <span className="text-xs font-medium">Khóa</span>
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleDeleteUser(user.id)}
-                            disabled={isDeleting === user.id}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            title="Xóa"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span className="text-xs font-medium">Xóa</span>
-                          </button>
-                        </>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {user.isLocked ? (
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          Đã khóa
+                        </span>
                       ) : (
-                        <span className="text-xs text-gray-400 italic">Tài khoản của bạn</span>
+                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Hoạt động
+                        </span>
                       )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        {user.id !== currentUser?.id ? (
+                          <>
+                            {user.isLocked ? (
+                              <button
+                                onClick={() => handleUnlockUser(user.id)}
+                                disabled={isLocking === user.id}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="Mở khóa"
+                              >
+                                <Unlock className="w-4 h-4" />
+                                <span className="text-xs font-medium">Mở khóa</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleLockUser(user.id)}
+                                disabled={isLocking === user.id}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                title="Khóa"
+                              >
+                                <Lock className="w-4 h-4" />
+                                <span className="text-xs font-medium">Khóa</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteUser(user.id)}
+                              disabled={isDeleting === user.id}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              title="Xóa"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span className="text-xs font-medium">Xóa</span>
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Tài khoản của bạn</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -319,7 +325,7 @@ export default function AdminUserManagement() {
                 <ChevronLeft className="w-4 h-4" />
                 Trước
               </button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                   // Show first page, last page, current page, and pages around current
@@ -332,11 +338,10 @@ export default function AdminUserManagement() {
                       <button
                         key={page}
                         onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 text-sm rounded-lg ${
-                          currentPage === page
-                            ? 'bg-[#124874] text-white'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
+                        className={`px-3 py-1.5 text-sm rounded-lg ${currentPage === page
+                          ? 'bg-[#124874] text-white'
+                          : 'text-gray-700 hover:bg-gray-100'
+                          }`}
                       >
                         {page}
                       </button>
@@ -461,7 +466,53 @@ export default function AdminUserManagement() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Xác nhận xóa</h3>
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setUserToDelete(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-700 mb-6">
+                Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setUserToDelete(null);
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteUser}
+                  disabled={!!isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  {isDeleting ? 'Đang xóa...' : 'Xóa'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
