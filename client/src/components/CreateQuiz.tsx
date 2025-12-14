@@ -118,12 +118,27 @@ export default function CreateQuiz() {
       return;
     }
 
+    if (!selectedChapter) {
+      showToast('Vui lòng chọn chương', 'warning');
+      return;
+    }
+
+    if (selectedTopics.length === 0) {
+      showToast('Vui lòng chọn ít nhất một chủ đề', 'warning');
+      return;
+    }
+
+    if (selectedKnowledgeTypes.length === 0) {
+      showToast('Vui lòng chọn ít nhất một phân loại kiến thức', 'warning');
+      return;
+    }
+
     setGenerating(true);
 
     try {
       const questions = await generateQuestions({
         chapter: selectedChapter,
-        topics: selectedTopics.length ? selectedTopics : undefined,
+        topics: selectedTopics,
         knowledgeTypes: selectedKnowledgeTypes,
         difficulty: selectedDifficulty,
         count: questionCount
@@ -183,7 +198,7 @@ export default function CreateQuiz() {
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tiêu đề đề thi
+              Tiêu đề đề thi *
             </label>
             <input
               type="text"
@@ -210,14 +225,14 @@ export default function CreateQuiz() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Chương
+                Chương *
               </label>
               <select
                 value={selectedChapter}
                 onChange={(e) => setSelectedChapter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
               >
-                <option value="">Tất cả</option>
+                <option value="">Chọn chương</option>
                 {chapters.map(chapter => (
                   <option key={chapter} value={chapter}>{chapter}</option>
                 ))}
@@ -244,7 +259,7 @@ export default function CreateQuiz() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chủ đề
+                Chủ đề *
               </label>
               <select
                 multiple
@@ -266,7 +281,7 @@ export default function CreateQuiz() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phân loại kiến thức
+                Phân loại kiến thức *
               </label>
               <select
                 multiple

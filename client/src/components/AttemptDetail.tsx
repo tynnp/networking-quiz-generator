@@ -139,10 +139,9 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
           </div>
 
           <div className="text-right">
-            <div className={`text-3xl font-bold ${
-              attempt.score >= 80 ? 'text-green-600' :
-              attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600'
-            }`}>
+            <div className={`text-3xl font-bold ${attempt.score >= 80 ? 'text-green-600' :
+                attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
               {attempt.score.toFixed(1)}
             </div>
             <p className="text-xs text-gray-500">điểm</p>
@@ -173,7 +172,7 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
                     <ReactMarkdown>{question.content}</ReactMarkdown>
                   </div>
                   <p className="text-[11px] text-gray-500">
-                    {question.chapter.startsWith('Chương') ? question.chapter : `Chương: ${question.chapter}`} • Chủ đề: {question.topic} • Mức độ: {question.difficulty === 'easy' ? 'Dễ' : question.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
+                    {question.chapter.startsWith('Chương') ? question.chapter : `Chương: ${question.chapter}`} • Mức độ: {question.difficulty === 'easy' ? 'Dễ' : question.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
                   </p>
                 </div>
 
@@ -221,13 +220,12 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
                       className={`w-full px-4 py-2 rounded-lg border text-sm ${borderClass} ${bgClass} ${textClass}`}
                     >
                       <div className="flex items-center gap-2">
-                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] ${
-                          isCorrectAnswer
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] ${isCorrectAnswer
                             ? 'border-green-500 bg-green-500 text-white'
                             : isUserChoice
-                            ? 'border-red-500 bg-red-500 text-white'
-                            : 'border-gray-300 text-gray-500'
-                        }`}>
+                              ? 'border-red-500 bg-red-500 text-white'
+                              : 'border-gray-300 text-gray-500'
+                          }`}>
                           {String.fromCharCode(65 + optionIndex)}
                         </div>
                         <span>{option}</span>

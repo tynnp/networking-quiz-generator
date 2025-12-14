@@ -31,9 +31,8 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
     const knowledgeAnalysis: KnowledgeAnalysis[] = [];
     quiz.questions.forEach(question => {
       const existingAnalysis = knowledgeAnalysis.find(
-        a => a.knowledgeType === question.knowledgeType &&
-             a.chapter === question.chapter &&
-             a.topic === question.topic
+        a => a.chapter === question.chapter &&
+          a.topic === question.topic
       );
 
       const correctCount = quizAttempts.filter(
@@ -46,7 +45,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
         existingAnalysis.accuracy = (existingAnalysis.correctAnswers / (existingAnalysis.totalQuestions * quizAttempts.length)) * 100;
       } else {
         knowledgeAnalysis.push({
-          knowledgeType: question.knowledgeType,
+          knowledgeType: '', // Không cần hiển thị
           chapter: question.chapter,
           topic: question.topic,
           totalQuestions: 1,
@@ -79,7 +78,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
       if (!quiz) return;
 
       quiz.questions.forEach(question => {
-        const key = `${question.knowledgeType}::${question.chapter}::${question.topic}`;
+        const key = `${question.chapter}::${question.topic}`;
         const existing = knowledgeMap.get(key) || { total: 0, correct: 0 };
 
         existing.total++;
@@ -92,9 +91,9 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
     });
 
     const knowledgeAnalysis: KnowledgeAnalysis[] = Array.from(knowledgeMap.entries()).map(([key, data]) => {
-      const [knowledgeType, chapter, topic] = key.split('::');
+      const [chapter, topic] = key.split('::');
       return {
-        knowledgeType,
+        knowledgeType: '',
         chapter,
         topic,
         totalQuestions: data.total,
@@ -110,17 +109,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
     };
   };
 
-  const getKnowledgeTypeLabel = (type: string) => {
-    const labels: { [key: string]: string } = {
-      concept: 'Khái niệm',
-      property: 'Tính chất',
-      mechanism: 'Cơ chế hoạt động',
-      rule: 'Quy tắc và tiêu chuẩn',
-      scenario: 'Tình huống',
-      example: 'Bài tập tính toán'
-    };
-    return labels[type] || type;
-  };
+
 
   const quizAnalysis = selectedQuiz ? analyzeQuiz(selectedQuiz) : null;
   const studentAnalysis = user ? analyzeStudent(user.id) : null;
@@ -217,7 +206,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
               ))}
             </select>
           </div>
-          
+
           <div className="flex items-end">
             <button
               type="button"
@@ -268,26 +257,24 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                         {analysis.topic}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {analysis.chapter} - {getKnowledgeTypeLabel(analysis.knowledgeType)}
+                        {analysis.chapter}
                       </p>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1">
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full ${
-                              analysis.accuracy >= 70 ? 'bg-green-500' :
+                            className={`h-2 rounded-full ${analysis.accuracy >= 70 ? 'bg-green-500' :
                               analysis.accuracy >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
+                              }`}
                             style={{ width: `${analysis.accuracy}%` }}
                           />
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${
-                          analysis.accuracy >= 70 ? 'text-green-600' :
+                        <p className={`text-sm font-bold ${analysis.accuracy >= 70 ? 'text-green-600' :
                           analysis.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
-                        }`}>
+                          }`}>
                           {analysis.accuracy.toFixed(1)}%
                         </p>
                         <p className="text-[11px] text-gray-500">
@@ -336,26 +323,24 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                         {analysis.topic}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {analysis.chapter} - {getKnowledgeTypeLabel(analysis.knowledgeType)}
+                        {analysis.chapter}
                       </p>
                     </div>
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex-1">
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className={`h-2 rounded-full ${
-                              analysis.accuracy >= 70 ? 'bg-green-500' :
+                            className={`h-2 rounded-full ${analysis.accuracy >= 70 ? 'bg-green-500' :
                               analysis.accuracy >= 50 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
+                              }`}
                             style={{ width: `${analysis.accuracy}%` }}
                           />
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${
-                          analysis.accuracy >= 70 ? 'text-green-600' :
+                        <p className={`text-sm font-bold ${analysis.accuracy >= 70 ? 'text-green-600' :
                           analysis.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
-                        }`}>
+                          }`}>
                           {analysis.accuracy.toFixed(1)}%
                         </p>
                         <p className="text-[11px] text-gray-500">
