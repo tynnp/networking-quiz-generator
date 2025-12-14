@@ -107,7 +107,11 @@ def build_prompt(params: GenerateQuestionsRequest) -> str:
         types = [mapping.get(t, t) for t in params.knowledgeTypes]
         prompt += "Loại kiến thức: " + ", ".join(types) + "\n"
 
-    if params.difficulty:
+    # Xử lý độ khó
+    if not params.difficulty or params.difficulty == "":
+        # Hỗn hợp
+        prompt += "Độ khó: Hỗn hợp (Yêu cầu: 30% Dễ, 40% Trung bình, 30% Khó). Các câu hỏi phải xuất hiện ngẫu nhiên theo độ khó, không gom nhóm.\n"
+    else:
         diff_mapping = {
             "easy": "Dễ",
             "medium": "Trung bình",
@@ -122,6 +126,7 @@ def build_prompt(params: GenerateQuestionsRequest) -> str:
         "content": "Câu hỏi dạng văn bản",
         "options": ["Lựa chọn A", "Lựa chọn B", "Lựa chọn C", "Lựa chọn D"],
         "correctAnswer": 0,
+        "difficulty": "easy" | "medium" | "hard",
         "explanation": "Giải thích ngắn gọn vì sao đáp án đúng"
     }}
 
@@ -136,6 +141,7 @@ def build_prompt(params: GenerateQuestionsRequest) -> str:
     4. Đáp án đúng phải được đặt ở vị trí ngẫu nhiên.
     5. Không được để đáp án đúng nổi bật bằng các từ khóa như “tất cả”, “đúng nhất”, “chính xác nhất”, “câu trên đều sai”, trừ khi thuộc tính logic của kiến thức yêu cầu.
     6. "explanation" phải ngắn gọn, khách quan, chỉ giải thích tại sao đáp án đúng là đúng.
+    7. TRẢ VỀ ĐÚNG giá trị "difficulty" tương ứng cho mỗi câu hỏi ("easy", "medium", hoặc "hard").
 
     Chỉ xuất JSON, không bọc trong dấu ``` và không thêm bất kỳ văn bản nào khác.
     """
@@ -238,7 +244,9 @@ def parse_generated_questions(
         chapter = params.chapter or "Chương 1"
         topic = params.topics[0] if params.topics else "Tổng quan"
         knowledge_type = (params.knowledgeTypes[0] if params.knowledgeTypes else "concept")
-        difficulty = params.difficulty or "medium"
+        
+        # Default difficulty from params, or "medium" if not specified (mixed case fallback)
+        default_difficulty = params.difficulty if params.difficulty else "medium"
 
         for index, q in enumerate(parsed):
             questions.append(
@@ -250,7 +258,8 @@ def parse_generated_questions(
                     chapter=chapter,
                     topic=topic,
                     knowledgeType=knowledge_type,
-                    difficulty=difficulty,
+                    # Prefer difficulty from the question object, fallback to default intent
+                    difficulty=q.get("difficulty", default_difficulty),
                     explanation=q.get("explanation"),
                 )
             )
