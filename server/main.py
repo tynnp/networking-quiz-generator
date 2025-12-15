@@ -610,7 +610,7 @@ def get_quizzes(
     db: Database = Depends(get_db)
 ):
     """Get all quizzes, optionally filtered by creator"""
-    quizzes = get_all_quizzes(db, created_by)
+    quizzes = get_all_quizzes(db, current_user["id"])
     return [
         QuizResponse(
             id=q["id"],
@@ -635,6 +635,9 @@ def get_quiz(
     quiz = get_quiz_by_id(db, quiz_id)
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
+    
+    if quiz["createdBy"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xem đề thi này")
     
     return QuizResponse(
         id=quiz["id"],
@@ -691,8 +694,7 @@ def update_quiz_endpoint(
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
-    # Check if user is the creator or admin
-    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+    if quiz["createdBy"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
     updates = {}
@@ -735,8 +737,7 @@ def delete_quiz_endpoint(
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
-    # Check if user is the creator or admin
-    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+    if quiz["createdBy"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền xóa đề thi này")
     
     success = delete_quiz(db, quiz_id)
@@ -758,8 +759,7 @@ def update_question_endpoint(
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
-    # Check if user is the creator or admin
-    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+    if quiz["createdBy"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
     updates = {}
@@ -807,8 +807,8 @@ def delete_question_endpoint(
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
-    # Check if user is the creator or admin
-    if quiz["createdBy"] != current_user["id"] and current_user.get("role") != "admin":
+    # Check if user is the creator
+    if quiz["createdBy"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
     updated_quiz = delete_question_from_quiz(db, quiz_id, question_id)
@@ -837,6 +837,10 @@ def create_attempt_endpoint(
     quiz = get_quiz_by_id(db, request.quizId)
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
+        
+    # Check if user allows taking this quiz (must be creator)
+    if quiz["createdBy"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Bạn không có quyền tham gia thi đề này")
     
     attempt_id = f"attempt-{int(time.time() * 1000)}"
     attempt_data = {
@@ -869,6 +873,13 @@ def get_attempts_endpoint(
 ):
     """Get all attempts, optionally filtered by quiz_id"""
     if quiz_id:
+        # Verify quiz ownership before showing attempts
+        quiz = get_quiz_by_id(db, quiz_id)
+        if not quiz:
+            raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
+        if quiz["createdBy"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Bạn không có quyền xem kết quả của đề thi này")
+            
         attempts = get_attempts_by_quiz(db, quiz_id)
     else:
         attempts = get_attempts_by_student(db, current_user["id"])
@@ -897,7 +908,7 @@ def get_attempt_endpoint(
     if not attempt:
         raise HTTPException(status_code=404, detail="Không tìm thấy bài làm")
     
-    if attempt["studentId"] != current_user["id"] and current_user.get("role") != "admin":
+    if attempt["studentId"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền xem bài làm này")
     
     return AttemptResponse(
