@@ -206,7 +206,7 @@ export default function CreateQuiz() {
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
               placeholder="Ví dụ: Kiểm tra chương 1"
-              maxLength={150}
+              maxLength={100}
             />
           </div>
 
@@ -220,7 +220,7 @@ export default function CreateQuiz() {
               onChange={(e) => setDescription(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
               placeholder="Mô tả ngắn về đề thi"
-              maxLength={500}
+              maxLength={150}
             />
           </div>
 

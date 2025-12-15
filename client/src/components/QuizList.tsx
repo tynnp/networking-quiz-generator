@@ -86,12 +86,12 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                   className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-[#124874] mb-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-[#124874] mb-1 break-words">
                         {quiz.title}
                       </h3>
                       {quiz.description && (
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-sm text-gray-600 mb-2 break-words">
                           {quiz.description}
                         </p>
                       )}
@@ -109,12 +109,12 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                         )}
                         {quiz.settings.difficulty !== undefined && (
                           <div className={`px-2 py-0.5 rounded ${!quiz.settings.difficulty || quiz.settings.difficulty === ''
-                              ? 'bg-gray-50 text-gray-700'
-                              : quiz.settings.difficulty === 'easy'
-                                ? 'bg-green-50 text-green-700'
-                                : quiz.settings.difficulty === 'medium'
-                                  ? 'bg-yellow-50 text-yellow-700'
-                                  : 'bg-red-50 text-red-700'
+                            ? 'bg-gray-50 text-gray-700'
+                            : quiz.settings.difficulty === 'easy'
+                              ? 'bg-green-50 text-green-700'
+                              : quiz.settings.difficulty === 'medium'
+                                ? 'bg-yellow-50 text-yellow-700'
+                                : 'bg-red-50 text-red-700'
                             }`}>
                             {!quiz.settings.difficulty || quiz.settings.difficulty === '' ? 'Hỗn hợp' :
                               quiz.settings.difficulty === 'easy' ? 'Dễ' :

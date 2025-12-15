@@ -113,10 +113,9 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold text-[#124874]">{quiz.title}</h2>
-            <div className={`flex items-center gap-2 px-3 py-1 rounded ${
-              timeLeft < 300 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-[#124874]'
-            }`}>
+            <h2 className="text-xl font-bold text-[#124874] break-words">{quiz.title}</h2>
+            <div className={`flex items-center gap-2 px-3 py-1 rounded ${timeLeft < 300 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-[#124874]'
+              }`}>
               <span className="font-mono font-medium">{formatTime(timeLeft)}</span>
             </div>
           </div>
@@ -142,18 +141,16 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-colors text-sm ${
-                    answers[currentQuestion.id] === index
+                  className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-colors text-sm ${answers[currentQuestion.id] === index
                       ? 'border-[#124874] bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                      answers[currentQuestion.id] === index
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion.id] === index
                         ? 'border-[#124874] bg-[#124874]'
                         : 'border-gray-300'
-                    }`}>
+                      }`}>
                     </div>
                     <span>{option}</span>
                   </div>
@@ -219,13 +216,12 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
               <button
                 key={question.id}
                 onClick={() => setCurrentQuestionIndex(index)}
-                className={`h-9 min-w-[2.25rem] rounded text-xs font-medium flex items-center justify-center transition-colors ${
-                  isCurrent
+                className={`h-9 min-w-[2.25rem] rounded text-xs font-medium flex items-center justify-center transition-colors ${isCurrent
                     ? 'bg-[#124874] text-white ring-2 ring-[#124874] ring-offset-2'
                     : isAnswered
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
               >
                 {index + 1}
               </button>

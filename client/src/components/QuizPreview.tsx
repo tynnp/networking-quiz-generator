@@ -39,7 +39,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
 
   const saveQuestion = async (questionId: string) => {
     if (!quiz || !editingQuestionId) return;
-    
+
     setIsSaving(true);
     try {
       await updateQuestion(quiz.id, questionId, {
@@ -66,7 +66,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
     if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi đề thi?')) {
       return;
     }
-    
+
     setIsDeleting(questionId);
     try {
       await deleteQuestion(quiz.id, questionId);
@@ -122,7 +122,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="mb-4 border-b border-gray-200 pb-3">
           <div className="flex items-center justify-between gap-3 mb-1">
-            <h3 className="text-lg font-bold text-[#124874]">{quiz.title}</h3>
+            <h3 className="text-lg font-bold text-[#124874] break-words">{quiz.title}</h3>
             <button
               type="button"
               onClick={() => setShowAnswers(prev => !prev)}
@@ -132,7 +132,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
             </button>
           </div>
           {quiz.description && (
-            <p className="text-sm text-gray-600 mb-2">{quiz.description}</p>
+            <p className="text-sm text-gray-600 mb-2 break-words">{quiz.description}</p>
           )}
           <div className="flex flex-wrap gap-3 text-xs text-gray-500">
             <span>{quiz.questions.length} câu hỏi</span>
