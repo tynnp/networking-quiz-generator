@@ -59,6 +59,7 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+            maxLength={100}
           />
         </div>
         {searchQuery && (
@@ -89,8 +90,8 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
                   className="border border-gray-200 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-[#124874] mb-1">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-[#124874] mb-1 break-words">
                         {quiz.title}
                       </h3>
                       <div className="flex flex-wrap gap-3 text-xs text-gray-500">
@@ -105,7 +106,7 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
 
                     <div className="text-right ml-4">
                       <div className={`text-3xl font-bold ${attempt.score >= 80 ? 'text-green-600' :
-                          attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600'
                         }`}>
                         {attempt.score.toFixed(1)}
                       </div>
@@ -123,7 +124,7 @@ export default function MyResults({ onViewAttemptDetail }: MyResultsProps) {
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full ${attempt.score >= 80 ? 'bg-green-500' :
-                            attempt.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                          attempt.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                           }`}
                         style={{ width: `${attempt.score}%` }}
                       />
