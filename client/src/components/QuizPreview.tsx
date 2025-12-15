@@ -167,6 +167,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                           onChange={(e) => setEditingContent(e.target.value)}
                           className="text-sm font-medium text-gray-800 w-full border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#124874] resize-y"
                           rows={2}
+                          maxLength={500}
                         />
                       ) : (
                         <div className="text-sm font-medium text-gray-800 prose prose-sm max-w-none">
@@ -218,6 +219,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                               )
                             }
                             className="flex-1 px-2 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                            maxLength={150}
                           />
                           <label className="flex items-center gap-1 text-[11px] text-gray-600">
                             <input
@@ -241,6 +243,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                         className="w-full text-xs text-gray-700 border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#124874] resize-y"
                         rows={2}
                         placeholder="Giải thích vì sao đáp án đúng"
+                        maxLength={600}
                       />
                     </div>
                   </div>

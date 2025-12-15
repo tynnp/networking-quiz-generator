@@ -19,7 +19,7 @@ export async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token = getAuthToken();
-  
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
@@ -37,7 +37,10 @@ export async function apiRequest<T>(
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: 'Đã xảy ra lỗi' }));
-      throw new Error(error.detail || `Lỗi HTTP! Mã trạng thái: ${response.status}`);
+      const errorMessage = Array.isArray(error.detail)
+        ? error.detail.map((e: any) => e.msg).join(', ')
+        : (error.detail || `Lỗi HTTP! Mã trạng thái: ${response.status}`);
+      throw new Error(errorMessage);
     }
 
     return response.json();
