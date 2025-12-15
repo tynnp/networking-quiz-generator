@@ -99,6 +99,7 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
                   placeholder="Nguyễn Văn A"
                   required
+                  maxLength={100}
                 />
               </div>
 
@@ -113,6 +114,7 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
                   placeholder="student@example.com"
                   required
+                  maxLength={100}
                 />
               </div>
 
@@ -128,6 +130,7 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
                   placeholder="••••••••"
                   required
                   minLength={6}
+                  maxLength={128}
                 />
                 <p className="text-xs text-gray-400 mt-1">Mật khẩu phải có ít nhất 6 ký tự.</p>
               </div>
@@ -144,6 +147,7 @@ export default function Register({ onSwitchToLogin }: RegisterProps) {
                   placeholder="••••••••"
                   required
                   minLength={6}
+                  maxLength={128}
                 />
               </div>
 

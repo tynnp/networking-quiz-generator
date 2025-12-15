@@ -3,28 +3,28 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 class GenerateQuestionsRequest(BaseModel):
-    chapter: Optional[str] = None
+    chapter: Optional[str] = Field(None, max_length=200)
     topics: Optional[List[str]] = None
     knowledgeTypes: Optional[List[str]] = None
-    difficulty: Optional[str] = None
+    difficulty: Optional[str] = Field(None, max_length=20)
     count: int = Field(..., gt=0, le=50)
 
 class Question(BaseModel):
-    id: str
-    content: str
+    id: str = Field(..., max_length=100)
+    content: str = Field(..., max_length=2000)
     options: List[str]
     correctAnswer: int
-    chapter: str
-    topic: str
+    chapter: str = Field(..., max_length=200)
+    topic: str = Field(..., max_length=200)
     knowledgeType: Literal["concept", "property", "mechanism", "rule", "scenario", "example"]
     difficulty: Literal["easy", "medium", "hard"]
-    explanation: Optional[str] = None
+    explanation: Optional[str] = Field(None, max_length=1000)
 
 class GenerateQuestionsResponse(BaseModel):
     questions: List[Question]
 
 class AnalyzeResultRequest(BaseModel):
-    quizTitle: str
+    quizTitle: str = Field(..., max_length=150)
     questions: List[Question]
     answers: Dict[str, int]
     score: float
@@ -38,27 +38,27 @@ class AnalyzeResultResponse(BaseModel):
     suggestedNextActions: List[str]
 
 class KnowledgeAnalysisItem(BaseModel):
-    knowledgeType: str
-    chapter: str
-    topic: str
+    knowledgeType: str = Field(..., max_length=50)
+    chapter: str = Field(..., max_length=200)
+    topic: str = Field(..., max_length=200)
     totalQuestions: int
     correctAnswers: int
     accuracy: float
 
 class AnalyzeOverallRequest(BaseModel):
-    studentName: Optional[str] = None
+    studentName: Optional[str] = Field(None, max_length=100)
     attemptCount: int
     avgScore: float
     knowledgeAnalysis: List[KnowledgeAnalysisItem]
 
 class LoginRequest(BaseModel):
-    email: str
-    password: str
+    email: str = Field(..., max_length=100)
+    password: str = Field(..., max_length=128)
 
 class RegisterRequest(BaseModel):
-    email: str
-    password: str
-    name: str
+    email: str = Field(..., max_length=100)
+    password: str = Field(..., min_length=6, max_length=128)
+    name: str = Field(..., max_length=100)
 
 class UserResponse(BaseModel):
     id: str
@@ -66,13 +66,13 @@ class UserResponse(BaseModel):
     name: str
     role: Literal["student", "admin"]
     dob: Optional[str] = None
-    phone: Optional[str] = None
+    phone: Optional[str] = Field(None, max_length=10)
     isLocked: bool = False
 
 class CreateUserRequest(BaseModel):
-    email: str
-    password: str = Field(..., min_length=6)
-    name: str
+    email: str = Field(..., max_length=100)
+    password: str = Field(..., min_length=6, max_length=128)
+    name: str = Field(..., max_length=100)
     role: Literal["student", "admin"] = "student"
 
 class AuthResponse(BaseModel):
@@ -81,33 +81,33 @@ class AuthResponse(BaseModel):
     user: UserResponse
 
 class UpdateProfileRequest(BaseModel):
-    name: Optional[str] = None
-    dob: Optional[str] = None
-    phone: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=100)
+    dob: Optional[str] = Field(None, max_length=20)
+    phone: Optional[str] = Field(None, max_length=10)
 
 class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str = Field(..., min_length=6)
+    current_password: str = Field(..., max_length=128)
+    new_password: str = Field(..., min_length=6, max_length=128)
 
 # Quiz DTOs
 class QuizSettings(BaseModel):
-    chapter: Optional[str] = None
-    topic: Optional[str] = None
+    chapter: Optional[str] = Field(None, max_length=200)
+    topic: Optional[str] = Field(None, max_length=200)
     knowledgeTypes: Optional[List[str]] = None
-    difficulty: Optional[str] = None
+    difficulty: Optional[str] = Field(None, max_length=20)
     questionCount: int
 
 class CreateQuizRequest(BaseModel):
-    title: str
-    description: str = ""
+    title: str = Field(..., max_length=150)
+    description: str = Field("", max_length=500)
     questions: List[Question]
-    duration: int = Field(..., gt=0)
+    duration: int = Field(..., gt=0, le=600)
     settings: QuizSettings
 
 class UpdateQuizRequest(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    duration: Optional[int] = Field(None, gt=0)
+    title: Optional[str] = Field(None, max_length=150)
+    description: Optional[str] = Field(None, max_length=500)
+    duration: Optional[int] = Field(None, gt=0, le=600)
     questions: Optional[List[Question]] = None
 
 class QuizResponse(BaseModel):
@@ -121,18 +121,18 @@ class QuizResponse(BaseModel):
     settings: QuizSettings
 
 class UpdateQuestionRequest(BaseModel):
-    content: Optional[str] = None
+    content: Optional[str] = Field(None, max_length=2000)
     options: Optional[List[str]] = None
     correctAnswer: Optional[int] = None
-    chapter: Optional[str] = None
-    topic: Optional[str] = None
-    knowledgeType: Optional[str] = None
-    difficulty: Optional[str] = None
-    explanation: Optional[str] = None
+    chapter: Optional[str] = Field(None, max_length=200)
+    topic: Optional[str] = Field(None, max_length=200)
+    knowledgeType: Optional[str] = Field(None, max_length=50)
+    difficulty: Optional[str] = Field(None, max_length=20)
+    explanation: Optional[str] = Field(None, max_length=1000)
 
 # Quiz Attempt DTOs
 class CreateAttemptRequest(BaseModel):
-    quizId: str
+    quizId: str = Field(..., max_length=100)
     answers: Dict[str, int]
     score: float
     timeSpent: int

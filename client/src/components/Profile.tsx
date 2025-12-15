@@ -14,7 +14,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{dob?: string; phone?: string}>({});
+  const [fieldErrors, setFieldErrors] = useState<{ dob?: string; phone?: string }>({});
 
   // Sync state when user changes
   useEffect(() => {
@@ -51,52 +51,52 @@ export default function Profile() {
   };
 
   const validateProfile = (): boolean => {
-    const errors: {dob?: string; phone?: string} = {};
-    
+    const errors: { dob?: string; phone?: string } = {};
+
     if (dob) {
       const dobDate = new Date(dob);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       if (dobDate > today) {
         errors.dob = 'Ngày sinh không thể là ngày trong tương lai';
       }
-      
+
       const minDate = new Date();
       minDate.setFullYear(today.getFullYear() - 150);
       if (dobDate < minDate) {
         errors.dob = 'Ngày sinh không hợp lệ';
       }
     }
-    
+
     if (phone) {
       const phoneDigits = phone.replace(/\D/g, '');
-      
+
       if (phoneDigits.length > 10) {
         errors.phone = 'Số điện thoại tối đa 10 số';
       } else if (phoneDigits.length > 0 && phoneDigits.length < 10) {
         errors.phone = 'Số điện thoại phải có đủ 10 số';
       }
     }
-    
+
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSaveProfile = async () => {
     if (!user) return;
-    
+
     if (!validateProfile()) {
       setProfileError('Vui lòng kiểm tra lại thông tin đã nhập');
       return;
     }
-    
+
     setIsSaving(true);
     setProfileError(null);
-    
+
     try {
       const cleanPhone = phone ? phone.replace(/\D/g, '') : '';
-      
+
       const updates: { name?: string; dob?: string; phone?: string } = {};
       if (fullName !== user.name) updates.name = fullName;
       if (dob !== user.dob) updates.dob = dob || undefined;
@@ -110,7 +110,7 @@ export default function Profile() {
         await refreshUser(); // Refresh user data from server
         showToast('Cập nhật thông tin thành công!', 'success');
       }
-      
+
       setIsEditing(false);
       setFieldErrors({});
     } catch (error) {
@@ -145,7 +145,7 @@ export default function Profile() {
         current_password: currentPassword,
         new_password: newPassword,
       });
-      
+
       setPasswordSuccess('Đổi mật khẩu thành công!');
       showToast('Đổi mật khẩu thành công!', 'success');
       setCurrentPassword('');
@@ -209,11 +209,11 @@ export default function Profile() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={!isEditing}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                  isEditing
+                maxLength={100}
+                className={`w-full px-3 py-2 border rounded-lg text-sm ${isEditing
                     ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
                     : 'border-gray-200 bg-gray-50 text-gray-700'
-                }`}
+                  }`}
               />
             </div>
           </div>
@@ -229,18 +229,17 @@ export default function Profile() {
                 onChange={(e) => {
                   setDob(e.target.value);
                   if (fieldErrors.dob) {
-                    setFieldErrors({...fieldErrors, dob: undefined});
+                    setFieldErrors({ ...fieldErrors, dob: undefined });
                   }
                 }}
                 disabled={!isEditing}
                 max={new Date().toISOString().split('T')[0]}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                  isEditing
+                className={`w-full px-3 py-2 border rounded-lg text-sm ${isEditing
                     ? fieldErrors.dob
                       ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
                       : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
                     : 'border-gray-200 bg-gray-50 text-gray-700'
-                }`}
+                  }`}
               />
               {fieldErrors.dob && (
                 <p className="text-xs text-red-600 mt-1">{fieldErrors.dob}</p>
@@ -260,20 +259,19 @@ export default function Profile() {
                   if (digitsOnly.length <= 10) {
                     setPhone(digitsOnly);
                     if (fieldErrors.phone) {
-                      setFieldErrors({...fieldErrors, phone: undefined});
+                      setFieldErrors({ ...fieldErrors, phone: undefined });
                     }
                   }
                 }}
                 disabled={!isEditing}
                 maxLength={10}
                 placeholder="0123456789"
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${
-                  isEditing
+                className={`w-full px-3 py-2 border rounded-lg text-sm ${isEditing
                     ? fieldErrors.phone
                       ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
                       : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
                     : 'border-gray-200 bg-gray-50 text-gray-700'
-                }`}
+                  }`}
               />
               {fieldErrors.phone && (
                 <p className="text-xs text-red-600 mt-1">{fieldErrors.phone}</p>
@@ -332,7 +330,7 @@ export default function Profile() {
           {/* Đổi mật khẩu */}
           <div className="pt-4 mt-2 border-t border-gray-200">
             <h3 className="text-sm font-semibold text-gray-800 mb-3">Đổi mật khẩu</h3>
-            
+
             {/* Success message */}
             {passwordSuccess && (
               <div className="mb-3 p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm">
@@ -358,6 +356,7 @@ export default function Profile() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     disabled={isChangingPassword}
+                    maxLength={128}
                     className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm disabled:opacity-50"
                   />
                   <button
@@ -386,6 +385,7 @@ export default function Profile() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={isChangingPassword}
+                    maxLength={128}
                     className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm disabled:opacity-50"
                   />
                   <button
@@ -414,6 +414,7 @@ export default function Profile() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     disabled={isChangingPassword}
+                    maxLength={128}
                     className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm disabled:opacity-50"
                   />
                   <button

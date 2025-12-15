@@ -77,6 +77,7 @@ export default function Login() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
                   placeholder="Email đăng nhập"
                   required
+                  maxLength={100}
                 />
               </div>
 
@@ -92,6 +93,7 @@ export default function Login() {
                     className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#124874]"
                     placeholder="Mật khẩu đăng nhập"
                     required
+                    maxLength={128}
                   />
                   <button
                     type="button"
