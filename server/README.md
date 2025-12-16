@@ -41,7 +41,7 @@ pip install -r requirements.txt
 Tạo file `.env` trong thư mục server với các biến sau:
 
 ```env
-MONGODB_URL=mongodb://localhost:27017
+MONGO_URI=mongodb://localhost:27017
 DATABASE_NAME=networking-quiz
 SECRET_KEY=your-secret-key-change-in-production
 GOOGLE_API_KEY=your-google-gemini-api-key
@@ -52,7 +52,7 @@ ADMIN_NAME=Administrator
 
 ### Biến môi trường
 
-- `MONGODB_URL`: Chuỗi kết nối MongoDB (mặc định: `mongodb://localhost:27017`)
+- `MONGO_URI`: Chuỗi kết nối MongoDB (mặc định: `mongodb://localhost:27017`)
 - `DATABASE_NAME`: Tên database (mặc định: `networking-quiz`)
 - `SECRET_KEY`: Secret key để ký JWT token (thay đổi trong production)
 - `GOOGLE_API_KEY`: Google Gemini API key để tạo câu hỏi
