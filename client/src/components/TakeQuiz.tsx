@@ -16,6 +16,10 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState<{ [key: string]: number }>({});
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadQuiz = async () => {
@@ -30,12 +34,61 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
     loadQuiz();
   }, [quizId, loadQuizById]);
 
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: string]: number }>({});
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  useEffect(() => {
+    if (!quiz || timeLeft <= 0 || isSubmitting) {
+      return;
+    }
 
-  // Timer useEffect moved to bottom to access handleSubmit
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, quiz, isSubmitting]);
+
+  useEffect(() => {
+    if (quiz && timeLeft === 0 && !isSubmitting && Object.keys(answers).length > 0) {
+      handleAutoSubmit();
+    }
+  }, [timeLeft, quiz, isSubmitting, answers]);
+
+  const handleAutoSubmit = async () => {
+    if (isSubmitting || !quiz) return;
+    setIsSubmitting(true);
+
+    try {
+      let correctCount = 0;
+      quiz.questions.forEach(question => {
+        if (answers[question.id] === question.correctAnswer) {
+          correctCount++;
+        }
+      });
+
+      const score = (correctCount / quiz.questions.length) * 100;
+      const timeSpent = quiz.duration * 60;
+
+      const createdAttempt = await createAttempt({
+        quizId: quiz.id,
+        answers,
+        score,
+        timeSpent
+      });
+
+      addAttempt(createdAttempt);
+      showToast('Hết thời gian! Bài làm đã được nộp tự động.', 'info');
+      onComplete(createdAttempt.id);
+    } catch (error) {
+      console.error('Error auto-submitting quiz:', error);
+      showToast('Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.', 'error');
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -119,30 +172,6 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
       setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    if (!quiz || timeLeft <= 0) {
-      if (quiz && timeLeft <= 0 && !isSubmitting) {
-        if (timeLeft <= 0 && answers && Object.keys(answers).length > 0) {
-          handleSubmit();
-        }
-      }
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleSubmit();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, quiz]);
 
   return (
     <div className="max-w-5xl mx-auto">
