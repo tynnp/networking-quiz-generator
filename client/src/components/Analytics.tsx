@@ -138,7 +138,9 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
         return;
       }
 
-      targetAttempt = myQuizAttempts[myQuizAttempts.length - 1];
+      myQuizAttempts.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
+
+      targetAttempt = myQuizAttempts[0];
 
       if (!onAiAnalyzeAttempt) {
         alert('Chức năng điều hướng đến màn hình phân tích với AI chưa được cấu hình.');
