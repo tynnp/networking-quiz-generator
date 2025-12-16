@@ -62,3 +62,30 @@ export async function analyzeOverall(params: AnalyzeOverallParams): Promise<AiRe
     throw error;
   }
 }
+
+interface ProgressDataPoint {
+  date: string;
+  score: number;
+  quizTitle: string;
+}
+
+interface AnalyzeProgressParams {
+  studentName?: string;
+  chapter: string;
+  progressData: ProgressDataPoint[];
+  avgScore: number;
+  trend: 'improving' | 'declining' | 'stable';
+}
+
+export async function analyzeProgress(params: AnalyzeProgressParams): Promise<AiResultFeedback> {
+  try {
+    const data = await apiRequest<AiResultFeedback>('/api/analyze-progress', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    return data;
+  } catch (error) {
+    console.error('Error analyzing progress:', error);
+    throw error;
+  }
+}

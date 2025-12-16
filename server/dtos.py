@@ -60,6 +60,18 @@ class AnalyzeOverallRequest(BaseModel):
     avgScore: float
     knowledgeAnalysis: List[KnowledgeAnalysisItem]
 
+class ProgressDataPoint(BaseModel):
+    date: str
+    score: float
+    quizTitle: str
+
+class AnalyzeProgressRequest(BaseModel):
+    studentName: Optional[str] = Field(None, max_length=100)
+    chapter: str = Field(..., max_length=200)
+    progressData: List[ProgressDataPoint]
+    avgScore: float
+    trend: str  # "improving", "declining", "stable"
+
 class LoginRequest(BaseModel):
     email: str = Field(..., max_length=100)
     password: str = Field(..., max_length=128)

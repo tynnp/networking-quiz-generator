@@ -12,6 +12,7 @@ from google import genai
 from pymongo.database import Database
 from dtos import (
     AnalyzeOverallRequest,
+    AnalyzeProgressRequest,
     AnalyzeResultRequest,
     AnalyzeResultResponse,
     GenerateQuestionsRequest,
@@ -601,6 +602,90 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
         raise HTTPException(
             status_code=500,
             detail="Lỗi khi gọi Gemini API để phân tích tổng quan",
+        )
+
+def build_progress_analysis_prompt(request) -> str:
+    progress_text = "\n".join([
+        f"- {p.date}: {p.score:.1f} điểm ({p.quizTitle})" 
+        for p in request.progressData
+    ])
+    
+    trend_vi = {
+        "improving": "đang tiến bộ",
+        "declining": "đang giảm sút", 
+        "stable": "ổn định"
+    }.get(request.trend, request.trend)
+    
+    prompt = f"""Bạn là một chuyên gia giáo dục. Hãy phân tích sự tiến triển học tập của sinh viên dựa trên dữ liệu sau:
+
+Sinh viên: {request.studentName or 'Không xác định'}
+Chương/Chủ đề: {request.chapter}
+Xu hướng hiện tại: {trend_vi}
+Điểm trung bình: {request.avgScore:.1f}
+
+Lịch sử làm bài (theo thời gian):
+{progress_text}
+
+Hãy phân tích:
+1. Đánh giá tổng quan về sự tiến triển
+2. Điểm mạnh trong quá trình học
+3. Điểm cần cải thiện
+4. Đề xuất các bước tiếp theo
+
+Trả về JSON với format:
+{{
+    "overallFeedback": "Nhận xét tổng quan về tiến triển...",
+    "strengths": ["Điểm mạnh 1", "Điểm mạnh 2"],
+    "weaknesses": ["Điểm yếu 1", "Điểm yếu 2"],
+    "suggestedTopics": ["Chủ đề nên ôn lại 1", "Chủ đề nên ôn lại 2"],
+    "suggestedNextActions": ["Hành động 1", "Hành động 2"]
+}}
+
+CHỈ trả về JSON, không có text khác."""
+    return prompt
+
+@app.post("/api/analyze-progress", response_model=AnalyzeResultResponse)
+def analyze_progress(request: AnalyzeProgressRequest) -> AnalyzeResultResponse:
+    if client is None:
+        raise HTTPException(
+            status_code=500,
+            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
+        )
+
+    prompt = build_progress_analysis_prompt(request)
+
+    try:
+        gemini_response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+        )
+
+        generated_text = gemini_response.text or ""
+
+        try:
+            data = json.loads(generated_text)
+        except json.JSONDecodeError:
+            match = re.search(r"\{[\s\S]*\}", generated_text)
+            if not match:
+                raise ValueError("No JSON object found in LLM response")
+            data = json.loads(match.group(0))
+
+        return AnalyzeResultResponse(
+            overallFeedback=data.get(
+                "overallFeedback", "Không thể phân tích tiến triển học tập."
+            ),
+            strengths=data.get("strengths", []),
+            weaknesses=data.get("weaknesses", []),
+            suggestedTopics=data.get("suggestedTopics", []),
+            suggestedNextActions=data.get("suggestedNextActions", []),
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        print("Error calling Gemini API for progress analysis:", exc)
+        raise HTTPException(
+            status_code=500,
+            detail="Lỗi khi gọi Gemini API để phân tích tiến triển",
         )
 
 # Quiz endpoints
