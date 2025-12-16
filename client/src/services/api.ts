@@ -139,7 +139,7 @@ export async function unlockUser(userId: string): Promise<{ message: string }> {
 }
 
 // Quiz API functions
-import { Quiz, Question } from '../types';
+import { Quiz, Question, PaginatedResponse } from '../types';
 
 export interface CreateQuizRequest {
   title: string;
@@ -173,16 +173,28 @@ export interface UpdateQuestionRequest {
   explanation?: string;
 }
 
-export async function getQuizzes(createdBy?: string): Promise<Quiz[]> {
-  const url = createdBy ? `/api/quizzes?created_by=${createdBy}` : '/api/quizzes';
-  const quizzes = await apiRequest<Quiz[]>(url, {
+export async function getQuizzes(createdBy?: string, page: number = 1, size: number = 10): Promise<PaginatedResponse<Quiz>> {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+
+  if (createdBy) {
+    queryParams.append('created_by', createdBy);
+  }
+
+  const url = `/api/quizzes?${queryParams.toString()}`;
+  const response = await apiRequest<PaginatedResponse<Quiz>>(url, {
     method: 'GET',
   });
-  // Convert createdAt string to Date
-  return quizzes.map(quiz => ({
-    ...quiz,
-    createdAt: new Date(quiz.createdAt)
-  }));
+
+  return {
+    ...response,
+    items: response.items.map(quiz => ({
+      ...quiz,
+      createdAt: new Date(quiz.createdAt)
+    }))
+  };
 }
 
 export async function getQuiz(quizId: string): Promise<Quiz> {

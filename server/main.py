@@ -31,6 +31,7 @@ from dtos import (
     UpdateQuestionRequest,
     CreateAttemptRequest,
     AttemptResponse,
+    PaginatedResponse,
 )
 from database import get_db, init_db
 from auth import (
@@ -603,27 +604,41 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
         )
 
 # Quiz endpoints
-@app.get("/api/quizzes", response_model=List[QuizResponse])
+@app.get("/api/quizzes", response_model=PaginatedResponse[QuizResponse])
 def get_quizzes(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
     created_by: Optional[str] = Query(None),
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ):
-    """Get all quizzes, optionally filtered by creator"""
-    quizzes = get_all_quizzes(db, current_user["id"])
-    return [
-        QuizResponse(
-            id=q["id"],
-            title=q["title"],
-            description=q.get("description", ""),
-            questions=q["questions"],
-            duration=q["duration"],
-            createdBy=q["createdBy"],
-            createdAt=q.get("createdAt", datetime.utcnow().isoformat()),
-            settings=QuizSettings(**q.get("settings", {"questionCount": len(q.get("questions", []))}))
-        )
-        for q in quizzes
-    ]
+    """Get all quizzes with pagination, optionally filtered by creator"""
+    skip = (page - 1) * size
+    result = get_all_quizzes(db, current_user["id"], skip=skip, limit=size)
+    
+    quizzes = result["items"]
+    total = result["total"]
+    pages = (total + size - 1) // size
+    
+    return PaginatedResponse(
+        items=[
+            QuizResponse(
+                id=q["id"],
+                title=q["title"],
+                description=q.get("description", ""),
+                questions=q["questions"],
+                duration=q["duration"],
+                createdBy=q["createdBy"],
+                createdAt=q.get("createdAt", datetime.utcnow().isoformat()),
+                settings=QuizSettings(**q.get("settings", {"questionCount": len(q.get("questions", []))}))
+            )
+            for q in quizzes
+        ],
+        total=total,
+        page=page,
+        size=size,
+        pages=pages
+    )
 
 @app.get("/api/quizzes/{quiz_id}", response_model=QuizResponse)
 def get_quiz(

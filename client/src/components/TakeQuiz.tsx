@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { QuizAttempt } from '../types';
+import { Quiz } from '../types';
 import { createAttempt } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 
@@ -12,28 +11,41 @@ interface TakeQuizProps {
 }
 
 export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
-  const { getQuizById, addAttempt } = useData();
-  const { user } = useAuth();
+  const { loadQuizById, addAttempt } = useData();
   const { showToast } = useToast();
-  const quiz = getQuizById(quizId);
+
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadQuiz = async () => {
+      setLoading(true);
+      const data = await loadQuizById(quizId);
+      if (data) {
+        setQuiz(data);
+        setTimeLeft(data.duration * 60);
+      }
+      setLoading(false);
+    };
+    loadQuiz();
+  }, [quizId, loadQuizById]);
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{ [key: string]: number }>({});
-  const [timeLeft, setTimeLeft] = useState(quiz ? quiz.duration * 60 : 0);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      handleSubmit();
-      return;
-    }
+  // Timer useEffect moved to bottom to access handleSubmit
 
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-500">
+          <p>Đang tải đề thi...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!quiz) {
     return (
@@ -108,6 +120,30 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
     }
   };
 
+  useEffect(() => {
+    if (!quiz || timeLeft <= 0) {
+      if (quiz && timeLeft <= 0 && !isSubmitting) {
+        if (timeLeft <= 0 && answers && Object.keys(answers).length > 0) {
+          handleSubmit();
+        }
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          handleSubmit();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, quiz]);
+
   return (
     <div className="max-w-5xl mx-auto">
       <div className="bg-white rounded-xl shadow-md p-5">
@@ -142,14 +178,14 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
                   className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-colors text-sm ${answers[currentQuestion.id] === index
-                      ? 'border-[#124874] bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-[#124874] bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion.id] === index
-                        ? 'border-[#124874] bg-[#124874]'
-                        : 'border-gray-300'
+                      ? 'border-[#124874] bg-[#124874]'
+                      : 'border-gray-300'
                       }`}>
                     </div>
                     <span>{option}</span>
@@ -217,10 +253,10 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
                 key={question.id}
                 onClick={() => setCurrentQuestionIndex(index)}
                 className={`h-9 min-w-[2.25rem] rounded text-xs font-medium flex items-center justify-center transition-colors ${isCurrent
-                    ? 'bg-[#124874] text-white ring-2 ring-[#124874] ring-offset-2'
-                    : isAnswered
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-[#124874] text-white ring-2 ring-[#124874] ring-offset-2'
+                  : isAnswered
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
               >
                 {index + 1}

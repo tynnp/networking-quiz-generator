@@ -10,7 +10,7 @@ interface QuizListProps {
 }
 
 export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
-  const { quizzes, deleteQuiz, loading } = useData();
+  const { quizzes, deleteQuiz, loading, pagination } = useData();
   const { user } = useAuth();
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,86 +81,118 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                 {searchQuery ? 'Không tìm thấy đề thi nào phù hợp' : 'Chưa có đề thi nào'}
               </div>
             ) : (
-              filteredQuizzes.map(quiz => (
-                <div
-                  key={quiz.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-[#124874] mb-1 break-words">
-                        {quiz.title}
-                      </h3>
-                      {quiz.description && (
-                        <p className="text-sm text-gray-600 mb-2 break-words">
-                          {quiz.description}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-3 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          {quiz.questions.length} câu hỏi
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {quiz.duration} phút
-                        </div>
-                        {quiz.settings.chapter && (
-                          <div className="px-2 py-0.5 bg-blue-50 text-[#124874] rounded">
-                            {quiz.settings.chapter}
+              <>
+                <div className="space-y-3">
+                  {filteredQuizzes.map(quiz => (
+                    <div
+                      key={quiz.id}
+                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-[#124874] mb-1 break-words">
+                            {quiz.title}
+                          </h3>
+                          {quiz.description && (
+                            <p className="text-sm text-gray-600 mb-2 break-words">
+                              {quiz.description}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-3 text-xs text-gray-500">
+                            <div className="flex items-center gap-1">
+                              {quiz.questions.length} câu hỏi
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {quiz.duration} phút
+                            </div>
+                            {quiz.settings.chapter && (
+                              <div className="px-2 py-0.5 bg-blue-50 text-[#124874] rounded">
+                                {quiz.settings.chapter}
+                              </div>
+                            )}
+                            {quiz.settings.difficulty !== undefined && (
+                              <div className={`px-2 py-0.5 rounded ${!quiz.settings.difficulty || quiz.settings.difficulty === ''
+                                ? 'bg-gray-50 text-gray-700'
+                                : quiz.settings.difficulty === 'easy'
+                                  ? 'bg-green-50 text-green-700'
+                                  : quiz.settings.difficulty === 'medium'
+                                    ? 'bg-yellow-50 text-yellow-700'
+                                    : 'bg-red-50 text-red-700'
+                                }`}>
+                                {!quiz.settings.difficulty || quiz.settings.difficulty === '' ? 'Hỗn hợp' :
+                                  quiz.settings.difficulty === 'easy' ? 'Dễ' :
+                                    quiz.settings.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {quiz.settings.difficulty !== undefined && (
-                          <div className={`px-2 py-0.5 rounded ${!quiz.settings.difficulty || quiz.settings.difficulty === ''
-                            ? 'bg-gray-50 text-gray-700'
-                            : quiz.settings.difficulty === 'easy'
-                              ? 'bg-green-50 text-green-700'
-                              : quiz.settings.difficulty === 'medium'
-                                ? 'bg-yellow-50 text-yellow-700'
-                                : 'bg-red-50 text-red-700'
-                            }`}>
-                            {!quiz.settings.difficulty || quiz.settings.difficulty === '' ? 'Hỗn hợp' :
-                              quiz.settings.difficulty === 'easy' ? 'Dễ' :
-                                quiz.settings.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                        </div>
 
-                    <div className="ml-4 flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onPreviewQuiz(quiz.id)}
-                        className="px-3 py-1.5 rounded-lg border border-[#124874] text-[#124874] hover:bg-blue-50 transition-colors"
-                        title="Xem câu hỏi"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-
-                      {user && (
-                        <>
+                        <div className="ml-4 flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => onTakeQuiz(quiz.id)}
-                            className="px-3 py-1.5 rounded-lg bg-[#124874] text-white hover:bg-[#0d3351] transition-colors"
-                            title="Làm bài"
+                            onClick={() => onPreviewQuiz(quiz.id)}
+                            className="px-3 py-1.5 rounded-lg border border-[#124874] text-[#124874] hover:bg-blue-50 transition-colors"
+                            title="Xem câu hỏi"
                           >
-                            <PlayCircle className="w-4 h-4" />
+                            <Eye className="w-4 h-4" />
                           </button>
-                          {quiz.createdBy === user.id && (
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteQuiz(quiz.id)}
-                              className="px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 transition-colors"
-                              title="Xóa đề"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+
+                          {user && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => onTakeQuiz(quiz.id)}
+                                className="px-3 py-1.5 rounded-lg bg-[#124874] text-white hover:bg-[#0d3351] transition-colors"
+                                title="Làm bài"
+                              >
+                                <PlayCircle className="w-4 h-4" />
+                              </button>
+                              {quiz.createdBy === user.id && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteQuiz(quiz.id)}
+                                  className="px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 transition-colors"
+                                  title="Xóa đề"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </>
                           )}
-                        </>
-                      )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination Controls */}
+                {!searchQuery && (
+                  <div className="mt-6 flex items-center justify-between border-t border-gray-200 pt-4">
+                    <p className="text-sm text-gray-500">
+                      Hiển thị {filteredQuizzes.length} đề thi
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => pagination?.setPage(Math.max(1, pagination.currentPage - 1))}
+                        disabled={!pagination || pagination.currentPage === 1}
+                        className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Trước
+                      </button>
+                      <span className="text-sm font-medium text-gray-700">
+                        Trang {pagination?.currentPage} / {pagination?.totalPages}
+                      </span>
+                      <button
+                        onClick={() => pagination?.setPage(Math.min(pagination.totalPages, pagination.currentPage + 1))}
+                        disabled={!pagination || pagination.currentPage === pagination.totalPages}
+                        className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                      >
+                        Sau
+                      </button>
                     </div>
                   </div>
-                </div>
-              ))
+                )}
+              </>
             )}
           </div>
         )}

@@ -1,6 +1,15 @@
-from typing import List, Optional, Literal, Dict
+from typing import List, Optional, Literal, Dict, Generic, TypeVar, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
+
+T = TypeVar("T")
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
+    total: int
+    page: int
+    size: int
+    pages: int
 
 class GenerateQuestionsRequest(BaseModel):
     chapter: Optional[str] = Field(None, max_length=200)

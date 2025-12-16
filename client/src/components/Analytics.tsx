@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
-import { KnowledgeAnalysis, QuizAttempt, AiResultFeedback as AiResultFeedbackType } from '../types';
+import { KnowledgeAnalysis, QuizAttempt, AiResultFeedback as AiResultFeedbackType, Quiz } from '../types';
 import { analyzeOverall } from '../services/gemini';
+import { getQuizzes } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 
 interface AnalyticsProps {
@@ -10,8 +11,17 @@ interface AnalyticsProps {
 }
 
 export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
-  const { quizzes, attempts } = useData();
+  const { attempts } = useData();
   const { user } = useAuth();
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+
+  useEffect(() => {
+    // Load all quizzes for dropdown (limit 100 for now)
+    getQuizzes(undefined, 1, 100).then(data => {
+      setQuizzes(data.items);
+    }).catch(console.error);
+  }, []);
+
   const [selectedQuiz, setSelectedQuiz] = useState<string>('');
   const [overallFeedback, setOverallFeedback] = useState<AiResultFeedbackType | null>(null);
   const [overallLoading, setOverallLoading] = useState(false);

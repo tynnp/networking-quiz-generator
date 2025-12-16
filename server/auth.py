@@ -95,10 +95,17 @@ def get_quiz_by_id(db: Database, quiz_id: str) -> Optional[dict]:
     """Get quiz by ID"""
     return db.quizzes.find_one({"id": quiz_id})
 
-def get_all_quizzes(db: Database, created_by: Optional[str] = None) -> List[dict]:
-    """Get all quizzes, optionally filtered by creator"""
+def get_all_quizzes(db: Database, created_by: Optional[str] = None, skip: int = 0, limit: int = 100) -> dict:
+    """Get all quizzes with pagination, optionally filtered by creator"""
     query = {} if not created_by else {"createdBy": created_by}
-    return list(db.quizzes.find(query).sort("createdAt", -1))
+    
+    total = db.quizzes.count_documents(query)
+    items = list(db.quizzes.find(query).sort("createdAt", -1).skip(skip).limit(limit))
+    
+    return {
+        "items": items,
+        "total": total
+    }
 
 def update_quiz(db: Database, quiz_id: str, updates: dict) -> Optional[dict]:
     """Update quiz information"""

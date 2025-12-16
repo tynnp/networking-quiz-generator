@@ -3,29 +3,36 @@ import { Quiz, QuizAttempt, Question } from '../types';
 import { useAuth } from './AuthContext';
 import {
   getQuizzes,
+  getQuiz as getQuizAPI,
   createQuiz as createQuizAPI,
-  updateQuiz as updateQuizAPI,
   deleteQuiz as deleteQuizAPI,
   updateQuestion as updateQuestionAPI,
   deleteQuestion as deleteQuestionAPI,
   getAttempts as getAttemptsAPI,
   getAttempt as getAttemptAPI,
   CreateQuizRequest,
-  UpdateQuizRequest,
   UpdateQuestionRequest
 } from '../services/api';
 
-interface DataContextType {
+export interface DataContextType {
   quizzes: Quiz[];
   attempts: QuizAttempt[];
   loading: boolean;
   attemptsLoading: boolean;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalQuizzes: number;
+    pageSize: number;
+    setPage: (page: number) => void;
+  };
   addQuiz: (quiz: Quiz) => Promise<void>;
   addAttempt: (attempt: QuizAttempt) => void;
   deleteQuiz: (id: string) => Promise<void>;
   updateQuestion: (quizId: string, questionId: string, updates: Partial<Question>) => Promise<void>;
   deleteQuestion: (quizId: string, questionId: string) => Promise<void>;
   getQuizById: (id: string) => Quiz | undefined;
+  loadQuizById: (id: string) => Promise<Quiz | undefined>;
   getAttemptsByStudent: (studentId: string) => QuizAttempt[];
   getAttemptsByQuiz: (quizId: string) => QuizAttempt[];
   getAttemptById: (id: string) => QuizAttempt | undefined;
@@ -37,13 +44,19 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [loading, setLoading] = useState(true);
   const [attemptsLoading, setAttemptsLoading] = useState(true);
 
-  const loadQuizzes = async () => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalQuizzes, setTotalQuizzes] = useState(0);
+  const PAGE_SIZE = 10;
+
+  const loadQuizzes = async (page: number = 1) => {
     if (!isAuthenticated) {
       setLoading(false);
       return;
@@ -51,8 +64,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     try {
       setLoading(true);
-      const data = await getQuizzes();
-      setQuizzes(data);
+      const data = await getQuizzes(undefined, page, PAGE_SIZE);
+      setQuizzes(data.items);
+      setTotalPages(data.pages);
+      setTotalQuizzes(data.total);
+      setCurrentPage(data.page);
     } catch (error) {
       console.error('Error loading quizzes:', error);
     } finally {
@@ -79,7 +95,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      loadQuizzes();
+      loadQuizzes(1);
       loadAttempts();
     }
   }, [isAuthenticated]);
@@ -93,9 +109,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         duration: quiz.duration,
         settings: quiz.settings
       };
-      
-      const createdQuiz = await createQuizAPI(quizRequest);
-      setQuizzes(prev => [...prev, createdQuiz]);
+
+      await createQuizAPI(quizRequest);
+      // Reload current page to see update (or reset to 1)
+      await loadQuizzes(currentPage);
     } catch (error) {
       console.error('Error creating quiz:', error);
       throw error;
@@ -114,7 +131,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const deleteQuiz = async (id: string) => {
     try {
       await deleteQuizAPI(id);
-      setQuizzes(prev => prev.filter(q => q.id !== id));
+      // Reload current page
+      await loadQuizzes(currentPage);
       setAttempts(prev => prev.filter(a => a.quizId !== id));
     } catch (error) {
       console.error('Error deleting quiz:', error);
@@ -156,6 +174,24 @@ export function DataProvider({ children }: { children: ReactNode }) {
     return quizzes.find(q => q.id === id);
   };
 
+  const loadQuizById = async (id: string): Promise<Quiz | undefined> => {
+    // Check local
+    const local = quizzes.find(q => q.id === id);
+    if (local) return local;
+
+    // Fetch from server
+    try {
+      const serverQuiz = await getQuizAPI(id);
+      // We don't add it to the 'quizzes' list to avoid messing up pagination view
+      // But components can use the returned value.
+      // Optionally we could have a cache for 'loadedQuizzes' but let's keep it simple.
+      return serverQuiz;
+    } catch (e) {
+      console.error('Error loading quiz by id:', e);
+      return undefined;
+    }
+  };
+
   const getAttemptsByStudent = (studentId: string) => {
     return attempts.filter(a => a.studentId === studentId);
   };
@@ -189,7 +225,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshQuizzes = async () => {
-    await loadQuizzes();
+    await loadQuizzes(currentPage);
   };
 
   const refreshAttempts = async () => {
@@ -201,19 +237,27 @@ export function DataProvider({ children }: { children: ReactNode }) {
       quizzes,
       attempts,
       loading,
+      attemptsLoading,
+      pagination: {
+        currentPage,
+        totalPages,
+        totalQuizzes,
+        pageSize: PAGE_SIZE,
+        setPage: loadQuizzes
+      },
       addQuiz,
       addAttempt,
       deleteQuiz,
       updateQuestion,
       deleteQuestion,
       getQuizById,
+      loadQuizById,
       getAttemptsByStudent,
       getAttemptsByQuiz,
       getAttemptById,
       loadAttemptById,
       refreshQuizzes,
-      refreshAttempts,
-      attemptsLoading
+      refreshAttempts
     }}>
       {children}
     </DataContext.Provider>
