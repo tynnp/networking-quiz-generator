@@ -123,6 +123,13 @@ server/
 - `POST /api/generate-questions` - Tạo câu hỏi bằng AI
 - `POST /api/analyze-result` - Phân tích kết quả bài làm đề thi
 - `POST /api/analyze-overall` - Phân tích kiến thức tổng quan
+- `POST /api/analyze-progress` - Phân tích tiến triển học tập theo chương
+
+### Phân trang
+
+API `/api/quizzes` hỗ trợ phân trang với các tham số:
+- `page`: Số trang (mặc định: 1)
+- `size`: Số lượng item mỗi trang (mặc định: 10, tối đa: 100)
 
 ## Database
 

@@ -18,6 +18,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 - Xem kết quả bài thi và phản hồi chi tiết
 - Phân tích hiệu suất bằng AI
 - Theo dõi tiến độ theo thời gian
+- Theo dõi tiến triển học tập theo chương với AI
 - Xem lịch sử bài thi cá nhân
 - Quản lý hồ sơ cá nhân
 
@@ -39,6 +40,9 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 - Phân tích loại kiến thức (khái niệm, thuộc tính, cơ chế, quy tắc, tình huống, ví dụ)
 - Lọc câu hỏi theo chương và chủ đề
 - Chọn mức độ khó (dễ, trung bình, khó)
+- Tìm kiếm đề thi theo tiêu đề, chương, độ khó
+- Phân trang danh sách đề thi
+- Phân tích tiến triển học tập theo chương bằng AI
 - Thông báo toast cho phản hồi người dùng
 - Thiết kế responsive
 

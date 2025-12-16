@@ -77,7 +77,7 @@ client/
 
 ## Tính năng
 
-- Xác thực người dùng (đăng nhập)
+- Xác thực người dùng (đăng nhập, đăng ký)
 - Tạo đề thi với câu hỏi được tạo bằng AI
 - Làm bài thi với bộ đếm thời gian
 - Xem trước và chỉnh sửa đề thi
@@ -86,6 +86,9 @@ client/
 - Phản hồi bằng AI
 - Quản lý hồ sơ người dùng
 - Quản lý người dùng admin (tạo, xóa, khóa, mở khóa người dùng)
+- Tìm kiếm đề thi theo tiêu đề, chương, độ khó
+- Phân trang danh sách đề thi
+- Theo dõi tiến triển học tập theo chương với phân tích AI
 
 ## Biến môi trường
 
