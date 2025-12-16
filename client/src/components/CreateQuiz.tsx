@@ -196,32 +196,100 @@ export default function CreateQuiz() {
       <div className="bg-white rounded-xl shadow-md px-5 pt-3 pb-5">
 
         <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tiêu đề đề thi *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
-              placeholder="Ví dụ: Kiểm tra chương 1"
-              maxLength={100}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tiêu đề đề thi *
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+                placeholder="Ví dụ: Kiểm tra chương 1"
+                maxLength={100}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Thời gian (phút)
+              </label>
+              <input
+                type="number"
+                value={duration}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 1 && value <= 600) {
+                    setDuration(value);
+                  } else if (value > 600) {
+                    setDuration(600);
+                  } else if (value < 1 && e.target.value !== '') {
+                    setDuration(1);
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = Number(e.target.value);
+                  if (value < 1 || isNaN(value)) {
+                    setDuration(1);
+                  } else if (value > 600) {
+                    setDuration(600);
+                  }
+                }}
+                min="1"
+                max="600"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">Từ 1 đến 600 phút</p>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mô tả
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
-              placeholder="Mô tả ngắn về đề thi"
-              maxLength={150}
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mô tả
+              </label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+                placeholder="Mô tả ngắn về đề thi"
+                maxLength={150}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Số câu hỏi
+              </label>
+              <input
+                type="number"
+                value={questionCount}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value >= 1 && value <= 30) {
+                    setQuestionCount(value);
+                  } else if (value > 30) {
+                    setQuestionCount(30);
+                  } else if (value < 1 && e.target.value !== '') {
+                    setQuestionCount(1);
+                  }
+                }}
+                onBlur={(e) => {
+                  const value = Number(e.target.value);
+                  if (value < 1 || isNaN(value)) {
+                    setQuestionCount(1);
+                  } else if (value > 30) {
+                    setQuestionCount(30);
+                  }
+                }}
+                min="1"
+                max="30"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+              />
+              <p className="text-xs text-gray-400 mt-1">Từ 1 đến 30 câu hỏi</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -263,111 +331,66 @@ export default function CreateQuiz() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Chủ đề *
               </label>
-              <select
-                multiple
-                value={selectedTopics}
-                onChange={(e) => {
-                  const values = Array.from(e.target.selectedOptions, option => option.value);
-                  setSelectedTopics(values);
-                }}
-                disabled={!selectedChapter}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm disabled:bg-gray-100"
-              >
-                {availableTopics.map(topic => (
-                  <option key={topic} value={topic}>
-                    {topic}
-                  </option>
-                ))}
-              </select>
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-white">
+                {availableTopics.length > 0 ? (
+                  availableTopics.map(topic => (
+                    <div key={topic} className="flex items-start mb-2 last:mb-0">
+                      <input
+                        type="checkbox"
+                        id={`topic-${topic}`}
+                        value={topic}
+                        checked={selectedTopics.includes(topic)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedTopics([...selectedTopics, topic]);
+                          } else {
+                            setSelectedTopics(selectedTopics.filter(t => t !== topic));
+                          }
+                        }}
+                        className="mt-1 w-4 h-4 text-[#124874] border-gray-300 rounded focus:ring-[#124874]"
+                      />
+                      <label htmlFor={`topic-${topic}`} className="ml-2 text-sm text-gray-700 cursor-pointer select-none">
+                        {topic}
+                      </label>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-400 italic">Vui lòng chọn chương trước</p>
+                )}
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Phân loại kiến thức *
               </label>
-              <select
-                multiple
-                value={selectedKnowledgeTypes}
-                onChange={(e) => {
-                  const values = Array.from(e.target.selectedOptions, option => option.value);
-                  setSelectedKnowledgeTypes(values);
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
-              >
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-white">
                 {knowledgeTypes.map(type => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
+                  <div key={type.value} className="flex items-center mb-2 last:mb-0">
+                    <input
+                      type="checkbox"
+                      id={`type-${type.value}`}
+                      value={type.value}
+                      checked={selectedKnowledgeTypes.includes(type.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedKnowledgeTypes([...selectedKnowledgeTypes, type.value]);
+                        } else {
+                          setSelectedKnowledgeTypes(selectedKnowledgeTypes.filter(t => t !== type.value));
+                        }
+                      }}
+                      className="w-4 h-4 text-[#124874] border-gray-300 rounded focus:ring-[#124874]"
+                    />
+                    <label htmlFor={`type-${type.value}`} className="ml-2 text-sm text-gray-700 cursor-pointer select-none">
+                      {type.label}
+                    </label>
+                  </div>
                 ))}
-              </select>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Số câu hỏi
-              </label>
-              <input
-                type="number"
-                value={questionCount}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 1 && value <= 30) {
-                    setQuestionCount(value);
-                  } else if (value > 30) {
-                    setQuestionCount(30);
-                  } else if (value < 1 && e.target.value !== '') {
-                    setQuestionCount(1);
-                  }
-                }}
-                onBlur={(e) => {
-                  const value = Number(e.target.value);
-                  if (value < 1 || isNaN(value)) {
-                    setQuestionCount(1);
-                  } else if (value > 30) {
-                    setQuestionCount(30);
-                  }
-                }}
-                min="1"
-                max="30"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-1">Từ 1 đến 30 câu hỏi</p>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Thời gian (phút)
-              </label>
-              <input
-                type="number"
-                value={duration}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  if (value >= 1 && value <= 600) {
-                    setDuration(value);
-                  } else if (value > 600) {
-                    setDuration(600);
-                  } else if (value < 1 && e.target.value !== '') {
-                    setDuration(1);
-                  }
-                }}
-                onBlur={(e) => {
-                  const value = Number(e.target.value);
-                  if (value < 1 || isNaN(value)) {
-                    setDuration(1);
-                  } else if (value > 600) {
-                    setDuration(600);
-                  }
-                }}
-                min="1"
-                max="600"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
-              />
-              <p className="text-xs text-gray-400 mt-1">Từ 1 đến 600 phút</p>
-            </div>
-          </div>
 
           <button
             onClick={handleGenerateQuiz}
