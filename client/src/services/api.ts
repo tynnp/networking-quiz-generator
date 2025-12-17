@@ -316,3 +316,30 @@ export async function getAttempt(attemptId: string): Promise<QuizAttempt> {
   };
 }
 
+// Analysis History API functions
+import { AnalysisHistory } from '../types';
+
+export async function getAnalysisHistory(page: number = 1, size: number = 10): Promise<PaginatedResponse<AnalysisHistory>> {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+  });
+
+  const response = await apiRequest<PaginatedResponse<AnalysisHistory>>(`/api/analysis-history?${queryParams.toString()}`, {
+    method: 'GET',
+  });
+
+  return {
+    ...response,
+    items: response.items.map(item => ({
+      ...item,
+      createdAt: new Date(item.createdAt)
+    }))
+  };
+}
+
+export async function deleteAnalysisHistoryItem(analysisId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/analysis-history/${analysisId}`, {
+    method: 'DELETE',
+  });
+}

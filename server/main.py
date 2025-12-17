@@ -34,9 +34,18 @@ from dtos import (
     CreateAttemptRequest,
     AttemptResponse,
     PaginatedResponse,
+    AnalysisHistoryResponse,
+    AnalysisResultData,
 )
 
-from database import get_db, init_db
+from database import (
+    get_db,
+    init_db,
+    create_analysis_history,
+    get_analysis_history_by_user,
+    get_analysis_history_by_id,
+    delete_analysis_history,
+)
 
 from auth import (
     verify_password,
@@ -529,7 +538,11 @@ def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsRe
         handle_gemini_error(exc)
 
 @app.post("/api/analyze-result", response_model=AnalyzeResultResponse)
-def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
+def analyze_result(
+    request: AnalyzeResultRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+) -> AnalyzeResultResponse:
     if client is None:
         raise HTTPException(
             status_code=500,
@@ -554,7 +567,7 @@ def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
                 raise ValueError("No JSON object found in LLM response")
             data = json.loads(match.group(0))
 
-        return AnalyzeResultResponse(
+        result = AnalyzeResultResponse(
             overallFeedback=data.get(
                 "overallFeedback", "Không thể phân tích kết quả bài làm."
             ),
@@ -563,13 +576,31 @@ def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
             suggestedTopics=data.get("suggestedTopics", []),
             suggestedNextActions=data.get("suggestedNextActions", []),
         )
+        
+        # Save to analysis history
+        history_data = {
+            "id": f"analysis-{int(time.time() * 1000)}",
+            "userId": current_user["id"],
+            "analysisType": "result",
+            "title": request.quizTitle,
+            "result": result.model_dump(),
+            "context": {"score": request.score, "timeSpent": request.timeSpent},
+            "createdAt": datetime.now().isoformat()
+        }
+        create_analysis_history(db, history_data)
+        
+        return result
     except HTTPException:
         raise
     except Exception as exc:
         handle_gemini_error(exc)
 
 @app.post("/api/analyze-overall", response_model=AnalyzeResultResponse)
-def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
+def analyze_overall(
+    request: AnalyzeOverallRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+) -> AnalyzeResultResponse:
     if client is None:
         raise HTTPException(
             status_code=500,
@@ -594,7 +625,7 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
                 raise ValueError("No JSON object found in LLM response")
             data = json.loads(match.group(0))
 
-        return AnalyzeResultResponse(
+        result = AnalyzeResultResponse(
             overallFeedback=data.get(
                 "overallFeedback", "Không thể phân tích tổng quan lịch sử làm bài."
             ),
@@ -603,6 +634,20 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
             suggestedTopics=data.get("suggestedTopics", []),
             suggestedNextActions=data.get("suggestedNextActions", []),
         )
+        
+        # Save to analysis history
+        history_data = {
+            "id": f"analysis-{int(time.time() * 1000)}",
+            "userId": current_user["id"],
+            "analysisType": "overall",
+            "title": "Phân tích tổng quan",
+            "result": result.model_dump(),
+            "context": {"attemptCount": request.attemptCount, "avgScore": request.avgScore},
+            "createdAt": datetime.now().isoformat()
+        }
+        create_analysis_history(db, history_data)
+        
+        return result
     except HTTPException:
         raise
     except Exception as exc:
@@ -649,7 +694,11 @@ CHỈ trả về JSON, không có text khác."""
     return prompt
 
 @app.post("/api/analyze-progress", response_model=AnalyzeResultResponse)
-def analyze_progress(request: AnalyzeProgressRequest) -> AnalyzeResultResponse:
+def analyze_progress(
+    request: AnalyzeProgressRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+) -> AnalyzeResultResponse:
     if client is None:
         raise HTTPException(
             status_code=500,
@@ -674,7 +723,7 @@ def analyze_progress(request: AnalyzeProgressRequest) -> AnalyzeResultResponse:
                 raise ValueError("No JSON object found in LLM response")
             data = json.loads(match.group(0))
 
-        return AnalyzeResultResponse(
+        result = AnalyzeResultResponse(
             overallFeedback=data.get(
                 "overallFeedback", "Không thể phân tích tiến triển học tập."
             ),
@@ -683,10 +732,71 @@ def analyze_progress(request: AnalyzeProgressRequest) -> AnalyzeResultResponse:
             suggestedTopics=data.get("suggestedTopics", []),
             suggestedNextActions=data.get("suggestedNextActions", []),
         )
+        
+        # Save to analysis history
+        history_data = {
+            "id": f"analysis-{int(time.time() * 1000)}",
+            "userId": current_user["id"],
+            "analysisType": "progress",
+            "title": f"Tiến triển: {request.chapter}",
+            "result": result.model_dump(),
+            "context": {"chapter": request.chapter, "trend": request.trend, "avgScore": request.avgScore},
+            "createdAt": datetime.now().isoformat()
+        }
+        create_analysis_history(db, history_data)
+        
+        return result
     except HTTPException:
         raise
     except Exception as exc:
         handle_gemini_error(exc)
+
+# Analysis History endpoints
+@app.get("/api/analysis-history", response_model=PaginatedResponse[AnalysisHistoryResponse])
+def get_analysis_history(
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get analysis history for the current user with pagination"""
+    skip = (page - 1) * size
+    result = get_analysis_history_by_user(db, current_user["id"], skip=skip, limit=size)
+    
+    items = result["items"]
+    total = result["total"]
+    pages = (total + size - 1) // size if total > 0 else 1
+    
+    return PaginatedResponse(
+        items=[
+            AnalysisHistoryResponse(
+                id=item["id"],
+                userId=item["userId"],
+                analysisType=item["analysisType"],
+                title=item["title"],
+                result=AnalysisResultData(**item["result"]),
+                context=item.get("context"),
+                createdAt=item["createdAt"]
+            )
+            for item in items
+        ],
+        total=total,
+        page=page,
+        size=size,
+        pages=pages
+    )
+
+@app.delete("/api/analysis-history/{analysis_id}")
+def delete_analysis_history_endpoint(
+    analysis_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Delete an analysis history record"""
+    success = delete_analysis_history(db, analysis_id, current_user["id"])
+    if not success:
+        raise HTTPException(status_code=404, detail="Không tìm thấy bản ghi phân tích hoặc bạn không có quyền xóa")
+    return {"message": "Xóa bản ghi phân tích thành công"}
 
 # Quiz endpoints
 @app.get("/api/quizzes", response_model=PaginatedResponse[QuizResponse])
@@ -714,7 +824,7 @@ def get_quizzes(
                 questions=q["questions"],
                 duration=q["duration"],
                 createdBy=q["createdBy"],
-                createdAt=q.get("createdAt", datetime.utcnow().isoformat()),
+                createdAt=q.get("createdAt", datetime.now().isoformat()),
                 settings=QuizSettings(**q.get("settings", {"questionCount": len(q.get("questions", []))}))
             )
             for q in quizzes
@@ -746,7 +856,7 @@ def get_quiz(
         questions=quiz["questions"],
         duration=quiz["duration"],
         createdBy=quiz["createdBy"],
-        createdAt=quiz.get("createdAt", datetime.utcnow().isoformat()),
+        createdAt=quiz.get("createdAt", datetime.now().isoformat()),
         settings=QuizSettings(**quiz.get("settings", {"questionCount": len(quiz.get("questions", []))}))
     )
 
@@ -765,7 +875,7 @@ def create_quiz_endpoint(
         "questions": [q.model_dump() for q in request.questions],
         "duration": request.duration,
         "createdBy": current_user["id"],
-        "createdAt": datetime.utcnow().isoformat(),
+        "createdAt": datetime.now().isoformat(),
         "settings": request.settings.model_dump()
     }
     
@@ -778,7 +888,7 @@ def create_quiz_endpoint(
         questions=created_quiz["questions"],
         duration=created_quiz["duration"],
         createdBy=created_quiz["createdBy"],
-        createdAt=created_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        createdAt=created_quiz.get("createdAt", datetime.now().isoformat()),
         settings=QuizSettings(**created_quiz.get("settings", {"questionCount": len(created_quiz.get("questions", []))}))
     )
 
@@ -821,7 +931,7 @@ def update_quiz_endpoint(
         questions=updated_quiz["questions"],
         duration=updated_quiz["duration"],
         createdBy=updated_quiz["createdBy"],
-        createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        createdAt=updated_quiz.get("createdAt", datetime.now().isoformat()),
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
 
@@ -890,7 +1000,7 @@ def update_question_endpoint(
         questions=updated_quiz["questions"],
         duration=updated_quiz["duration"],
         createdBy=updated_quiz["createdBy"],
-        createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        createdAt=updated_quiz.get("createdAt", datetime.now().isoformat()),
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
 
@@ -920,7 +1030,7 @@ def delete_question_endpoint(
         questions=updated_quiz["questions"],
         duration=updated_quiz["duration"],
         createdBy=updated_quiz["createdBy"],
-        createdAt=updated_quiz.get("createdAt", datetime.utcnow().isoformat()),
+        createdAt=updated_quiz.get("createdAt", datetime.now().isoformat()),
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
 
@@ -947,7 +1057,7 @@ def create_attempt_endpoint(
         "answers": request.answers,
         "score": request.score,
         "timeSpent": request.timeSpent,
-        "completedAt": datetime.utcnow().isoformat()
+        "completedAt": datetime.now().isoformat()
     }
     
     created_attempt = create_attempt(db, attempt_data)

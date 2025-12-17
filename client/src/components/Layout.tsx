@@ -10,7 +10,8 @@ import {
   Sparkles,
   Users,
   Menu,
-  X
+  X,
+  History
 } from 'lucide-react';
 import Snowfall from './Snowfall';
 
@@ -31,6 +32,7 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
     { id: 'quiz-list', label: 'Danh sách đề', icon: FileText },
     { id: 'create-quiz', label: 'Tạo đề mới', icon: PlusCircle },
     { id: 'analytics', label: 'Phân tích kiến thức', icon: BarChart3 },
+    { id: 'analysis-history', label: 'Lịch sử phân tích', icon: History },
     { id: 'my-results', label: 'Kết quả của tôi', icon: BarChart3 },
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
     ...(user?.role === 'admin' ? [{ id: 'admin-users', label: 'Quản lý người dùng', icon: Users }] : [])
@@ -148,8 +150,8 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
                   key={item.id}
                   onClick={() => handleNavigate(item.id)}
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded mb-1 transition-colors text-sm ${isActive
-                      ? 'bg-white text-[#124874]'
-                      : 'text-white hover:bg-[#0d3351]'
+                    ? 'bg-white text-[#124874]'
+                    : 'text-white hover:bg-[#0d3351]'
                     }`}
                 >
                   <Icon className="w-4 h-4" />

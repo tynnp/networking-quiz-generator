@@ -57,4 +57,32 @@ def init_db():
     db.attempts.create_index("id", unique=True)
     db.attempts.create_index("quizId")
     db.attempts.create_index("studentId")
+    # Analysis history indexes
+    db.analysis_history.create_index("id", unique=True)
+    db.analysis_history.create_index("userId")
+    db.analysis_history.create_index("analysisType")
+    db.analysis_history.create_index("createdAt")
     seed_admin_user()
+
+# Analysis History CRUD functions
+def create_analysis_history(db: Database, data: dict) -> dict:
+    """Create a new analysis history record"""
+    db.analysis_history.insert_one(data)
+    return data
+
+def get_analysis_history_by_user(db: Database, user_id: str, skip: int = 0, limit: int = 20) -> dict:
+    """Get analysis history for a user with pagination"""
+    query = {"userId": user_id}
+    total = db.analysis_history.count_documents(query)
+    items = list(db.analysis_history.find(query).sort("createdAt", -1).skip(skip).limit(limit))
+    return {"items": items, "total": total}
+
+def get_analysis_history_by_id(db: Database, id: str) -> dict:
+    """Get a specific analysis history record by ID"""
+    return db.analysis_history.find_one({"id": id})
+
+def delete_analysis_history(db: Database, id: str, user_id: str) -> bool:
+    """Delete an analysis history record (only if owned by user)"""
+    result = db.analysis_history.delete_one({"id": id, "userId": user_id})
+    return result.deleted_count > 0
+

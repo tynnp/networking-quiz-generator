@@ -71,3 +71,13 @@ export interface AiResultFeedback {
   suggestedTopics: string[];
   suggestedNextActions: string[];
 }
+
+export interface AnalysisHistory {
+  id: string;
+  userId: string;
+  analysisType: 'result' | 'overall' | 'progress';
+  title: string;
+  result: AiResultFeedback;
+  context?: Record<string, unknown>;
+  createdAt: Date;
+}

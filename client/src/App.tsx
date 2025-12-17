@@ -14,6 +14,7 @@ import QuizPreview from './components/QuizPreview';
 import AttemptDetail from './components/AttemptDetail';
 import AiResultFeedback from './components/AiResultFeedback';
 import AdminUserManagement from './components/AdminUserManagement';
+import AnalysisHistory from './components/AnalysisHistory';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -110,6 +111,8 @@ function AppContent() {
           : <MyResults onViewAttemptDetail={handleViewAttemptDetail} />;
       case 'profile':
         return <Profile />;
+      case 'analysis-history':
+        return <AnalysisHistory />;
       case 'admin-users':
         return <AdminUserManagement />;
       default:

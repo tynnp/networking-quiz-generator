@@ -166,3 +166,20 @@ class AttemptResponse(BaseModel):
     score: float
     completedAt: str
     timeSpent: int
+
+# Analysis History DTOs
+class AnalysisResultData(BaseModel):
+    overallFeedback: str
+    strengths: List[str]
+    weaknesses: List[str]
+    suggestedTopics: List[str]
+    suggestedNextActions: List[str]
+
+class AnalysisHistoryResponse(BaseModel):
+    id: str
+    userId: str
+    analysisType: Literal["result", "overall", "progress"]
+    title: str
+    result: AnalysisResultData
+    context: Optional[Dict[str, Any]] = None
+    createdAt: str
