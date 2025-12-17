@@ -19,13 +19,12 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
     if (!searchQuery.trim()) return quizzes;
     const query = searchQuery.toLowerCase();
     return quizzes.filter((quiz) => {
-      // Search by title
       if (quiz.title.toLowerCase().includes(query)) return true;
-      // Search by description
+
       if (quiz.description && quiz.description.toLowerCase().includes(query)) return true;
-      // Search by chapter
+
       if (quiz.settings.chapter && quiz.settings.chapter.toLowerCase().includes(query)) return true;
-      // Search by difficulty (Vietnamese labels)
+
       if (quiz.settings.difficulty) {
         const difficultyLabels: Record<string, string> = {
           'easy': 'dễ',
@@ -57,6 +56,8 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
       );
     }
   };
+
+
 
   return (
     <div className="max-w-5xl mx-auto">

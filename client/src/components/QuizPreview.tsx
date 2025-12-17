@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, X, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface QuizPreviewProps {
@@ -10,10 +11,18 @@ interface QuizPreviewProps {
 }
 
 export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
-  const { getQuizById, updateQuestion, deleteQuestion, refreshQuizzes } = useData();
+  const { getQuizById, updateQuestion, deleteQuestion, refreshQuizzes, updateQuiz } = useData();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const quiz = getQuizById(quizId);
   const [showAnswers, setShowAnswers] = useState(false);
+
+  // Quiz Edit State
+  const [isEditingQuiz, setIsEditingQuiz] = useState(false);
+  const [editForm, setEditForm] = useState({ title: '', description: '' });
+  const [isUpdatingQuiz, setIsUpdatingQuiz] = useState(false);
+
+  // Question Edit State
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
   const [editingOptions, setEditingOptions] = useState<string[]>([]);
@@ -85,6 +94,43 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
     }
   };
 
+  const handleEditQuizClick = () => {
+    if (!quiz) return;
+    setEditForm({
+      title: quiz.title,
+      description: quiz.description || ''
+    });
+    setIsEditingQuiz(true);
+  };
+
+  const handleUpdateQuiz = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quiz) return;
+
+    if (!editForm.title.trim()) {
+      showToast('Tiêu đề không được để trống', 'error');
+      return;
+    }
+
+    try {
+      setIsUpdatingQuiz(true);
+      await updateQuiz(quiz.id, {
+        title: editForm.title.trim(),
+        description: editForm.description.trim()
+      });
+      await refreshQuizzes();
+      showToast('Cập nhật đề thi thành công!', 'success');
+      setIsEditingQuiz(false);
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật đề thi.',
+        'error'
+      );
+    } finally {
+      setIsUpdatingQuiz(false);
+    }
+  };
+
   if (!quiz) {
     return (
       <div className="max-w-5xl mx-auto">
@@ -121,15 +167,28 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
 
       <div className="bg-white rounded-xl shadow-md p-5">
         <div className="mb-4 border-b border-gray-200 pb-3">
-          <div className="flex items-center justify-between gap-3 mb-1">
+          <div className="flex items-start justify-between gap-3 mb-1">
             <h3 className="text-lg font-bold text-[#124874] break-words">{quiz.title}</h3>
-            <button
-              type="button"
-              onClick={() => setShowAnswers(prev => !prev)}
-              className="px-4 py-1.5 bg-[#124874] text-white rounded-lg text-xs hover:bg-[#0d3351]"
-            >
-              {showAnswers ? 'Ẩn đáp án' : 'Xem đáp án'}
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowAnswers(prev => !prev)}
+                className="px-4 py-1.5 bg-[#124874] text-white rounded-lg text-xs hover:bg-[#0d3351]"
+              >
+                {showAnswers ? 'Ẩn đáp án' : 'Xem đáp án'}
+              </button>
+              {user && quiz.createdBy === user.id && (
+                <button
+                  type="button"
+                  onClick={handleEditQuizClick}
+                  className="px-3 py-1.5 rounded-lg border border-yellow-400 text-yellow-600 hover:bg-yellow-50 text-xs flex items-center gap-1"
+                  title="Sửa thông tin đề thi"
+                >
+                  <Pencil className="w-3 h-3" />
+                  Sửa đề
+                </button>
+              )}
+            </div>
           </div>
           {quiz.description && (
             <p className="text-sm text-gray-600 mb-2 break-words">{quiz.description}</p>
@@ -320,6 +379,82 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
           </button>
         </div>
       </div>
+      {/* Edit Quiz Modal */}
+      {isEditingQuiz && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={() => setIsEditingQuiz(false)}></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                      Chỉnh sửa thông tin đề thi
+                    </h3>
+                    <form onSubmit={handleUpdateQuiz} className="mt-4 space-y-4">
+                      <div>
+                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                          Tiêu đề
+                        </label>
+                        <input
+                          type="text"
+                          id="title"
+                          value={editForm.title}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#124874] focus:border-[#124874] sm:text-sm"
+                          placeholder="Nhập tiêu đề đề thi"
+                          required
+                          maxLength={200}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                          Mô tả
+                        </label>
+                        <textarea
+                          id="description"
+                          value={editForm.description}
+                          onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                          rows={3}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#124874] focus:border-[#124874] sm:text-sm"
+                          placeholder="Nhập mô tả đề thi (tùy chọn)"
+                          maxLength={500}
+                        />
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  onClick={handleUpdateQuiz}
+                  disabled={isUpdatingQuiz}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[#124874] text-base font-medium text-white hover:bg-[#0d3351] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#124874] sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+                >
+                  {isUpdatingQuiz ? (
+                    'Đang lưu...'
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Lưu thay đổi
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingQuiz(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#124874] sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

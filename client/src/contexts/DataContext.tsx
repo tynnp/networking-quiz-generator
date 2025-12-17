@@ -11,7 +11,9 @@ import {
   getAttempts as getAttemptsAPI,
   getAttempt as getAttemptAPI,
   CreateQuizRequest,
-  UpdateQuestionRequest
+  UpdateQuestionRequest,
+  updateQuiz as updateQuizAPI,
+  UpdateQuizRequest
 } from '../services/api';
 
 export interface DataContextType {
@@ -29,6 +31,7 @@ export interface DataContextType {
   addQuiz: (quiz: Quiz) => Promise<void>;
   addAttempt: (attempt: QuizAttempt) => void;
   deleteQuiz: (id: string) => Promise<void>;
+  updateQuiz: (id: string, updates: UpdateQuizRequest) => Promise<void>;
   updateQuestion: (quizId: string, questionId: string, updates: Partial<Question>) => Promise<void>;
   deleteQuestion: (quizId: string, questionId: string) => Promise<void>;
   getQuizById: (id: string) => Quiz | undefined;
@@ -136,6 +139,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
       setAttempts(prev => prev.filter(a => a.quizId !== id));
     } catch (error) {
       console.error('Error deleting quiz:', error);
+      throw error;
+    }
+  };
+
+  const updateQuiz = async (id: string, updates: UpdateQuizRequest) => {
+    try {
+      await updateQuizAPI(id, updates);
+      await loadQuizzes(currentPage);
+    } catch (error) {
+      console.error('Error updating quiz:', error);
       throw error;
     }
   };
@@ -257,7 +270,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
       getAttemptById,
       loadAttemptById,
       refreshQuizzes,
-      refreshAttempts
+      refreshAttempts,
+      updateQuiz
     }}>
       {children}
     </DataContext.Provider>
