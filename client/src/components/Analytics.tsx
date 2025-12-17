@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { KnowledgeAnalysis, QuizAttempt, AiResultFeedback as AiResultFeedbackType, Quiz } from '../types';
 import { analyzeOverall, analyzeProgress } from '../services/gemini';
 import { getQuizzes } from '../services/api';
@@ -14,10 +15,10 @@ interface AnalyticsProps {
 export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
   const { attempts } = useData();
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
 
   useEffect(() => {
-    // Load all quizzes for dropdown (limit 100 for now)
     getQuizzes(undefined, 1, 100).then(data => {
       setQuizzes(data.items);
     }).catch(console.error);
@@ -28,13 +29,11 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
   const [overallLoading, setOverallLoading] = useState(false);
   const [overallError, setOverallError] = useState<string | null>(null);
 
-  // Progress tracking state
   const [selectedChapter, setSelectedChapter] = useState<string>('');
   const [progressFeedback, setProgressFeedback] = useState<AiResultFeedbackType | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
 
-  // Get unique chapters from quizzes
   const availableChapters = useMemo(() => {
     const chapters = new Set<string>();
     quizzes.forEach(quiz => {
@@ -45,15 +44,12 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
     return Array.from(chapters).sort();
   }, [quizzes]);
 
-  // Calculate progress data for selected chapter
   const progressData = useMemo(() => {
     if (!selectedChapter || !user) return null;
 
-    // Find quizzes with this chapter
     const chapterQuizzes = quizzes.filter(q => q.settings.chapter === selectedChapter);
     if (chapterQuizzes.length === 0) return null;
 
-    // Get attempts for these quizzes
     const chapterAttempts = attempts
       .filter(a => a.studentId === user.id && chapterQuizzes.some(q => q.id === a.quizId))
       .sort((a, b) => new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
@@ -71,7 +67,6 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
     const avgScore = dataPoints.reduce((sum, p) => sum + p.score, 0) / dataPoints.length;
 
-    // Calculate trend
     let trend: 'improving' | 'declining' | 'stable' = 'stable';
     if (dataPoints.length >= 2) {
       const firstHalf = dataPoints.slice(0, Math.floor(dataPoints.length / 2));
@@ -190,25 +185,24 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
   const handleAiAnalysis = async () => {
     if (!user) {
-      alert('Bạn cần đăng nhập để sử dụng phân tích với AI.');
+      showToast('Bạn cần đăng nhập để sử dụng phân tích với AI.', 'warning');
       return;
     }
 
     const myAttempts = attempts.filter(a => a.studentId === user.id);
 
     if (myAttempts.length === 0) {
-      alert('Bạn chưa có bài làm nào để phân tích. Hãy làm ít nhất một bài kiểm tra trước.');
+      showToast('Bạn chưa có bài làm nào để phân tích. Hãy làm ít nhất một bài kiểm tra trước.', 'warning');
       return;
     }
 
-    // Nếu đang chọn một đề thi cụ thể: phân tích theo bài làm gần nhất của đề đó (giữ nguyên flow cũ)
     if (selectedQuiz) {
       let targetAttempt: QuizAttempt | undefined;
 
       const myQuizAttempts = myAttempts.filter(a => a.quizId === selectedQuiz);
 
       if (myQuizAttempts.length === 0) {
-        alert('Bạn chưa có bài làm nào cho đề thi này. Hãy làm đề thi trước khi phân tích với AI.');
+        showToast('Bạn chưa có bài làm nào cho đề thi này. Hãy làm đề thi trước khi phân tích với AI.', 'warning');
         return;
       }
 
@@ -217,7 +211,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
       targetAttempt = myQuizAttempts[0];
 
       if (!onAiAnalyzeAttempt) {
-        alert('Chức năng điều hướng đến màn hình phân tích với AI chưa được cấu hình.');
+        showToast('Chức năng điều hướng đến màn hình phân tích với AI chưa được cấu hình.', 'error');
         return;
       }
 
@@ -225,9 +219,8 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
       return;
     }
 
-    // Không chọn đề thi: AI phân tích tổng quan toàn bộ lịch sử làm bài
     if (!studentAnalysis) {
-      alert('Không có dữ liệu phân tích tổng quan. Hãy làm ít nhất một bài kiểm tra.');
+      showToast('Không có dữ liệu phân tích tổng quan. Hãy làm ít nhất một bài kiểm tra.', 'warning');
       return;
     }
 
@@ -249,9 +242,11 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
       });
 
       setOverallFeedback(result);
+      showToast('Phân tích tổng quan thành công!', 'success');
     } catch (error) {
       console.error('Error analyzing overall results with AI:', error);
       setOverallError('Không thể phân tích tổng quan bằng AI. Vui lòng thử lại sau.');
+      showToast('Không thể phân tích tổng quan. Vui lòng thử lại sau.', 'error');
     } finally {
       setOverallLoading(false);
     }
@@ -287,10 +282,10 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
             <button
               type="button"
               onClick={handleAiAnalysis}
-              disabled={!quizAnalysis && !studentAnalysis}
+              disabled={(!quizAnalysis && !studentAnalysis) || overallLoading}
               className="w-full px-4 py-2 bg-[#124874] text-white text-xs md:text-sm font-medium rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Phân tích với AI
+              {overallLoading ? 'Đang phân tích...' : 'Phân tích với AI'}
             </button>
           </div>
         </div>
@@ -588,9 +583,11 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                     });
 
                     setProgressFeedback(result);
+                    showToast('Phân tích tiến triển thành công!', 'success');
                   } catch (error) {
                     console.error('Error analyzing progress:', error);
                     setProgressError('Không thể phân tích tiến triển. Vui lòng thử lại sau.');
+                    showToast('Không thể phân tích tiến triển. Vui lòng thử lại sau.', 'error');
                   } finally {
                     setProgressLoading(false);
                   }
