@@ -20,6 +20,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 - Theo dõi tiến độ theo thời gian
 - Theo dõi tiến triển học tập theo chương với AI
 - Xem lịch sử bài thi cá nhân
+- Xem lại lịch sử phân tích AI
 - Quản lý hồ sơ cá nhân
 
 ### Cho quản trị viên
@@ -69,19 +70,24 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 
 ```
 networking-quiz-generator/
+├── assets/                 # Tài nguyên hình ảnh (demo, logo...)
 ├── client/                 # Ứng dụng React frontend
 │   ├── src/
-│   │   ├── components/     # Các component React
-│   │   ├── contexts/       # React Context providers
+│   │   ├── components/     # Các component React (Quiz, Analysis, Admin...)
+│   │   ├── contexts/       # React Context providers (Auth, Data, Toast)
 │   │   ├── services/       # API services
 │   │   └── types/          # Định nghĩa TypeScript types
 │   └── README.md
+├── docker-images/          # Thư mục chứa artifacts để deploy (sinh ra từ script build)
 ├── server/                 # Ứng dụng FastAPI backend
 │   ├── main.py            # FastAPI app và endpoints
 │   ├── auth.py            # Các hàm xác thực
 │   ├── database.py        # Kết nối database
 │   ├── dtos.py            # Pydantic models
 │   └── README.md
+├── build-and-save.bat     # Script build docker images (Windows)
+├── deploy.sh              # Script deploy (Linux)
+├── docker-compose.yml     # Cấu hình Docker Compose
 └── README.md              # File này
 ```
 
@@ -92,20 +98,7 @@ Xem hướng dẫn cài đặt chi tiết trong:
 - [`client/README.md`](client/README.md) - Hướng dẫn cài đặt và chạy frontend
 - [`server/README.md`](server/README.md) - Hướng dẫn cài đặt và chạy backend
 
-### Cách 2: Sử dụng file run.bat (Dành cho Windows)
-
-1. Đảm bảo đã cài đặt Node.js, npm và Python 3.8+ 
-2. Mở Command Prompt hoặc PowerShell
-3. Chạy lệnh sau để khởi động cả frontend và backend:
-   ```bash
-   run.bat
-   ```
-   - Frontend sẽ chạy tại: http://localhost:5173
-   - Backend API sẽ chạy tại: http://localhost:8000
-
-Lưu ý: File run.bat sẽ mở 2 cửa sổ terminal riêng biệt cho frontend và backend.
-
-### Cách 3: Triển khai bằng Docker (Recommended for Production)
+### Cách 2: Triển khai bằng Docker (Recommended for Production)
 
 Hệ thống hỗ trợ đóng gói và triển khai tự động bằng Docker, giúp dễ dàng deploy lên server mà không cần cài đặt môi trường phức tạp.
 

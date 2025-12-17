@@ -43,6 +43,7 @@ client/
 │   ├── components/          # Các component React
 │   │   ├── AdminUserManagement.tsx
 │   │   ├── AiResultFeedback.tsx
+│   │   ├── AnalysisHistory.tsx
 │   │   ├── Analytics.tsx
 │   │   ├── AttemptDetail.tsx
 │   │   ├── CreateQuiz.tsx
@@ -89,6 +90,7 @@ client/
 - Tìm kiếm đề thi theo tiêu đề, chương, độ khó
 - Phân trang danh sách đề thi
 - Theo dõi tiến triển học tập theo chương với phân tích AI
+- Xem lại lịch sử phân tích AI
 
 ## Biến môi trường
 

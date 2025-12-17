@@ -124,6 +124,8 @@ server/
 - `POST /api/analyze-result` - Phân tích kết quả bài làm đề thi
 - `POST /api/analyze-overall` - Phân tích kiến thức tổng quan
 - `POST /api/analyze-progress` - Phân tích tiến triển học tập theo chương
+- `GET /api/analysis-history` - Lấy lịch sử phân tích của người dùng
+- `DELETE /api/analysis-history/{analysis_id}` - Xóa bản ghi lịch sử phân tích
 
 ### Phân trang
 
@@ -138,6 +140,7 @@ API `/api/quizzes` hỗ trợ phân trang với các tham số:
 - `users`: Tài khoản người dùng
 - `quizzes`: Định nghĩa đề thi
 - `attempts`: Bản ghi bài làm đề thi
+- `analysis_history`: Lưu trữ lịch sử phân tích AI
 
 Indexes được tạo tự động trên:
 - `users.email` (unique)
@@ -147,7 +150,12 @@ Indexes được tạo tự động trên:
 - `quizzes.createdAt`
 - `attempts.id` (unique)
 - `attempts.quizId`
+- `attempts.quizId`
 - `attempts.studentId`
+- `analysis_history.id` (unique)
+- `analysis_history.userId`
+- `analysis_history.analysisType`
+- `analysis_history.createdAt`
 
 ## Xác thực
 
