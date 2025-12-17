@@ -12,18 +12,15 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 
 ## Tính năng chính
 
-- Tạo câu hỏi bằng AI sử dụng Google Gemini
+- Tạo đề thi trắc nghiệm tự động bằng AI (Google Gemini)
 - Làm bài thi thời gian thực với bộ đếm ngược
-- Tính điểm tự động và kết quả
-- Phân tích chi tiết bài làm với đáp án đúng/sai
-- Phân tích loại kiến thức (khái niệm, thuộc tính, cơ chế, quy tắc, tình huống, ví dụ)
-- Lọc câu hỏi theo chương và chủ đề
-- Chọn mức độ khó (dễ, trung bình, khó)
-- Tìm kiếm đề thi theo tiêu đề, chương, độ khó
-- Phân trang danh sách đề thi
+- Tính điểm tự động và hiển thị kết quả chi tiết
+- Phân tích chi tiết bài làm bằng AI (điểm mạnh, điểm yếu, gợi ý cải thiện)
+- Phân tích tổng quan lịch sử học tập bằng AI
 - Phân tích tiến triển học tập theo chương bằng AI
-- Thông báo toast cho phản hồi người dùng
-- Thiết kế responsive
+- Lưu lịch sử phân tích AI để xem lại
+- Quản lý đề thi (xem, sửa, xóa câu hỏi)
+- Quản lý người dùng dành cho admin (tạo, khóa, xóa tài khoản)
 
 ## Công nghệ sử dụng
 
