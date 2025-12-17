@@ -136,7 +136,7 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
         {/* Sidebar - responsive */}
         <aside className={`
           fixed top-14 md:top-16 left-0 w-64 bg-[#124874] shadow-md h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] overflow-y-auto border-r border-black/40 z-20
-          transition-transform duration-300 ease-in-out
+          transition-transform duration-300 ease-in-out flex flex-col justify-between
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0
         `}>
@@ -160,6 +160,12 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
               );
             })}
           </nav>
+
+          <div className="p-4 border-t border-white/10">
+            <p className="text-xs text-white/60 text-center leading-relaxed">
+              © 2025 Nhóm đồ án Trí tuệ nhân tạo của Nguyễn Ngọc Phú Tỷ
+            </p>
+          </div>
         </aside>
 
         <main className="flex-1 md:ml-64 p-3 md:p-4 h-full overflow-y-auto">
