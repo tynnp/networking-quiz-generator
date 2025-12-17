@@ -3,7 +3,7 @@ import { AnalysisHistory as AnalysisHistoryType, PaginatedResponse } from '../ty
 import { getAnalysisHistory, deleteAnalysisHistoryItem } from '../services/api';
 import { useToast } from '../contexts/ToastContext';
 import ReactMarkdown from 'react-markdown';
-import { Trash2, ChevronLeft, ChevronRight, Clock, FileText, TrendingUp, BarChart3 } from 'lucide-react';
+import { Trash2, ChevronLeft, ChevronRight, Clock, FileText, TrendingUp, BarChart3, X } from 'lucide-react';
 
 export default function AnalysisHistory() {
     const { showToast } = useToast();
@@ -13,6 +13,7 @@ export default function AnalysisHistory() {
     const [totalPages, setTotalPages] = useState(1);
     const [selectedItem, setSelectedItem] = useState<AnalysisHistoryType | null>(null);
     const [deleting, setDeleting] = useState<string | null>(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
     const loadHistory = async (pageNum: number) => {
         try {
@@ -33,9 +34,15 @@ export default function AnalysisHistory() {
         loadHistory(1);
     }, []);
 
-    const handleDelete = async (id: string, e: React.MouseEvent) => {
+    const handleDeleteClick = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm('Bạn có chắc chắn muốn xóa bản ghi phân tích này?')) return;
+        setDeleteConfirmId(id);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirmId) return;
+        const id = deleteConfirmId;
+        setDeleteConfirmId(null);
 
         try {
             setDeleting(id);
@@ -146,7 +153,7 @@ export default function AnalysisHistory() {
                                             </div>
                                         </div>
                                         <button
-                                            onClick={(e) => handleDelete(item.id, e)}
+                                            onClick={(e) => handleDeleteClick(item.id, e)}
                                             disabled={deleting === item.id}
                                             className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                                             title="Xóa"
@@ -262,6 +269,40 @@ export default function AnalysisHistory() {
                     </div>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteConfirmId && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-xl shadow-xl p-6 max-w-md mx-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-gray-900">Xác nhận xóa</h3>
+                            <button
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+                        <p className="text-gray-600 mb-6">
+                            Bạn có chắc chắn muốn xóa bản ghi phân tích này? Hành động này không thể hoàn tác.
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                            >
+                                Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
