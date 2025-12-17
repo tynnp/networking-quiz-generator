@@ -1,7 +1,7 @@
 # Hệ thống trắc nghiệm môn Mạng Máy Tính
 
 <p align="center">
-  <img src="assets/dashboard.png" width="100%" />
+  <img src="assets/dashboard.gif" width="100%" />
 </p>
 
 Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạng máy tính, sử dụng AI để tạo câu hỏi, cho phép học sinh làm bài và phân tích kết quả.
