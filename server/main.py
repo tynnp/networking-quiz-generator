@@ -79,7 +79,9 @@ init_db()
 security = HTTPBearer()
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
+MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-2.5-flash")
 print("GOOGLE_API_KEY configured:", bool(API_KEY))
+print("GEMINI_MODEL_NAME configured:", MODEL_NAME)
 
 client: genai.Client | None = None
 if API_KEY:
@@ -514,7 +516,7 @@ def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsRe
 
     try:
         gemini_response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=MODEL_NAME,
             contents=prompt,
         )
 
@@ -538,7 +540,7 @@ def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
 
     try:
         gemini_response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=MODEL_NAME,
             contents=prompt,
         )
 
@@ -578,7 +580,7 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
 
     try:
         gemini_response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=MODEL_NAME,
             contents=prompt,
         )
 
@@ -658,7 +660,7 @@ def analyze_progress(request: AnalyzeProgressRequest) -> AnalyzeResultResponse:
 
     try:
         gemini_response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=MODEL_NAME,
             contents=prompt,
         )
 
