@@ -78,7 +78,7 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
               className="flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-white/10 rounded hover:bg-white/20 transition-colors text-xs md:text-sm"
             >
               <User className="w-4 h-4" />
-              <div className="text-xs md:text-sm hidden xs:block">
+              <div className="text-xs md:text-sm hidden sm:block">
                 <p className="font-medium truncate max-w-[100px] md:max-w-none">{user?.name}</p>
               </div>
             </button>
