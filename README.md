@@ -10,29 +10,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 
 Đây là một ứng dụng web full-stack được thiết kế để giúp sinh viên luyện tập và kiểm tra kiến thức về mạng máy tính. Hệ thống sử dụng Google Gemini AI để tạo câu hỏi dựa trên các chương và chủ đề của khóa học, đồng thời cung cấp phân tích và phản hồi chi tiết.
 
-## Tính năng
-
-### Cho sinh viên
-
-- Làm bài thi với bộ đếm thời gian
-- Xem kết quả bài thi và phản hồi chi tiết
-- Phân tích hiệu suất bằng AI
-- Theo dõi tiến độ theo thời gian
-- Theo dõi tiến triển học tập theo chương với AI
-- Xem lịch sử bài thi cá nhân
-- Xem lại lịch sử phân tích AI
-- Quản lý hồ sơ cá nhân
-
-### Cho quản trị viên
-
-- Tạo và quản lý đề thi
-- Chỉnh sửa và xóa câu hỏi
-- Tạo câu hỏi bằng AI
-- Quản lý tài khoản người dùng (tạo, xóa, khóa, mở khóa)
-- Xem tất cả bài làm của người dùng
-- Tìm kiếm và phân trang danh sách người dùng
-
-### Chức năng chính
+## Tính năng chính
 
 - Tạo câu hỏi bằng AI sử dụng Google Gemini
 - Làm bài thi thời gian thực với bộ đếm ngược
