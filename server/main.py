@@ -10,6 +10,7 @@ import time
 from dotenv import load_dotenv
 from google import genai
 from pymongo.database import Database
+
 from dtos import (
     AnalyzeOverallRequest,
     AnalyzeProgressRequest,
@@ -34,7 +35,9 @@ from dtos import (
     AttemptResponse,
     PaginatedResponse,
 )
+
 from database import get_db, init_db
+
 from auth import (
     verify_password,
     create_access_token,
@@ -73,7 +76,6 @@ app.add_middleware(
 )
 
 init_db()
-
 security = HTTPBearer()
 
 API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -242,7 +244,6 @@ def parse_generated_questions(
         topic = params.topics[0] if params.topics else "Tổng quan"
         knowledge_type = (params.knowledgeTypes[0] if params.knowledgeTypes else "concept")
         
-        # Default difficulty from params, or "medium" if not specified (mixed case fallback)
         default_difficulty = params.difficulty if params.difficulty else "medium"
 
         for index, q in enumerate(parsed):
@@ -255,7 +256,6 @@ def parse_generated_questions(
                     chapter=chapter,
                     topic=topic,
                     knowledgeType=knowledge_type,
-                    # Prefer difficulty from the question object, fallback to default intent
                     difficulty=q.get("difficulty", default_difficulty),
                     explanation=q.get("explanation"),
                 )
@@ -326,7 +326,7 @@ def login(request: LoginRequest, db: Database = Depends(get_db)):
             id=user["id"],
             email=user["email"],
             name=user["name"],
-            role=user["role"],  # type: ignore[arg-type]
+            role=user["role"], 
             dob=user.get("dob"),
             phone=user.get("phone"),
             isLocked=user.get("isLocked", False)
@@ -339,7 +339,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
         id=current_user["id"],
         email=current_user["email"],
         name=current_user["name"],
-        role=current_user["role"],  # type: ignore[arg-type]
+        role=current_user["role"],
         dob=current_user.get("dob"),
         phone=current_user.get("phone"),
         isLocked=current_user.get("isLocked", False)
@@ -368,7 +368,7 @@ def update_profile(
         id=updated_user["id"],
         email=updated_user["email"],
         name=updated_user["name"],
-        role=updated_user["role"],  # type: ignore[arg-type]
+        role=updated_user["role"],
         dob=updated_user.get("dob"),
         phone=updated_user.get("phone"),
         isLocked=updated_user.get("isLocked", False)
@@ -381,11 +381,9 @@ def change_password(
     db: Database = Depends(get_db)
 ):
     """Change user password"""
-    # Verify current password
     if not verify_password(request.current_password, current_user["hashed_password"]):
         raise HTTPException(status_code=401, detail="Mật khẩu hiện tại không đúng")
     
-    # Update password
     success = update_user_password(db, current_user["id"], request.new_password)
     if not success:
         raise HTTPException(status_code=400, detail="Không thể cập nhật mật khẩu")
@@ -405,7 +403,7 @@ def get_all_users_admin(
             id=u["id"],
             email=u["email"],
             name=u["name"],
-            role=u["role"],  # type: ignore[arg-type]
+            role=u["role"],
             dob=u.get("dob"),
             phone=u.get("phone"),
             isLocked=u.get("isLocked", False)
@@ -420,19 +418,17 @@ def create_user_admin(
     db: Database = Depends(get_db)
 ):
     """Create a new user (admin only)"""
-    # Check if user already exists
     existing_user = get_user_by_email(db, request.email)
     if existing_user:
         raise HTTPException(status_code=400, detail="Email đã được đăng ký")
     
-    # Create new user
     user = create_user(db, request.email, request.password, request.name, request.role)
     
     return UserResponse(
         id=user["id"],
         email=user["email"],
         name=user["name"],
-        role=user["role"],  # type: ignore[arg-type]
+        role=user["role"],
         dob=user.get("dob"),
         phone=user.get("phone"),
         isLocked=user.get("isLocked", False)
@@ -445,7 +441,6 @@ def delete_user_admin(
     db: Database = Depends(get_db)
 ):
     """Delete a user (admin only)"""
-    # Prevent deleting yourself
     if user_id == admin_user["id"]:
         raise HTTPException(status_code=400, detail="Không thể xóa tài khoản của chính bạn")
     
@@ -462,7 +457,6 @@ def lock_user_admin(
     db: Database = Depends(get_db)
 ):
     """Lock a user (admin only)"""
-    # Prevent locking yourself
     if user_id == admin_user["id"]:
         raise HTTPException(status_code=400, detail="Không thể khóa tài khoản của chính bạn")
     
@@ -485,10 +479,32 @@ def unlock_user_admin(
     
     return {"message": "Mở khóa người dùng thành công"}
 
+def handle_gemini_error(exc: Exception):
+    print("Error calling Gemini API:", exc)
+    
+    status_code = getattr(exc, "status_code", None)
+    if not status_code and hasattr(exc, "code"):
+        status_code = exc.code
+        
+    error_msg = str(exc)
+    
+    if status_code == 429 or "429" in error_msg:
+        raise HTTPException(
+            status_code=429, 
+            detail="Quá số lần gọi API"
+        )
+        
+    if status_code == 503 or "503" in error_msg:
+        raise HTTPException(
+            status_code=503, 
+            detail="Server Gemini quá tải"
+        )
+        
+    raise HTTPException(status_code=500, detail="Lỗi khi gọi Gemini API")
+
 @app.post("/api/generate-questions", response_model=GenerateQuestionsResponse)
 def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
     if client is None:
-        # Không có API key thì không thể gọi LLM
         raise HTTPException(
             status_code=500,
             detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
@@ -506,11 +522,9 @@ def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsRe
         questions = parse_generated_questions(generated_text, request)
         return GenerateQuestionsResponse(questions=questions)
     except HTTPException:
-        # Đã có HTTPException cụ thể, ném lại cho FastAPI xử lý
         raise
-    except Exception as exc:  # noqa: BLE001
-        print("Error calling Gemini API:", exc)
-        raise HTTPException(status_code=500, detail="Lỗi khi gọi Gemini API")
+    except Exception as exc:
+        handle_gemini_error(exc)
 
 @app.post("/api/analyze-result", response_model=AnalyzeResultResponse)
 def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
@@ -549,11 +563,8 @@ def analyze_result(request: AnalyzeResultRequest) -> AnalyzeResultResponse:
         )
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001
-        print("Error calling Gemini API for analysis:", exc)
-        raise HTTPException(
-            status_code=500, detail="Lỗi khi gọi Gemini API để phân tích"
-        )
+    except Exception as exc:
+        handle_gemini_error(exc)
 
 @app.post("/api/analyze-overall", response_model=AnalyzeResultResponse)
 def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
@@ -592,12 +603,8 @@ def analyze_overall(request: AnalyzeOverallRequest) -> AnalyzeResultResponse:
         )
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001
-        print("Error calling Gemini API for overall analysis:", exc)
-        raise HTTPException(
-            status_code=500,
-            detail="Lỗi khi gọi Gemini API để phân tích tổng quan",
-        )
+    except Exception as exc:
+        handle_gemini_error(exc)
 
 def build_progress_analysis_prompt(request) -> str:
     progress_text = "\n".join([
@@ -676,12 +683,8 @@ def analyze_progress(request: AnalyzeProgressRequest) -> AnalyzeResultResponse:
         )
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001
-        print("Error calling Gemini API for progress analysis:", exc)
-        raise HTTPException(
-            status_code=500,
-            detail="Lỗi khi gọi Gemini API để phân tích tiến triển",
-        )
+    except Exception as exc:
+        handle_gemini_error(exc)
 
 # Quiz endpoints
 @app.get("/api/quizzes", response_model=PaginatedResponse[QuizResponse])
@@ -801,7 +804,6 @@ def update_quiz_endpoint(
         updates["duration"] = request.duration
     if request.questions is not None:
         updates["questions"] = [q.model_dump() if hasattr(q, 'model_dump') else q for q in request.questions]
-        # Update questionCount in settings
         settings = quiz.get("settings", {})
         settings["questionCount"] = len(request.questions)
         updates["settings"] = settings
@@ -902,7 +904,6 @@ def delete_question_endpoint(
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
     
-    # Check if user is the creator
     if quiz["createdBy"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền cập nhật đề thi này")
     
@@ -933,7 +934,6 @@ def create_attempt_endpoint(
     if not quiz:
         raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
         
-    # Check if user allows taking this quiz (must be creator)
     if quiz["createdBy"] != current_user["id"]:
         raise HTTPException(status_code=403, detail="Bạn không có quyền tham gia thi đề này")
     
@@ -968,7 +968,6 @@ def get_attempts_endpoint(
 ):
     """Get all attempts, optionally filtered by quiz_id"""
     if quiz_id:
-        # Verify quiz ownership before showing attempts
         quiz = get_quiz_by_id(db, quiz_id)
         if not quiz:
             raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
