@@ -105,6 +105,41 @@ Xem hướng dẫn cài đặt chi tiết trong:
 
 Lưu ý: File run.bat sẽ mở 2 cửa sổ terminal riêng biệt cho frontend và backend.
 
+### Cách 3: Triển khai bằng Docker (Recommended for Production)
+
+Hệ thống hỗ trợ đóng gói và triển khai tự động bằng Docker, giúp dễ dàng deploy lên server mà không cần cài đặt môi trường phức tạp.
+
+#### 1. Yêu cầu
+- Docker Desktop (trên Windows để build)
+- Docker và Docker Compose (trên Linux server để chạy)
+
+#### 2. Đóng gói (Trên máy Windows development)
+Chạy script sau để build docker images và đóng gói tất cả file cần thiết:
+```bash
+build-and-save.bat
+```
+Script này sẽ:
+- Build Docker images cho frontend và backend (với `--no-cache` để đảm bảo code mới nhất)
+- Lưu images thành file `.tar`
+- Copy các file cấu hình (`docker-compose.yml`, `deploy.sh`, `.env`)
+- Tất cả sẽ được lưu trong thư mục `docker-images/`
+
+#### 3. Triển khai (Trên Linux Server)
+1. Copy toàn bộ thư mục `docker-images/` lên server của bạn.
+2. Truy cập vào thư mục và chạy script deploy:
+   ```bash
+   cd docker-images
+   chmod +x deploy.sh
+   ./deploy.sh
+   ```
+3. Script sẽ tự động:
+   - Load các docker images
+   - Khởi động containers bằng Docker Compose
+   - Frontend sẽ chạy tại port 80 (hoặc port cấu hình trong `docker-compose.yml`)
+   - Backend sẽ chạy tại port 8000
+
+**Lưu ý:** Hệ thống đã được cấu hình để hỗ trợ IP động. Bạn có thể truy cập web từ bất kỳ IP nào của server. Frontend sẽ tự động kết nối đến Backend trên cùng IP đó.
+
 ## Tài khoản Admin mặc định
 
 Khi khởi động lần đầu, một tài khoản admin sẽ được tạo tự động:
