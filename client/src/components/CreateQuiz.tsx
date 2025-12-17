@@ -193,12 +193,12 @@ export default function CreateQuiz() {
       <div className="mb-2">
         <h2 className="block-title__title">TẠO ĐỀ THI MỚI</h2>
       </div>
-      <div className="bg-white rounded-xl shadow-md px-5 pt-3 pb-5">
+      <div className="bg-white rounded-xl shadow-md px-3 md:px-5 pt-3 pb-4 md:pb-5">
 
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Tiêu đề đề thi *
               </label>
               <input
@@ -212,7 +212,7 @@ export default function CreateQuiz() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Thời gian (phút)
               </label>
               <input
@@ -244,9 +244,9 @@ export default function CreateQuiz() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Mô tả
               </label>
               <input
@@ -260,7 +260,7 @@ export default function CreateQuiz() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Số câu hỏi
               </label>
               <input
@@ -292,9 +292,9 @@ export default function CreateQuiz() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Chương *
               </label>
               <select
@@ -310,7 +310,7 @@ export default function CreateQuiz() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Độ khó
               </label>
               <select
@@ -326,12 +326,12 @@ export default function CreateQuiz() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                 Chủ đề *
               </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-white">
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg max-h-40 md:max-h-48 overflow-y-auto bg-white">
                 {availableTopics.length > 0 ? (
                   availableTopics.map(topic => (
                     <div key={topic} className="flex items-start mb-2 last:mb-0">
@@ -349,22 +349,22 @@ export default function CreateQuiz() {
                         }}
                         className="mt-1 w-4 h-4 text-[#124874] border-gray-300 rounded focus:ring-[#124874]"
                       />
-                      <label htmlFor={`topic-${topic}`} className="ml-2 text-sm text-gray-700 cursor-pointer select-none">
+                      <label htmlFor={`topic-${topic}`} className="ml-2 text-xs md:text-sm text-gray-700 cursor-pointer select-none">
                         {topic}
                       </label>
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-gray-400 italic">Vui lòng chọn chương trước</p>
+                  <p className="text-xs md:text-sm text-gray-400 italic">Vui lòng chọn chương trước</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                 Phân loại kiến thức *
               </label>
-              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg max-h-48 overflow-y-auto bg-white">
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg max-h-40 md:max-h-48 overflow-y-auto bg-white">
                 {knowledgeTypes.map(type => (
                   <div key={type.value} className="flex items-center mb-2 last:mb-0">
                     <input
@@ -381,7 +381,7 @@ export default function CreateQuiz() {
                       }}
                       className="w-4 h-4 text-[#124874] border-gray-300 rounded focus:ring-[#124874]"
                     />
-                    <label htmlFor={`type-${type.value}`} className="ml-2 text-sm text-gray-700 cursor-pointer select-none">
+                    <label htmlFor={`type-${type.value}`} className="ml-2 text-xs md:text-sm text-gray-700 cursor-pointer select-none">
                       {type.label}
                     </label>
                   </div>
@@ -395,7 +395,7 @@ export default function CreateQuiz() {
           <button
             onClick={handleGenerateQuiz}
             disabled={generating}
-            className="w-full bg-[#124874] text-white py-2 rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-[#124874] text-white py-2 rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm md:text-base"
           >
             {generating ? 'Đang tạo đề...' : 'Tạo đề thi tự động'}
           </button>

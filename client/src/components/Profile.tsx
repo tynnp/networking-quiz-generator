@@ -176,8 +176,8 @@ export default function Profile() {
         <h2 className="block-title__title">THÔNG TIN CÁ NHÂN</h2>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-5">
-        <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-md p-3 md:p-5">
+        <div className="space-y-4 md:space-y-6">
           {/* Error message for profile update */}
           {profileError && (
             <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
@@ -186,22 +186,22 @@ export default function Profile() {
           )}
 
           {/* Thông tin tài khoản */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Gmail
               </label>
               <input
                 type="email"
                 value={user.email}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-600 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-xs md:text-sm text-gray-600 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-400 mt-1">Email đăng nhập không thể thay đổi.</p>
+              <p className="text-[10px] md:text-xs text-gray-400 mt-1">Email đăng nhập không thể thay đổi.</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Họ và tên
               </label>
               <input
@@ -210,17 +210,17 @@ export default function Profile() {
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={!isEditing}
                 maxLength={100}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${isEditing
-                    ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
-                    : 'border-gray-200 bg-gray-50 text-gray-700'
+                className={`w-full px-3 py-2 border rounded-lg text-xs md:text-sm ${isEditing
+                  ? 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
+                  : 'border-gray-200 bg-gray-50 text-gray-700'
                   }`}
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Ngày tháng năm sinh
               </label>
               <input
@@ -234,20 +234,20 @@ export default function Profile() {
                 }}
                 disabled={!isEditing}
                 max={new Date().toISOString().split('T')[0]}
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${isEditing
-                    ? fieldErrors.dob
-                      ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
-                      : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
-                    : 'border-gray-200 bg-gray-50 text-gray-700'
+                className={`w-full px-3 py-2 border rounded-lg text-xs md:text-sm ${isEditing
+                  ? fieldErrors.dob
+                    ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
+                    : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
+                  : 'border-gray-200 bg-gray-50 text-gray-700'
                   }`}
               />
               {fieldErrors.dob && (
-                <p className="text-xs text-red-600 mt-1">{fieldErrors.dob}</p>
+                <p className="text-[10px] md:text-xs text-red-600 mt-1">{fieldErrors.dob}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Số điện thoại
               </label>
               <input
@@ -266,30 +266,30 @@ export default function Profile() {
                 disabled={!isEditing}
                 maxLength={10}
                 placeholder="0123456789"
-                className={`w-full px-3 py-2 border rounded-lg text-sm ${isEditing
-                    ? fieldErrors.phone
-                      ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
-                      : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
-                    : 'border-gray-200 bg-gray-50 text-gray-700'
+                className={`w-full px-3 py-2 border rounded-lg text-xs md:text-sm ${isEditing
+                  ? fieldErrors.phone
+                    ? 'border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500'
+                    : 'border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#124874]'
+                  : 'border-gray-200 bg-gray-50 text-gray-700'
                   }`}
               />
               {fieldErrors.phone && (
-                <p className="text-xs text-red-600 mt-1">{fieldErrors.phone}</p>
+                <p className="text-[10px] md:text-xs text-red-600 mt-1">{fieldErrors.phone}</p>
               )}
               {!fieldErrors.phone && isEditing && (
-                <p className="text-xs text-gray-400 mt-1">Tối đa 10 số</p>
+                <p className="text-[10px] md:text-xs text-gray-400 mt-1">Tối đa 10 số</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Vai trò
               </label>
               <input
                 type="text"
                 value={user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-sm text-gray-700 cursor-not-allowed"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-xs md:text-sm text-gray-700 cursor-not-allowed"
               />
             </div>
           </div>

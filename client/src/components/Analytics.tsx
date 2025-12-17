@@ -262,11 +262,11 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
       <div className="mb-2">
         <h2 className="block-title__title">PHÂN TÍCH KIẾN THỨC BẰNG AI</h2>
       </div>
-      <div className="bg-white rounded-xl shadow-md p-5">
+      <div className="bg-white rounded-xl shadow-md p-3 md:p-5">
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4 md:mb-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
               Phân tích theo bài kiểm tra
             </label>
             <select
@@ -274,7 +274,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
               onChange={(e) => {
                 setSelectedQuiz(e.target.value);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-xs md:text-sm"
             >
               <option value="">Chọn đề thi</option>
               {quizzes.map(quiz => (
@@ -288,7 +288,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
               type="button"
               onClick={handleAiAnalysis}
               disabled={!quizAnalysis && !studentAnalysis}
-              className="w-full px-4 py-2 bg-[#124874] text-white text-sm font-medium rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 bg-[#124874] text-white text-xs md:text-sm font-medium rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Phân tích với AI
             </button>
@@ -297,50 +297,50 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
         {quizAnalysis && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               <div className="w-1 h-5 bg-[#124874] rounded"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Phân tích đề thi</h3>
-              <span className="text-sm text-gray-500">- {quizAnalysis.quiz.title}</span>
+              <h3 className="text-base md:text-lg font-semibold text-gray-800">Phân tích đề thi</h3>
+              <span className="text-xs md:text-sm text-gray-500">- {quizAnalysis.quiz.title}</span>
             </div>
-            <div className="grid grid-cols-4 gap-3">
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Số lượt thi</p>
-                <p className="text-2xl font-bold text-[#124874]">{quizAnalysis.attemptCount}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+              <div className="bg-blue-50 p-2 md:p-3 rounded-lg">
+                <p className="text-[10px] md:text-xs text-gray-600 mb-1">Số lượt thi</p>
+                <p className="text-xl md:text-2xl font-bold text-[#124874]">{quizAnalysis.attemptCount}</p>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Điểm TB</p>
-                <p className="text-2xl font-bold text-green-700">{quizAnalysis.avgScore}</p>
+              <div className="bg-green-50 p-2 md:p-3 rounded-lg">
+                <p className="text-[10px] md:text-xs text-gray-600 mb-1">Điểm TB</p>
+                <p className="text-xl md:text-2xl font-bold text-green-700">{quizAnalysis.avgScore}</p>
               </div>
-              <div className="bg-yellow-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Điểm cao nhất</p>
-                <p className="text-2xl font-bold text-yellow-700">{quizAnalysis.maxScore}</p>
+              <div className="bg-yellow-50 p-2 md:p-3 rounded-lg">
+                <p className="text-[10px] md:text-xs text-gray-600 mb-1">Điểm cao nhất</p>
+                <p className="text-xl md:text-2xl font-bold text-yellow-700">{quizAnalysis.maxScore}</p>
               </div>
-              <div className="bg-red-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Điểm thấp nhất</p>
-                <p className="text-2xl font-bold text-red-700">{quizAnalysis.minScore}</p>
+              <div className="bg-red-50 p-2 md:p-3 rounded-lg">
+                <p className="text-[10px] md:text-xs text-gray-600 mb-1">Điểm thấp nhất</p>
+                <p className="text-xl md:text-2xl font-bold text-red-700">{quizAnalysis.minScore}</p>
               </div>
             </div>
 
             <div>
-              <h3 className="font-medium text-gray-700 mb-2 text-sm">
+              <h3 className="font-medium text-gray-700 mb-2 text-xs md:text-sm">
                 Phân tích kiến thức
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                 {quizAnalysis.knowledgeAnalysis.map((analysis, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2">
+                  <div key={index} className="border border-gray-200 rounded-lg p-2 md:p-3 flex flex-col gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-gray-800 line-clamp-2">
+                      <p className="text-xs md:text-sm font-semibold text-gray-800 line-clamp-2">
                         {analysis.topic}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[10px] md:text-xs text-gray-500">
                         {analysis.chapter}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center justify-between gap-2 md:gap-3">
                       <div className="flex-1">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 md:h-2">
                           <div
-                            className={`h-2 rounded-full ${analysis.accuracy >= 70 ? 'bg-green-500' :
+                            className={`h-1.5 md:h-2 rounded-full ${analysis.accuracy >= 70 ? 'bg-green-500' :
                               analysis.accuracy >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
                             style={{ width: `${analysis.accuracy}%` }}
@@ -348,12 +348,12 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${analysis.accuracy >= 70 ? 'text-green-600' :
+                        <p className={`text-xs md:text-sm font-bold ${analysis.accuracy >= 70 ? 'text-green-600' :
                           analysis.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
                           }`}>
                           {analysis.accuracy.toFixed(1)}%
                         </p>
-                        <p className="text-[11px] text-gray-500">
+                        <p className="text-[10px] md:text-[11px] text-gray-500">
                           {analysis.correctAnswers}/{analysis.totalQuestions * quizAnalysis.attemptCount}
                         </p>
                       </div>
@@ -371,42 +371,42 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
         {studentAnalysis && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
               <div className="w-1 h-5 bg-[#124874] rounded"></div>
-              <h3 className="text-lg font-semibold text-gray-800">Phân tích cá nhân</h3>
-              <span className="text-sm text-gray-500">- {user?.name}</span>
+              <h3 className="text-base md:text-lg font-semibold text-gray-800">Phân tích cá nhân</h3>
+              <span className="text-xs md:text-sm text-gray-500">- {user?.name}</span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Số bài đã làm</p>
-                <p className="text-2xl font-bold text-[#124874]">{studentAnalysis.attemptCount}</p>
+            <div className="grid grid-cols-2 gap-2 md:gap-3">
+              <div className="bg-blue-50 p-2 md:p-3 rounded-lg">
+                <p className="text-[10px] md:text-xs text-gray-600 mb-1">Số bài đã làm</p>
+                <p className="text-xl md:text-2xl font-bold text-[#124874]">{studentAnalysis.attemptCount}</p>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
-                <p className="text-xs text-gray-600 mb-1">Điểm trung bình</p>
-                <p className="text-2xl font-bold text-green-700">{studentAnalysis.avgScore}</p>
+              <div className="bg-green-50 p-2 md:p-3 rounded-lg">
+                <p className="text-[10px] md:text-xs text-gray-600 mb-1">Điểm trung bình</p>
+                <p className="text-xl md:text-2xl font-bold text-green-700">{studentAnalysis.avgScore}</p>
               </div>
             </div>
 
             <div>
-              <h3 className="font-medium text-gray-700 mb-2 text-sm">
+              <h3 className="font-medium text-gray-700 mb-2 text-xs md:text-sm">
                 Kiến thức cần cải thiện
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                 {studentAnalysis.knowledgeAnalysis.slice(0, 5).map((analysis, index) => (
-                  <div key={index} className="border border-gray-200 rounded-lg p-3 flex flex-col gap-2">
+                  <div key={index} className="border border-gray-200 rounded-lg p-2 md:p-3 flex flex-col gap-2">
                     <div>
-                      <p className="text-sm font-semibold text-gray-800 line-clamp-2">
+                      <p className="text-xs md:text-sm font-semibold text-gray-800 line-clamp-2">
                         {analysis.topic}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-[10px] md:text-xs text-gray-500">
                         {analysis.chapter}
                       </p>
                     </div>
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center justify-between gap-2 md:gap-3">
                       <div className="flex-1">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 md:h-2">
                           <div
-                            className={`h-2 rounded-full ${analysis.accuracy >= 70 ? 'bg-green-500' :
+                            className={`h-1.5 md:h-2 rounded-full ${analysis.accuracy >= 70 ? 'bg-green-500' :
                               analysis.accuracy >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
                             style={{ width: `${analysis.accuracy}%` }}
@@ -414,12 +414,12 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className={`text-sm font-bold ${analysis.accuracy >= 70 ? 'text-green-600' :
+                        <p className={`text-xs md:text-sm font-bold ${analysis.accuracy >= 70 ? 'text-green-600' :
                           analysis.accuracy >= 50 ? 'text-yellow-600' : 'text-red-600'
                           }`}>
                           {analysis.accuracy.toFixed(1)}%
                         </p>
-                        <p className="text-[11px] text-gray-500">
+                        <p className="text-[10px] md:text-[11px] text-gray-500">
                           {analysis.correctAnswers}/{analysis.totalQuestions}
                         </p>
                       </div>
@@ -542,14 +542,14 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
         {/* Progress Tracking Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-[#124874] rounded"></div>
-            <h3 className="text-lg font-semibold text-gray-800">Theo dõi tiến triển theo chương</h3>
+            <h3 className="text-base md:text-lg font-semibold text-gray-800">Theo dõi tiến triển theo chương</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                 Chọn chương để theo dõi
               </label>
               <select
@@ -559,7 +559,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                   setProgressFeedback(null);
                   setProgressError(null);
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-xs md:text-sm"
               >
                 <option value="">Chọn chương</option>
                 {availableChapters.map(chapter => (
@@ -596,7 +596,7 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                   }
                 }}
                 disabled={!progressData || progressLoading}
-                className="w-full px-4 py-2 bg-[#124874] text-white text-sm font-medium rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 bg-[#124874] text-white text-xs md:text-sm font-medium rounded-lg hover:bg-[#0d3351] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {progressLoading ? 'Đang phân tích...' : 'Phân tích tiến triển với AI'}
               </button>
@@ -605,26 +605,26 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
           {progressData && (
             <div className="space-y-4">
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Số bài đã làm</p>
-                  <p className="text-2xl font-bold text-[#124874]">{progressData.attemptCount}</p>
+              <div className="grid grid-cols-3 gap-2 md:gap-3">
+                <div className="bg-blue-50 p-2 md:p-3 rounded-lg">
+                  <p className="text-[10px] md:text-xs text-gray-600 mb-1">Số bài đã làm</p>
+                  <p className="text-lg md:text-2xl font-bold text-[#124874]">{progressData.attemptCount}</p>
                 </div>
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-xs text-gray-600 mb-1">Điểm TB</p>
-                  <p className="text-2xl font-bold text-[#124874]">{progressData.avgScore.toFixed(1)}</p>
+                <div className="bg-blue-50 p-2 md:p-3 rounded-lg">
+                  <p className="text-[10px] md:text-xs text-gray-600 mb-1">Điểm TB</p>
+                  <p className="text-lg md:text-2xl font-bold text-[#124874]">{progressData.avgScore.toFixed(1)}</p>
                 </div>
-                <div className={`p-3 rounded-lg ${progressData.trend === 'improving' ? 'bg-green-50' :
+                <div className={`p-2 md:p-3 rounded-lg ${progressData.trend === 'improving' ? 'bg-green-50' :
                   progressData.trend === 'declining' ? 'bg-red-50' : 'bg-gray-50'
                   }`}>
-                  <p className="text-xs text-gray-600 mb-1">Xu hướng</p>
-                  <div className={`flex items-center gap-2 text-lg font-bold ${progressData.trend === 'improving' ? 'text-green-700' :
+                  <p className="text-[10px] md:text-xs text-gray-600 mb-1">Xu hướng</p>
+                  <div className={`flex items-center gap-1 md:gap-2 text-sm md:text-lg font-bold ${progressData.trend === 'improving' ? 'text-green-700' :
                     progressData.trend === 'declining' ? 'text-red-700' : 'text-gray-700'
                     }`}>
-                    {progressData.trend === 'improving' && <TrendingUp className="w-6 h-6" />}
-                    {progressData.trend === 'declining' && <TrendingDown className="w-6 h-6" />}
-                    {progressData.trend === 'stable' && <Minus className="w-6 h-6" />}
-                    <span>{progressData.trend === 'improving' ? 'Tiến bộ' :
+                    {progressData.trend === 'improving' && <TrendingUp className="w-4 h-4 md:w-6 md:h-6" />}
+                    {progressData.trend === 'declining' && <TrendingDown className="w-4 h-4 md:w-6 md:h-6" />}
+                    {progressData.trend === 'stable' && <Minus className="w-4 h-4 md:w-6 md:h-6" />}
+                    <span className="hidden sm:inline">{progressData.trend === 'improving' ? 'Tiến bộ' :
                       progressData.trend === 'declining' ? 'Giảm' : 'Ổn định'}</span>
                   </div>
                 </div>
@@ -632,22 +632,22 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
 
               {/* Progress history */}
               <div>
-                <h4 className="font-medium text-gray-700 mb-2 text-sm">Lịch sử điểm theo thời gian</h4>
+                <h4 className="font-medium text-gray-700 mb-2 text-xs md:text-sm">Lịch sử điểm theo thời gian</h4>
                 <div className="space-y-2">
                   {progressData.dataPoints.map((point, index) => (
-                    <div key={index} className="flex items-center gap-3 text-sm">
-                      <span className="text-gray-500 w-24">{point.date}</span>
+                    <div key={index} className="flex items-center gap-2 md:gap-3 text-xs md:text-sm">
+                      <span className="text-gray-500 w-20 md:w-24 flex-shrink-0">{point.date}</span>
                       <div className="flex-1">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-1.5 md:h-2">
                           <div
-                            className={`h-2 rounded-full ${point.score >= 80 ? 'bg-green-500' :
+                            className={`h-1.5 md:h-2 rounded-full ${point.score >= 80 ? 'bg-green-500' :
                               point.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                               }`}
                             style={{ width: `${point.score}%` }}
                           />
                         </div>
                       </div>
-                      <span className={`font-medium w-12 text-right ${point.score >= 80 ? 'text-green-600' :
+                      <span className={`font-medium w-10 md:w-12 text-right ${point.score >= 80 ? 'text-green-600' :
                         point.score >= 50 ? 'text-yellow-600' : 'text-red-600'
                         }`}>
                         {point.score.toFixed(1)}

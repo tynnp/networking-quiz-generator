@@ -168,19 +168,21 @@ export default function AdminUserManagement() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-4 flex justify-between items-center">
-        <h2 className="block-title__title">QUẢN LÝ NGƯỜI DÙNG</h2>
+      <div className="mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+        <div>
+          <h2 className="block-title__title">QUẢN LÝ NGƯỜI DÙNG</h2>
+        </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] transition-colors"
+          className="flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] transition-colors text-xs md:text-sm"
         >
           <UserPlus className="w-4 h-4" />
-          Thêm người dùng
+          <span>Thêm người dùng</span>
         </button>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-xs md:text-sm">
           {error}
         </div>
       )}
@@ -188,24 +190,99 @@ export default function AdminUserManagement() {
       {/* Search Box */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
           <input
             type="text"
             placeholder="Tìm kiếm theo tên, email hoặc vai trò..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+            className="w-full pl-9 md:pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
             maxLength={100}
           />
         </div>
         {searchQuery && (
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-xs md:text-sm text-gray-600">
             Tìm thấy {filteredUsers.length} người dùng
           </p>
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {filteredUsers.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-md p-6 text-center text-gray-500 text-sm">
+            {searchQuery ? 'Không tìm thấy người dùng nào' : 'Chưa có người dùng nào'}
+          </div>
+        ) : (
+          paginatedUsers.map((user) => (
+            <div key={user.id} className="bg-white rounded-xl shadow-md p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">{user.name}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${user.role === 'admin'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                        }`}
+                    >
+                      {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
+                    </span>
+                    {user.isLocked ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800">
+                        Đã khóa
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-100 text-green-800">
+                        Hoạt động
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {user.id !== currentUser?.id ? (
+                    <>
+                      {user.isLocked ? (
+                        <button
+                          onClick={() => handleUnlockUser(user.id)}
+                          disabled={isLocking === user.id}
+                          className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50"
+                          title="Mở khóa"
+                        >
+                          <Unlock className="w-4 h-4" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleLockUser(user.id)}
+                          disabled={isLocking === user.id}
+                          className="p-1.5 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 disabled:opacity-50"
+                          title="Khóa"
+                        >
+                          <Lock className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        disabled={isDeleting === user.id}
+                        className="p-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                        title="Xóa"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="text-[10px] text-gray-400 italic">Bạn</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block bg-white rounded-xl shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-[#124874]">
@@ -310,72 +387,71 @@ export default function AdminUserManagement() {
             </tbody>
           </table>
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-              Hiển thị {startIndex + 1} - {Math.min(endIndex, filteredUsers.length)} trong tổng số {filteredUsers.length} người dùng
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Trước
-              </button>
-
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                  // Show first page, last page, current page, and pages around current
-                  if (
-                    page === 1 ||
-                    page === totalPages ||
-                    (page >= currentPage - 1 && page <= currentPage + 1)
-                  ) {
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`px-3 py-1.5 text-sm rounded-lg ${currentPage === page
-                          ? 'bg-[#124874] text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
-                          }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  } else if (
-                    page === currentPage - 2 ||
-                    page === currentPage + 2
-                  ) {
-                    return <span key={page} className="px-2 text-gray-500">...</span>;
-                  }
-                  return null;
-                })}
-              </div>
-
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Sau
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-4 px-4 py-3 bg-white rounded-xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-xs md:text-sm text-gray-700">
+            Hiển thị {startIndex + 1} - {Math.min(endIndex, filteredUsers.length)} trong tổng số {filteredUsers.length} người dùng
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="flex items-center gap-1 px-2 md:px-3 py-1.5 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Trước</span>
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-2 md:px-3 py-1.5 text-xs md:text-sm rounded-lg ${currentPage === page
+                        ? 'bg-[#124874] text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (
+                  page === currentPage - 2 ||
+                  page === currentPage + 2
+                ) {
+                  return <span key={page} className="px-1 md:px-2 text-gray-500">...</span>;
+                }
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="flex items-center gap-1 px-2 md:px-3 py-1.5 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className="hidden sm:inline">Sau</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Thêm người dùng mới</h3>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">Thêm người dùng mới</h3>
               <button
                 onClick={() => {
                   setShowCreateModal(false);
@@ -390,42 +466,42 @@ export default function AdminUserManagement() {
 
             <form onSubmit={handleCreateUser} className="p-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Họ và tên *
                 </label>
                 <input
                   type="text"
                   value={newUser.name}
                   onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
                   required
                   maxLength={100}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Email *
                 </label>
                 <input
                   type="email"
                   value={newUser.email}
                   onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
                   required
                   maxLength={100}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Mật khẩu * (tối thiểu 6 ký tự)
                 </label>
                 <input
                   type="password"
                   value={newUser.password}
                   onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
                   required
                   minLength={6}
                   maxLength={128}
@@ -433,13 +509,13 @@ export default function AdminUserManagement() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
                   Vai trò *
                 </label>
                 <select
                   value={newUser.role}
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'student' | 'admin' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
                 >
                   <option value="student">Người dùng</option>
                   <option value="admin">Quản trị viên</option>
@@ -454,14 +530,14 @@ export default function AdminUserManagement() {
                     setNewUser({ email: '', password: '', name: '', role: 'student' });
                     setError(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] disabled:opacity-50"
+                  className="px-3 md:px-4 py-2 bg-[#124874] text-white rounded-lg text-xs md:text-sm hover:bg-[#0d3351] disabled:opacity-50"
                 >
                   {isCreating ? 'Đang tạo...' : 'Tạo người dùng'}
                 </button>
@@ -473,10 +549,10 @@ export default function AdminUserManagement() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
             <div className="flex justify-between items-center p-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-900">Xác nhận xóa</h3>
+              <h3 className="text-base md:text-lg font-semibold text-gray-900">Xác nhận xóa</h3>
               <button
                 onClick={() => {
                   setShowDeleteModal(false);
@@ -488,8 +564,8 @@ export default function AdminUserManagement() {
               </button>
             </div>
 
-            <div className="p-6">
-              <p className="text-gray-700 mb-6">
+            <div className="p-4 md:p-6">
+              <p className="text-xs md:text-sm text-gray-700 mb-6">
                 Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.
               </p>
 
@@ -500,7 +576,7 @@ export default function AdminUserManagement() {
                     setShowDeleteModal(false);
                     setUserToDelete(null);
                   }}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                  className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50"
                 >
                   Hủy
                 </button>
@@ -508,7 +584,7 @@ export default function AdminUserManagement() {
                   type="button"
                   onClick={confirmDeleteUser}
                   disabled={!!isDeleting}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                  className="px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg text-xs md:text-sm hover:bg-red-700 disabled:opacity-50"
                 >
                   {isDeleting ? 'Đang xóa...' : 'Xóa'}
                 </button>

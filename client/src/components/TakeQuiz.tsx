@@ -93,8 +93,8 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md p-8 text-center text-gray-500">
-          <p>Đang tải đề thi...</p>
+        <div className="bg-white rounded-xl shadow-md p-6 md:p-8 text-center text-gray-500">
+          <p className="text-sm md:text-base">Đang tải đề thi...</p>
         </div>
       </div>
     );
@@ -103,8 +103,8 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
   if (!quiz) {
     return (
       <div className="max-w-5xl mx-auto">
-        <div className="bg-white rounded-xl shadow-md p-5">
-          <p className="text-center text-gray-500">Không tìm thấy đề thi</p>
+        <div className="bg-white rounded-xl shadow-md p-4 md:p-5">
+          <p className="text-center text-gray-500 text-sm md:text-base">Không tìm thấy đề thi</p>
         </div>
       </div>
     );
@@ -175,11 +175,11 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="bg-white rounded-xl shadow-md p-5">
+      <div className="bg-white rounded-xl shadow-md p-3 md:p-5">
         <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl font-bold text-[#124874] break-words">{quiz.title}</h2>
-            <div className={`flex items-center gap-2 px-3 py-1 rounded ${timeLeft < 300 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-[#124874]'
+          <div className="flex items-center justify-between mb-2 gap-2">
+            <h2 className="text-base md:text-xl font-bold text-[#124874] break-words flex-1">{quiz.title}</h2>
+            <div className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 rounded text-sm md:text-base ${timeLeft < 300 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-[#124874]'
               }`}>
               <span className="font-mono font-medium">{formatTime(timeLeft)}</span>
             </div>
@@ -196,9 +196,9 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
           </p>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4 md:mb-6">
           <div className="mb-4">
-            <div className="text-sm font-medium text-gray-700 mb-3 prose prose-sm max-w-none">
+            <div className="text-xs md:text-sm font-medium text-gray-700 mb-3 prose prose-sm max-w-none">
               <ReactMarkdown>{currentQuestion.content}</ReactMarkdown>
             </div>
             <div className="space-y-2">
@@ -206,18 +206,18 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
                 <button
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
-                  className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-colors text-sm ${answers[currentQuestion.id] === index
+                  className={`w-full text-left px-3 md:px-4 py-2 md:py-3 rounded-lg border-2 transition-colors text-xs md:text-sm ${answers[currentQuestion.id] === index
                     ? 'border-[#124874] bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
                     }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${answers[currentQuestion.id] === index
+                  <div className="flex items-center gap-2 md:gap-3">
+                    <div className={`w-4 h-4 md:w-5 md:h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${answers[currentQuestion.id] === index
                       ? 'border-[#124874] bg-[#124874]'
                       : 'border-gray-300'
                       }`}>
                     </div>
-                    <span>{option}</span>
+                    <span className="break-words">{option}</span>
                   </div>
                 </button>
               ))}
@@ -225,11 +225,11 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <button
             onClick={handlePrevious}
             disabled={currentQuestionIndex === 0}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-xs md:text-sm"
           >
             Câu trước
           </button>
@@ -237,7 +237,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
           {!isLastQuestion ? (
             <button
               onClick={handleNext}
-              className="px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] text-sm"
+              className="px-3 md:px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] text-xs md:text-sm"
             >
               Câu tiếp
             </button>
@@ -245,7 +245,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#CF373D] text-white rounded-lg hover:bg-[#b52f34] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+              className="px-3 md:px-4 py-2 bg-[#CF373D] text-white rounded-lg hover:bg-[#b52f34] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-xs md:text-sm"
             >
               Nộp bài
             </button>
@@ -253,10 +253,10 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
         </div>
       </div>
 
-      <div className="mt-4 bg-white rounded-xl shadow-md p-4">
-        <div className="flex items-center justify-between mb-3 gap-2">
-          <h3 className="font-medium text-gray-700 text-sm">Tổng quan câu hỏi</h3>
-          <div className="hidden sm:flex items-center gap-3 text-[11px] text-gray-500">
+      <div className="mt-3 md:mt-4 bg-white rounded-xl shadow-md p-3 md:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2">
+          <h3 className="font-medium text-gray-700 text-xs md:text-sm">Tổng quan câu hỏi</h3>
+          <div className="flex items-center gap-2 md:gap-3 text-[10px] md:text-[11px] text-gray-500 flex-wrap">
             <span className="flex items-center gap-1">
               <span className="inline-block w-3 h-3 rounded bg-[#124874]" />
               Hiện tại
@@ -272,7 +272,7 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
+        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-1.5 md:gap-2">
           {quiz.questions.map((question, index) => {
             const isAnswered = answers[question.id] !== undefined;
             const isCurrent = index === currentQuestionIndex;
@@ -281,8 +281,8 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
               <button
                 key={question.id}
                 onClick={() => setCurrentQuestionIndex(index)}
-                className={`h-9 min-w-[2.25rem] rounded text-xs font-medium flex items-center justify-center transition-colors ${isCurrent
-                  ? 'bg-[#124874] text-white ring-2 ring-[#124874] ring-offset-2'
+                className={`h-8 md:h-9 min-w-[2rem] md:min-w-[2.25rem] rounded text-xs font-medium flex items-center justify-center transition-colors ${isCurrent
+                  ? 'bg-[#124874] text-white ring-2 ring-[#124874] ring-offset-1 md:ring-offset-2'
                   : isAnswered
                     ? 'bg-green-100 text-green-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
