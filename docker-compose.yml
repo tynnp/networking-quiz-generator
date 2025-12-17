@@ -1,0 +1,18 @@
+services:
+  frontend:
+    image: quiz-frontend:latest
+    container_name: quiz-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  backend:
+    image: quiz-backend:latest
+    container_name: quiz-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: unless-stopped
