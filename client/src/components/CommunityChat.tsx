@@ -26,6 +26,8 @@ export default function CommunityChat() {
     // Delete confirmation modal states
     const [showDeletePrivateModal, setShowDeletePrivateModal] = useState(false);
     const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+    // Mobile sidebar toggle
+    const [showMobileSidebar, setShowMobileSidebar] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const scrollToBottom = useCallback(() => {
@@ -266,8 +268,8 @@ export default function CommunityChat() {
         return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
     };
 
-    const renderOnlineUsersSidebar = () => (
-        <div className="w-64 bg-white rounded-lg shadow-md flex flex-col">
+    const renderOnlineUsersSidebar = (isMobile: boolean = false) => (
+        <div className={`bg-white rounded-lg shadow-md flex flex-col ${isMobile ? 'w-full h-full' : 'w-64'}`}>
             <div className="p-4 border-b">
                 <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-[#124874]" />
@@ -275,6 +277,14 @@ export default function CommunityChat() {
                     <span className="ml-auto bg-[#124874] text-white text-xs px-2 py-0.5 rounded-full">
                         {onlineUsers.length}
                     </span>
+                    {isMobile && (
+                        <button
+                            onClick={() => setShowMobileSidebar(false)}
+                            className="ml-2 p-1 hover:bg-gray-100 rounded"
+                        >
+                            <X className="w-5 h-5 text-gray-500" />
+                        </button>
+                    )}
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto p-2">
@@ -287,7 +297,10 @@ export default function CommunityChat() {
                         {onlineUsers.map(onlineUser => (
                             <button
                                 key={onlineUser.id}
-                                onClick={() => openPrivateChat(onlineUser)}
+                                onClick={() => {
+                                    openPrivateChat(onlineUser);
+                                    if (isMobile) setShowMobileSidebar(false);
+                                }}
                                 disabled={onlineUser.id === user?.id}
                                 className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${onlineUser.id === user?.id
                                     ? 'bg-gray-50 cursor-default'
@@ -315,22 +328,35 @@ export default function CommunityChat() {
     if (privateChatUser) {
         return (
             <div className="h-full flex flex-col">
-                <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+                <div className="bg-white rounded-lg shadow-md p-3 md:p-4 mb-4">
                     <div className="flex items-center gap-2">
                         <button onClick={closePrivateChat} className="p-1 hover:bg-gray-100 rounded">
                             <ArrowLeft className="w-5 h-5 text-[#124874]" />
                         </button>
-                        <MessageCircle className="w-6 h-6 text-[#124874]" />
-                        <h1 className="text-xl font-bold text-[#124874]">Chat với {privateChatUser.name}</h1>
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-[#124874]" />
+                        <h1 className="text-base md:text-xl font-bold text-[#124874] truncate flex-1">Chat với {privateChatUser.name}</h1>
+                        <div className="w-2 h-2 bg-green-500 rounded-full hidden md:block"></div>
+                        {/* Mobile: Toggle online users sidebar */}
+                        <button
+                            onClick={() => setShowMobileSidebar(true)}
+                            className="md:hidden p-2 text-[#124874] hover:bg-gray-100 rounded-lg transition-colors relative"
+                            title="Xem người online"
+                        >
+                            <Users className="w-5 h-5" />
+                            {Object.values(unreadCounts).reduce((a, b) => a + b, 0) > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                                    {Object.values(unreadCounts).reduce((a, b) => a + b, 0)}
+                                </span>
+                            )}
+                        </button>
                         <button
                             onClick={() => setShowDeletePrivateModal(true)}
-                            className="ml-auto p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Xóa đoạn chat"
                         >
                             <Trash2 className="w-5 h-5" />
                         </button>
-                        <span className={`px-2 py-1 rounded-full text-xs ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        <span className={`px-2 py-1 rounded-full text-xs hidden sm:inline ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                             {isConnecting ? 'Đang kết nối...' : isConnected ? 'Đã kết nối' : 'Mất kết nối'}
                         </span>
                     </div>
@@ -338,10 +364,11 @@ export default function CommunityChat() {
 
                 <div className="flex-1 flex gap-4 min-h-0">
                     <div className="flex-1 bg-white rounded-lg shadow-md flex flex-col min-h-0">
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
                             {privateMessages.length === 0 ? (
                                 <div className="text-center text-gray-500 py-8">
-                                    Chưa có tin nhắn. Hãy bắt đầu cuộc trò chuyện riêng!
+                                    <p>Chưa có tin nhắn.</p>
+                                    <p className="text-sm mt-1">Hãy bắt đầu cuộc trò chuyện riêng!</p>
                                 </div>
                             ) : (
                                 privateMessages.map(msg => (
@@ -350,12 +377,12 @@ export default function CommunityChat() {
                                         className={`flex ${msg.fromUserId === user?.id ? 'justify-end' : 'justify-start'}`}
                                     >
                                         <div
-                                            className={`max-w-[70%] rounded-lg p-3 ${msg.fromUserId === user?.id
+                                            className={`max-w-[85%] md:max-w-[70%] rounded-lg p-3 ${msg.fromUserId === user?.id
                                                 ? 'bg-[#124874] text-white'
                                                 : 'bg-gray-100 text-gray-800'
                                                 }`}
                                         >
-                                            <div>{msg.content}</div>
+                                            <div className="text-sm md:text-base">{msg.content}</div>
                                             <div className={`text-xs mt-1 ${msg.fromUserId === user?.id ? 'text-white/70' : 'text-gray-500'}`}>
                                                 {formatTime(msg.timestamp)}
                                             </div>
@@ -366,20 +393,20 @@ export default function CommunityChat() {
                             <div ref={privateMessagesEndRef} />
                         </div>
 
-                        <form onSubmit={sendPrivateMessage} className="p-4 border-t">
+                        <form onSubmit={sendPrivateMessage} className="p-3 md:p-4 border-t">
                             <div className="flex gap-2">
                                 <input
                                     type="text"
                                     value={privateInputMessage}
                                     onChange={(e) => setPrivateInputMessage(e.target.value)}
-                                    placeholder={`Nhắn riêng cho ${privateChatUser.name}...`}
-                                    className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                                    placeholder={`Nhắn cho ${privateChatUser.name}...`}
+                                    className="flex-1 px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm md:text-base"
                                     disabled={!isConnected}
                                 />
                                 <button
                                     type="submit"
                                     disabled={!isConnected || !privateInputMessage.trim()}
-                                    className="px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="px-3 md:px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     <Send className="w-5 h-5" />
                                 </button>
@@ -387,8 +414,20 @@ export default function CommunityChat() {
                         </form>
                     </div>
 
-                    {renderOnlineUsersSidebar()}
+                    {/* Desktop sidebar */}
+                    <div className="hidden md:block">
+                        {renderOnlineUsersSidebar()}
+                    </div>
                 </div>
+
+                {/* Mobile sidebar overlay */}
+                {showMobileSidebar && (
+                    <div className="fixed inset-0 bg-black/50 z-50 md:hidden" onClick={() => setShowMobileSidebar(false)}>
+                        <div className="absolute right-0 top-0 h-full w-72 max-w-[85%]" onClick={e => e.stopPropagation()}>
+                            {renderOnlineUsersSidebar(true)}
+                        </div>
+                    </div>
+                )}
 
                 {/* Delete Private Chat Confirmation Modal */}
                 {showDeletePrivateModal && (
@@ -439,20 +478,33 @@ export default function CommunityChat() {
 
     return (
         <div className="h-full flex flex-col">
-            <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+            <div className="bg-white rounded-lg shadow-md p-3 md:p-4 mb-4">
                 <div className="flex items-center gap-2">
-                    <MessageCircle className="w-6 h-6 text-[#124874]" />
-                    <h1 className="text-xl font-bold text-[#124874]">Chat với cộng đồng</h1>
+                    <MessageCircle className="w-5 h-5 md:w-6 md:h-6 text-[#124874]" />
+                    <h1 className="text-base md:text-xl font-bold text-[#124874] truncate flex-1">Chat với cộng đồng</h1>
+                    {/* Mobile: Toggle online users sidebar */}
+                    <button
+                        onClick={() => setShowMobileSidebar(true)}
+                        className="md:hidden p-2 text-[#124874] hover:bg-gray-100 rounded-lg transition-colors relative"
+                        title="Xem người online"
+                    >
+                        <Users className="w-5 h-5" />
+                        {Object.values(unreadCounts).reduce((a, b) => a + b, 0) > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                                {Object.values(unreadCounts).reduce((a, b) => a + b, 0)}
+                            </span>
+                        )}
+                    </button>
                     {user?.role === 'admin' && messages.length > 0 && (
                         <button
                             onClick={() => setShowDeleteAllModal(true)}
-                            className="ml-auto p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                             title="Xóa tất cả tin nhắn (Admin)"
                         >
                             <Trash2 className="w-5 h-5" />
                         </button>
                     )}
-                    <span className={`${user?.role !== 'admin' || messages.length === 0 ? 'ml-auto' : ''} px-2 py-1 rounded-full text-xs ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    <span className={`px-2 py-1 rounded-full text-xs hidden sm:inline ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                         {isConnecting ? 'Đang kết nối...' : isConnected ? 'Đã kết nối' : 'Mất kết nối'}
                     </span>
                 </div>
@@ -460,10 +512,11 @@ export default function CommunityChat() {
 
             <div className="flex-1 flex gap-4 min-h-0">
                 <div className="flex-1 bg-white rounded-lg shadow-md flex flex-col min-h-0">
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3">
                         {messages.length === 0 ? (
                             <div className="text-center text-gray-500 py-8">
-                                Chưa có tin nhắn nào. Hãy bắt đầu cuộc trò chuyện!
+                                <p>Chưa có tin nhắn nào.</p>
+                                <p className="text-sm mt-1">Hãy bắt đầu cuộc trò chuyện!</p>
                             </div>
                         ) : (
                             messages.map(msg => (
@@ -472,7 +525,7 @@ export default function CommunityChat() {
                                     className={`flex ${msg.userId === user?.id ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
-                                        className={`max-w-[70%] rounded-lg p-3 ${msg.userId === user?.id
+                                        className={`max-w-[85%] md:max-w-[70%] rounded-lg p-3 ${msg.userId === user?.id
                                             ? 'bg-[#124874] text-white'
                                             : 'bg-gray-100 text-gray-800'
                                             }`}
@@ -482,7 +535,7 @@ export default function CommunityChat() {
                                                 {msg.userName}
                                             </div>
                                         )}
-                                        <div>{msg.content}</div>
+                                        <div className="text-sm md:text-base">{msg.content}</div>
                                         <div className={`text-xs mt-1 ${msg.userId === user?.id ? 'text-white/70' : 'text-gray-500'}`}>
                                             {formatTime(msg.timestamp)}
                                         </div>
@@ -493,20 +546,20 @@ export default function CommunityChat() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    <form onSubmit={sendMessage} className="p-4 border-t">
+                    <form onSubmit={sendMessage} className="p-3 md:p-4 border-t">
                         <div className="flex gap-2">
                             <input
                                 type="text"
                                 value={inputMessage}
                                 onChange={(e) => setInputMessage(e.target.value)}
                                 placeholder="Nhập tin nhắn..."
-                                className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874]"
+                                className="flex-1 px-3 md:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm md:text-base"
                                 disabled={!isConnected}
                             />
                             <button
                                 type="submit"
                                 disabled={!isConnected || !inputMessage.trim()}
-                                className="px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="px-3 md:px-4 py-2 bg-[#124874] text-white rounded-lg hover:bg-[#0d3351] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 <Send className="w-5 h-5" />
                             </button>
@@ -514,8 +567,20 @@ export default function CommunityChat() {
                     </form>
                 </div>
 
-                {renderOnlineUsersSidebar()}
+                {/* Desktop sidebar */}
+                <div className="hidden md:block">
+                    {renderOnlineUsersSidebar()}
+                </div>
             </div>
+
+            {/* Mobile sidebar overlay */}
+            {showMobileSidebar && (
+                <div className="fixed inset-0 bg-black/50 z-50 md:hidden" onClick={() => setShowMobileSidebar(false)}>
+                    <div className="absolute right-0 top-0 h-full w-72 max-w-[85%]" onClick={e => e.stopPropagation()}>
+                        {renderOnlineUsersSidebar(true)}
+                    </div>
+                </div>
+            )}
 
             {/* Delete All Messages Confirmation Modal */}
             {showDeleteAllModal && (
