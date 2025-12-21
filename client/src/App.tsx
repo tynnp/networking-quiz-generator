@@ -21,6 +21,7 @@ import CommunityChat from './components/CommunityChat';
 import QuizDiscussion from './components/QuizDiscussion';
 import QuizDiscussionChat from './components/QuizDiscussionChat';
 import AboutTeam from './components/AboutTeam';
+import Settings from './components/Settings';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -225,6 +226,8 @@ function AppContent() {
         return <AdminUserManagement />;
       case 'about-team':
         return <AboutTeam />;
+      case 'settings':
+        return <Settings />;
       default:
         return <QuizList onTakeQuiz={handleTakeQuiz} onPreviewQuiz={handlePreviewQuiz} />;
     }

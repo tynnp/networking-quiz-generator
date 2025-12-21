@@ -42,6 +42,8 @@ from dtos import (
     AddToDiscussionRequest,
     QuizDiscussionResponse,
     DiscussionMessageResponse,
+    GeminiSettingsRequest,
+    GeminiSettingsResponse,
 )
 
 from database import (
@@ -61,6 +63,8 @@ from database import (
     create_otp,
     verify_otp,
     delete_otp,
+    get_user_settings,
+    save_user_settings,
 )
 
 from email_service import generate_otp, send_otp_email, send_reset_password_otp_email
@@ -103,6 +107,7 @@ tags_metadata = [
     {"name": "Quản lý người dùng", "description": "Chức năng quản trị viên - quản lý tài khoản người dùng"},
     {"name": "Chat cộng đồng", "description": "Chat chung và chat riêng với các thành viên"},
     {"name": "Thảo luận đề thi", "description": "Thảo luận về từng đề thi với cộng đồng"},
+    {"name": "Cài đặt", "description": "Cài đặt cấu hình AI của người dùng"},
 ]
 
 app = FastAPI(
@@ -614,6 +619,64 @@ def unlock_user_admin(
     
     return {"message": "Mở khóa người dùng thành công"}
 
+@app.get("/api/settings/gemini", response_model=GeminiSettingsResponse, tags=["Cài đặt"])
+def get_gemini_settings(
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get user's Gemini AI settings"""
+    settings = get_user_settings(db, current_user["id"])
+    if not settings:
+        return GeminiSettingsResponse(model=None, apiKey=None)
+    
+    api_key = settings.get("geminiApiKey")
+    masked_key = None
+    if api_key:
+        masked_key = "•" * (len(api_key) - 4) + api_key[-4:] if len(api_key) > 4 else "•" * len(api_key)
+    
+    return GeminiSettingsResponse(
+        model=settings.get("geminiModel"),
+        apiKey=masked_key
+    )
+
+@app.put("/api/settings/gemini", tags=["Cài đặt"])
+def update_gemini_settings(
+    request: GeminiSettingsRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Update user's Gemini AI settings"""
+    settings_data = {}
+    
+    if request.model is not None:
+        settings_data["geminiModel"] = request.model
+    
+    if request.apiKey is not None:
+        if not request.apiKey.startswith("•"):
+            settings_data["geminiApiKey"] = request.apiKey if request.apiKey else None
+    
+    save_user_settings(db, current_user["id"], settings_data)
+    return {"message": "Đã lưu cài đặt thành công"}
+
+def get_gemini_client_for_user(db: Database, user_id: str) -> tuple:
+    """Get Gemini client and model name for a user based on their settings"""
+    settings = get_user_settings(db, user_id)
+    
+    user_api_key = settings.get("geminiApiKey") if settings else None
+    user_model = settings.get("geminiModel") if settings else None
+    
+    active_api_key = user_api_key if user_api_key else API_KEY
+    active_model = user_model if user_model else MODEL_NAME
+    
+    if not active_api_key:
+        return None, None
+    
+    if user_api_key:
+        user_client = genai.Client(api_key=user_api_key)
+        return user_client, active_model
+    else:
+        return client, active_model
+
 def handle_gemini_error(exc: Exception):
     print("Error calling Gemini API:", exc)
     
@@ -626,30 +689,54 @@ def handle_gemini_error(exc: Exception):
     if status_code == 429 or "429" in error_msg:
         raise HTTPException(
             status_code=429, 
-            detail="Quá số lần gọi API"
+            detail="[Lỗi 429] Quá số lần gọi API. Vui lòng đợi 1-2 phút rồi thử lại."
         )
         
     if status_code == 503 or "503" in error_msg:
         raise HTTPException(
             status_code=503, 
-            detail="Server Gemini quá tải"
+            detail="[Lỗi 503] Server Gemini quá tải. Vui lòng thử lại sau."
+        )
+    
+    if status_code == 400 or "400" in error_msg:
+        raise HTTPException(
+            status_code=400, 
+            detail="[Lỗi 400] Yêu cầu không hợp lệ - kiểm tra lại API Key hoặc model."
+        )
+    
+    if status_code == 403 or "403" in error_msg:
+        raise HTTPException(
+            status_code=403, 
+            detail="[Lỗi 403] API Key không hợp lệ hoặc đã hết hạn."
+        )
+    
+    if status_code == 404 or "404" in error_msg:
+        raise HTTPException(
+            status_code=404, 
+            detail="[Lỗi 404] Model không tồn tại. Vui lòng chọn model khác trong Cài đặt."
         )
         
-    raise HTTPException(status_code=500, detail="Lỗi khi gọi Gemini API")
+    raise HTTPException(status_code=500, detail=f"[Lỗi 500] Lỗi khi gọi Gemini API: {error_msg[:100]}")
 
 @app.post("/api/generate-questions", response_model=GenerateQuestionsResponse, tags=["Tính năng AI"])
-def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
-    if client is None:
+def generate_questions(
+    request: GenerateQuestionsRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+) -> GenerateQuestionsResponse:
+    user_client, user_model = get_gemini_client_for_user(db, current_user["id"])
+    
+    if user_client is None:
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
+            detail="GOOGLE_API_KEY chưa được cấu hình. Vui lòng cấu hình API Key trong Cài đặt hoặc liên hệ quản trị viên.",
         )
 
     prompt = build_prompt(request)
 
     try:
-        gemini_response = client.models.generate_content(
-            model=MODEL_NAME,
+        gemini_response = user_client.models.generate_content(
+            model=user_model,
             contents=prompt,
         )
 
@@ -667,17 +754,19 @@ def analyze_result(
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ) -> AnalyzeResultResponse:
-    if client is None:
+    user_client, user_model = get_gemini_client_for_user(db, current_user["id"])
+    
+    if user_client is None:
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
+            detail="GOOGLE_API_KEY chưa được cấu hình. Vui lòng cấu hình API Key trong Cài đặt hoặc liên hệ quản trị viên.",
         )
 
     prompt = build_analysis_prompt(request)
 
     try:
-        gemini_response = client.models.generate_content(
-            model=MODEL_NAME,
+        gemini_response = user_client.models.generate_content(
+            model=user_model,
             contents=prompt,
         )
 
@@ -725,17 +814,19 @@ def analyze_overall(
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ) -> AnalyzeResultResponse:
-    if client is None:
+    user_client, user_model = get_gemini_client_for_user(db, current_user["id"])
+    
+    if user_client is None:
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
+            detail="GOOGLE_API_KEY chưa được cấu hình. Vui lòng cấu hình API Key trong Cài đặt hoặc liên hệ quản trị viên.",
         )
 
     prompt = build_overall_analysis_prompt(request)
 
     try:
-        gemini_response = client.models.generate_content(
-            model=MODEL_NAME,
+        gemini_response = user_client.models.generate_content(
+            model=user_model,
             contents=prompt,
         )
 
@@ -823,17 +914,19 @@ def analyze_progress(
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ) -> AnalyzeResultResponse:
-    if client is None:
+    user_client, user_model = get_gemini_client_for_user(db, current_user["id"])
+    
+    if user_client is None:
         raise HTTPException(
             status_code=500,
-            detail="GOOGLE_API_KEY hoặc GEMINI_API_KEY chưa được cấu hình trên server",
+            detail="GOOGLE_API_KEY chưa được cấu hình. Vui lòng cấu hình API Key trong Cài đặt hoặc liên hệ quản trị viên.",
         )
 
     prompt = build_progress_analysis_prompt(request)
 
     try:
-        gemini_response = client.models.generate_content(
-            model=MODEL_NAME,
+        gemini_response = user_client.models.generate_content(
+            model=user_model,
             contents=prompt,
         )
 

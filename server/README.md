@@ -167,6 +167,11 @@ server/
 - `GET /api/discussions/{quiz_id}/online` - Lấy danh sách người dùng đang online trong phòng thảo luận
 - `WS /ws/discussion/{quiz_id}` - WebSocket endpoint cho thảo luận real-time (xác thực qua query param `token`)
 
+### Cài đặt
+
+- `GET /api/settings/gemini` - Lấy cài đặt Gemini AI của người dùng
+- `PUT /api/settings/gemini` - Cập nhật cài đặt Gemini AI (model, API key)
+
 ### Phân trang
 
 API `/api/quizzes` hỗ trợ phân trang với các tham số:
@@ -186,6 +191,7 @@ API `/api/quizzes` hỗ trợ phân trang với các tham số:
 - `quiz_discussions`: Đề thi được đưa vào thảo luận
 - `discussion_messages`: Tin nhắn thảo luận về đề thi
 - `otp_codes`: Lưu trữ mã xác nhận OTP tạm thời (TTL 5 phút)
+- `user_settings`: Lưu trữ cài đặt của người dùng (model AI, API key)
 
 Indexes được tạo tự động trên:
 - `users.email` (unique)

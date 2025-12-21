@@ -55,6 +55,11 @@ networking-quiz-generator/
 - Chat riêng với một người dùng
 - Thảo luận về từng đề thi với cộng đồng
 
+### Cài đặt cấu hình AI
+- Chọn model AI (Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
+- Cấu hình API Key Gemini riêng cho từng người dùng
+- Hướng dẫn lấy API Key và xử lý lỗi thường gặp
+
 ## Công nghệ sử dụng
 
 ### Frontend (Client)

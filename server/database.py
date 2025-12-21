@@ -173,3 +173,22 @@ def delete_otp(db: Database, email: str) -> bool:
     """Delete OTP after successful verification"""
     result = db.otp_codes.delete_one({"email": email})
     return result.deleted_count > 0
+
+def get_user_settings(db: Database, user_id: str) -> dict:
+    """Get user settings"""
+    settings = db.user_settings.find_one({"userId": user_id})
+    return settings
+
+def save_user_settings(db: Database, user_id: str, settings: dict) -> dict:
+    """Save or update user settings"""
+    data = {
+        "userId": user_id,
+        **settings,
+        "updatedAt": datetime.now().isoformat()
+    }
+    db.user_settings.update_one(
+        {"userId": user_id},
+        {"$set": data},
+        upsert=True
+    )
+    return data
