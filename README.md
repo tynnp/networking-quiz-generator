@@ -38,18 +38,22 @@ networking-quiz-generator/
 
 ## Tính năng chính
 
-- Đăng ký tài khoản người dùng qua email với xác thực OTP (Google SMTP)
+### Quản lý đề thi
 - Tạo đề thi trắc nghiệm tự động bằng AI (Google Gemini)
 - Làm bài thi thời gian thực với bộ đếm ngược
 - Tính điểm tự động và hiển thị kết quả chi tiết
-- Phân tích chi tiết bài làm bằng AI (điểm mạnh, điểm yếu, gợi ý cải thiện)
-- Phân tích tổng quan lịch sử học tập bằng AI
-- Phân tích tiến triển học tập theo chương bằng AI
-- Lưu lịch sử phân tích AI để xem lại
 - Quản lý đề thi (xem, sửa, xóa câu hỏi)
-- Quản lý người dùng dành cho admin (tạo, khóa, xóa tài khoản)
-- Chat cộng đồng, chat chung với tất cả mọi người, chat riêng với một người
-- Thảo luận đề thi: thảo luận về từng đề thi với cộng đồng
+
+### Phân tích AI
+- Phân tích chi tiết bài làm (điểm mạnh, điểm yếu, gợi ý cải thiện)
+- Phân tích tổng quan lịch sử học tập
+- Phân tích tiến triển học tập theo chương
+- Lưu lịch sử phân tích để xem lại
+
+### Cộng đồng
+- Chat cộng đồng, chat chung với tất cả mọi người
+- Chat riêng với một người dùng
+- Thảo luận về từng đề thi với cộng đồng
 
 ## Công nghệ sử dụng
 

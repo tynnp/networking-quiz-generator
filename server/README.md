@@ -105,6 +105,9 @@ server/
 
 - `POST /api/auth/send-otp` - Gửi mã OTP xác nhận đăng ký
 - `POST /api/auth/register` - Đăng ký người dùng mới với xác thực OTP
+- `POST /api/auth/forgot-password/send-otp` - Gửi mã OTP để khôi phục mật khẩu
+- `POST /api/auth/forgot-password/verify-otp` - Xác thực mã OTP cho quên mật khẩu
+- `POST /api/auth/forgot-password/reset` - Đặt lại mật khẩu mới
 - `GET /api/auth/me` - Lấy thông tin người dùng hiện tại
 - `PUT /api/auth/profile` - Cập nhật hồ sơ người dùng
 - `PUT /api/auth/change-password` - Đổi mật khẩu

@@ -8,6 +8,7 @@
 client/
 ├── src/
 │   ├── components/             # Các component React
+│   │   ├── AboutTeam.tsx       
 │   │   ├── AdminUserManagement.tsx
 │   │   ├── AiResultFeedback.tsx
 │   │   ├── AnalysisHistory.tsx
@@ -15,6 +16,7 @@ client/
 │   │   ├── AttemptDetail.tsx
 │   │   ├── CommunityChat.tsx
 │   │   ├── CreateQuiz.tsx
+│   │   ├── ForgotPassword.tsx 
 │   │   ├── Layout.tsx
 │   │   ├── Login.tsx
 │   │   ├── MyResults.tsx
@@ -23,7 +25,7 @@ client/
 │   │   ├── QuizDiscussionChat.tsx
 │   │   ├── QuizList.tsx
 │   │   ├── QuizPreview.tsx
-│   │   ├── Register.tsx
+│   │   ├── Register.tsx        
 │   │   ├── Snowfall.tsx
 │   │   └── TakeQuiz.tsx
 │   ├── contexts/               # React Context providers
@@ -33,7 +35,7 @@ client/
 │   ├── services/               # API services
 │   │   ├── api.ts
 │   │   ├── gemini.ts
-│   │   └── websocket.ts        # WebSocket service cho chat real-time
+│   │   └── websocket.ts        
 │   ├── types/                  # Định nghĩa kiểu TypeScript
 │   │   └── index.ts
 │   ├── App.tsx                 # Component ứng dụng chính
