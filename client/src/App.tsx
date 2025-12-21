@@ -20,6 +20,7 @@ import AnalysisHistory from './components/AnalysisHistory';
 import CommunityChat from './components/CommunityChat';
 import QuizDiscussion from './components/QuizDiscussion';
 import QuizDiscussionChat from './components/QuizDiscussionChat';
+import AboutTeam from './components/AboutTeam';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -222,6 +223,8 @@ function AppContent() {
           : <QuizDiscussion onOpenChat={handleOpenDiscussionChat} />;
       case 'admin-users':
         return <AdminUserManagement />;
+      case 'about-team':
+        return <AboutTeam />;
       default:
         return <QuizList onTakeQuiz={handleTakeQuiz} onPreviewQuiz={handlePreviewQuiz} />;
     }
