@@ -1,11 +1,18 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-import { apiRequest, setAuthToken, removeAuthToken, getAuthToken, AuthResponse } from '../services/api';
+import {
+  setAuthToken,
+  removeAuthToken,
+  getAuthToken,
+  login as loginApi,
+  register as registerApi,
+  getMe
+} from '../services/api';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (email: string, password: string, name: string, otp: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
   updateUser: (updates: Partial<User>) => void;
@@ -19,16 +26,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing token on mount
   useEffect(() => {
     const checkAuth = async () => {
       const token = getAuthToken();
       if (token) {
         try {
-          const userData = await apiRequest<User>('/api/auth/me');
+          const userData = await getMe();
           setUser(userData);
         } catch (error) {
-          // Token is invalid, remove it
           removeAuthToken();
         }
       }
@@ -39,21 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await apiRequest<AuthResponse>('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-
+    const response = await loginApi({ email, password });
     setAuthToken(response.access_token);
     setUser(response.user);
   };
 
-  const register = async (email: string, password: string, name: string) => {
-    const response = await apiRequest<AuthResponse>('/api/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    });
-
+  const register = async (email: string, password: string, name: string, otp: string) => {
+    const response = await registerApi({ email, password, name, otp });
     setAuthToken(response.access_token);
     setUser(response.user);
   };
@@ -69,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const userData = await apiRequest<User>('/api/auth/me');
+      const userData = await getMe();
       setUser(userData);
     } catch (error) {
       console.error('Failed to refresh user:', error);

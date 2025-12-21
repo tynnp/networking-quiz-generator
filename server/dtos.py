@@ -76,10 +76,15 @@ class LoginRequest(BaseModel):
     email: str = Field(..., max_length=100)
     password: str = Field(..., max_length=128)
 
+class SendOTPRequest(BaseModel):
+    email: str = Field(..., max_length=100)
+    name: str = Field(..., max_length=100)
+
 class RegisterRequest(BaseModel):
     email: str = Field(..., max_length=100)
     password: str = Field(..., min_length=6, max_length=128)
     name: str = Field(..., max_length=100)
+    otp: str = Field(..., min_length=6, max_length=6)
 
 class UserResponse(BaseModel):
     id: str

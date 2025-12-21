@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import { ToastProvider } from './contexts/ToastContext';
 import Login from './components/Login';
+import Register from './components/Register';
 import Layout from './components/Layout';
 import CreateQuiz from './components/CreateQuiz';
 import QuizList from './components/QuizList';
@@ -26,6 +27,7 @@ function AppContent() {
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
   const [selectedDiscussionQuiz, setSelectedDiscussionQuiz] = useState<{ id: string; title: string } | null>(null);
   const [isSnowEnabled, setIsSnowEnabled] = useState(true);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   if (loading) {
     return (
@@ -36,7 +38,10 @@ function AppContent() {
   }
 
   if (!isAuthenticated) {
-    return <Login />;
+    if (authMode === 'register') {
+      return <Register onSwitchToLogin={() => setAuthMode('login')} />;
+    }
+    return <Login onSwitchToRegister={() => setAuthMode('register')} />;
   }
 
   const handleTakeQuiz = (quizId: string) => {

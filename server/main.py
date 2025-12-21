@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends, Header, Query, WebSocket, W
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import json
 import re
@@ -20,6 +20,7 @@ from dtos import (
     Question,
     GenerateQuestionsResponse,
     LoginRequest,
+    SendOTPRequest,
     RegisterRequest,
     AuthResponse,
     UserResponse,
@@ -55,7 +56,12 @@ from database import (
     create_discussion_message,
     get_discussion_messages,
     delete_discussion_messages_by_quiz,
+    create_otp,
+    verify_otp,
+    delete_otp,
 )
+
+from email_service import generate_otp, send_otp_email
 
 from auth import (
     verify_password,
@@ -382,6 +388,55 @@ def get_me(current_user: dict = Depends(get_current_user)):
         dob=current_user.get("dob"),
         phone=current_user.get("phone"),
         isLocked=current_user.get("isLocked", False)
+    )
+
+@app.post("/api/auth/send-otp", tags=["Xác thực"])
+def send_otp(request: SendOTPRequest, db: Database = Depends(get_db)):
+    """Send OTP to email for registration verification"""
+    existing_user = get_user_by_email(db, request.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email đã được đăng ký")
+    
+    otp = generate_otp()
+    
+    email_sent = send_otp_email(request.email, request.name, otp)
+    if not email_sent:
+        raise HTTPException(
+            status_code=500, 
+            detail="Không thể gửi email xác nhận. Vui lòng thử lại sau hoặc liên hệ quản trị viên."
+        )
+    
+    expires_at = datetime.now() + timedelta(minutes=5)
+    create_otp(db, request.email, otp, expires_at)
+    
+    return {"message": "Mã xác nhận đã được gửi đến email của bạn"}
+
+@app.post("/api/auth/register", response_model=AuthResponse, tags=["Xác thực"])
+def register(request: RegisterRequest, db: Database = Depends(get_db)):
+    """Register a new user with OTP verification"""
+    existing_user = get_user_by_email(db, request.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email đã được đăng ký")
+    
+    if not verify_otp(db, request.email, request.otp):
+        raise HTTPException(status_code=400, detail="Mã OTP không đúng hoặc đã hết hạn")
+    
+    user = create_user(db, request.email, request.password, request.name)
+    delete_otp(db, request.email)
+    access_token = create_access_token(data={"sub": user["id"]})
+    
+    return AuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse(
+            id=user["id"],
+            email=user["email"],
+            name=user["name"],
+            role=user["role"],
+            dob=user.get("dob"),
+            phone=user.get("phone"),
+            isLocked=user.get("isLocked", False)
+        )
     )
 
 @app.put("/api/auth/profile", response_model=UserResponse, tags=["Xác thực"])

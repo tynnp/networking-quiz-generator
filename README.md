@@ -12,6 +12,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 
 ## Tính năng chính
 
+- Đăng ký tài khoản người dùng qua email với xác thực OTP (Google SMTP)
 - Tạo đề thi trắc nghiệm tự động bằng AI (Google Gemini)
 - Làm bài thi thời gian thực với bộ đếm ngược
 - Tính điểm tự động và hiển thị kết quả chi tiết
@@ -42,6 +43,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 - Google Gemini AI
 - JWT Authentication
 - Bcrypt password hashing
+- Google SMTP (cho gửi mã OTP xác nhận)
 
 ## Cấu trúc dự án
 
@@ -57,15 +59,16 @@ networking-quiz-generator/
 │   └── README.md
 ├── docker-images/          # Thư mục chứa artifacts để deploy (sinh ra từ script build)
 ├── server/                 # Ứng dụng FastAPI backend
-│   ├── main.py            # FastAPI app và endpoints
-│   ├── auth.py            # Các hàm xác thực
-│   ├── database.py        # Kết nối database
-│   ├── dtos.py            # Pydantic models
+│   ├── main.py             # FastAPI app và endpoints
+│   ├── auth.py             # Các hàm xác thực
+│   ├── email_service.py    # Dịch vụ gửi email OTP
+│   ├── database.py         # Kết nối database
+│   ├── dtos.py             # Pydantic models
 │   └── README.md
-├── build-and-save.bat     # Script build docker images (Windows)
-├── deploy.sh              # Script deploy (Linux)
-├── docker-compose.yml     # Cấu hình Docker Compose
-└── README.md              # File này
+├── build-and-save.bat      # Script build docker images (Windows)
+├── deploy.sh               # Script deploy (Linux)
+├── docker-compose.yml      # Cấu hình Docker Compose
+└── README.md               # File này
 ```
 
 ## Bắt đầu

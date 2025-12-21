@@ -3,6 +3,7 @@ from pymongo.database import Database
 from typing import Optional
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
@@ -75,6 +76,9 @@ def init_db():
     db.discussion_messages.create_index("id", unique=True)
     db.discussion_messages.create_index("quizId")
     db.discussion_messages.create_index("timestamp")
+    # OTP indexes
+    db.otp_codes.create_index("email", unique=True)
+    db.otp_codes.create_index("expiresAt", expireAfterSeconds=0)  
     seed_admin_user()
 
 # Analysis History CRUD functions
@@ -135,3 +139,37 @@ def delete_discussion_messages_by_quiz(db: Database, quiz_id: str) -> int:
     """Delete all discussion messages for a quiz"""
     result = db.discussion_messages.delete_many({"quizId": quiz_id})
     return result.deleted_count
+
+def create_otp(db: Database, email: str, otp: str, expires_at) -> dict:
+    """Create or update OTP for an email"""
+
+    data = {
+        "email": email,
+        "otp": otp,
+        "expiresAt": expires_at,
+        "createdAt": datetime.now()
+    }
+
+    db.otp_codes.update_one(
+        {"email": email},
+        {"$set": data},
+        upsert=True
+    )
+    return data
+
+
+def verify_otp(db: Database, email: str, otp: str) -> bool:
+    """Verify OTP for an email. Returns True if valid and not expired."""
+    from datetime import datetime
+    record = db.otp_codes.find_one({
+        "email": email,
+        "otp": otp,
+        "expiresAt": {"$gt": datetime.now()}
+    })
+    return record is not None
+
+
+def delete_otp(db: Database, email: str) -> bool:
+    """Delete OTP after successful verification"""
+    result = db.otp_codes.delete_one({"email": email})
+    return result.deleted_count > 0
