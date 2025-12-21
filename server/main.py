@@ -21,6 +21,8 @@ from dtos import (
     GenerateQuestionsResponse,
     LoginRequest,
     SendOTPRequest,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
     RegisterRequest,
     AuthResponse,
     UserResponse,
@@ -61,7 +63,7 @@ from database import (
     delete_otp,
 )
 
-from email_service import generate_otp, send_otp_email
+from email_service import generate_otp, send_otp_email, send_reset_password_otp_email
 
 from auth import (
     verify_password,
@@ -438,6 +440,45 @@ def register(request: RegisterRequest, db: Database = Depends(get_db)):
             isLocked=user.get("isLocked", False)
         )
     )
+
+@app.post("/api/auth/forgot-password", tags=["Xác thực"])
+def forgot_password(request: ForgotPasswordRequest, db: Database = Depends(get_db)):
+    """Send OTP to email for password reset"""
+    user = get_user_by_email(db, request.email)
+    if not user:
+        return {"message": "Mã xác nhận sẽ được gửi nếu email tồn tại trong hệ thống"}
+    
+    otp = generate_otp()
+    
+    email_sent = send_reset_password_otp_email(request.email, user["name"], otp)
+    if not email_sent:
+        raise HTTPException(
+            status_code=500, 
+            detail="Không thể gửi email xác nhận. Vui lòng thử lại sau."
+        )
+    
+    expires_at = datetime.now() + timedelta(minutes=5)
+    create_otp(db, request.email, otp, expires_at)
+    
+    return {"message": "Mã xác nhận đã được gửi đến email của bạn"}
+
+@app.post("/api/auth/reset-password", tags=["Xác thực"])
+def reset_password(request: ResetPasswordRequest, db: Database = Depends(get_db)):
+    """Reset user password with OTP verification"""
+    user = get_user_by_email(db, request.email)
+    if not user:
+        raise HTTPException(status_code=400, detail="Email không tồn tại")
+    
+    if not verify_otp(db, request.email, request.otp):
+        raise HTTPException(status_code=400, detail="Mã OTP không đúng hoặc đã hết hạn")
+    
+    success = update_user_password(db, user["id"], request.new_password)
+    if not success:
+        raise HTTPException(status_code=400, detail="Không thể cập nhật mật khẩu")
+    
+    delete_otp(db, request.email)
+    
+    return {"message": "Mật khẩu đã được đặt lại thành công"}
 
 @app.put("/api/auth/profile", response_model=UserResponse, tags=["Xác thực"])
 def update_profile(
