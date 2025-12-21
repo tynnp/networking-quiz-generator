@@ -223,7 +223,7 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
                     <MessageSquare className="w-5 h-5 md:w-6 md:h-6 text-[#124874]" />
                     <div className="flex-1 min-w-0">
                         <h1 className="text-sm md:text-xl font-bold text-[#124874] truncate">
-                            Thảo luận: {quizTitle}
+                            Thảo luận đề thi: {quizTitle}
                         </h1>
                         {quiz && (
                             <p className="text-xs text-gray-500 hidden sm:block">
