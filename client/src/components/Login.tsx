@@ -5,9 +5,10 @@ import Snowfall from './Snowfall';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
+  onSwitchToForgotPassword: () => void;
 }
 
-export default function Login({ onSwitchToRegister }: LoginProps) {
+export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -110,6 +111,15 @@ export default function Login({ onSwitchToRegister }: LoginProps) {
                     ) : (
                       <Eye className="w-4 h-4" />
                     )}
+                  </button>
+                </div>
+                <div className="flex justify-end mt-1">
+                  <button
+                    type="button"
+                    onClick={onSwitchToForgotPassword}
+                    className="text-xs text-[#124874] hover:underline"
+                  >
+                    Quên mật khẩu?
                   </button>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import Layout from './components/Layout';
 import CreateQuiz from './components/CreateQuiz';
 import QuizList from './components/QuizList';
 import TakeQuiz from './components/TakeQuiz';
+import ForgotPassword from './components/ForgotPassword';
 import Analytics from './components/Analytics';
 import MyResults from './components/MyResults';
 import Profile from './components/Profile';
@@ -28,7 +29,7 @@ function AppContent() {
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
   const [selectedDiscussionQuiz, setSelectedDiscussionQuiz] = useState<{ id: string; title: string } | null>(null);
   const [isSnowEnabled, setIsSnowEnabled] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot-password'>('login');
 
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => {
@@ -109,7 +110,13 @@ function AppContent() {
     if (authMode === 'register') {
       return <Register onSwitchToLogin={() => setAuthMode('login')} />;
     }
-    return <Login onSwitchToRegister={() => setAuthMode('register')} />;
+    if (authMode === 'forgot-password') {
+      return <ForgotPassword onBackToLogin={() => setAuthMode('login')} />;
+    }
+    return <Login
+      onSwitchToRegister={() => setAuthMode('register')}
+      onSwitchToForgotPassword={() => setAuthMode('forgot-password')}
+    />;
   }
 
   const handleTakeQuiz = (quizId: string) => {

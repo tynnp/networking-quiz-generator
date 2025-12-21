@@ -80,6 +80,14 @@ class SendOTPRequest(BaseModel):
     email: str = Field(..., max_length=100)
     name: str = Field(..., max_length=100)
 
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(..., max_length=100)
+
+class ResetPasswordRequest(BaseModel):
+    email: str = Field(..., max_length=100)
+    otp: str = Field(..., min_length=6, max_length=6)
+    new_password: str = Field(..., min_length=6, max_length=128)
+
 class RegisterRequest(BaseModel):
     email: str = Field(..., max_length=100)
     password: str = Field(..., min_length=6, max_length=128)

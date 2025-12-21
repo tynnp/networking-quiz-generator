@@ -82,6 +82,16 @@ export interface SendOTPRequest {
   name: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  new_password: string;
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -137,6 +147,20 @@ export async function updateProfile(data: UpdateProfileRequest): Promise<User> {
 export async function changePassword(data: ChangePasswordRequest): Promise<{ message: string }> {
   return apiRequest<{ message: string }>('/api/auth/change-password', {
     method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function forgotPassword(data: ForgotPasswordRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/auth/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function resetPassword(data: ResetPasswordRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/auth/reset-password', {
+    method: 'POST',
     body: JSON.stringify(data),
   });
 }
