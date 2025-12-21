@@ -1439,13 +1439,19 @@ def add_to_discussion_endpoint(
         messageCount=0
     )
 
-@app.get("/api/discussions", response_model=List[QuizDiscussionResponse], tags=["Thảo luận đề thi"])
+@app.get("/api/discussions", tags=["Thảo luận đề thi"])
 def get_discussions_endpoint(
+    page: int = Query(1, ge=1, description="Page number"),
+    size: int = Query(10, ge=1, le=50, description="Items per page"),
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
 ):
-    """Get all quizzes in discussions"""
-    discussions = get_quiz_discussions(db)
+    """Get all quizzes in discussions with pagination"""
+    from database import count_quiz_discussions
+    
+    skip = (page - 1) * size
+    discussions = get_quiz_discussions(db, skip=skip, limit=size)
+    total = count_quiz_discussions(db)
     
     result = []
     for disc in discussions:
@@ -1467,7 +1473,13 @@ def get_discussions_endpoint(
                 messageCount=message_count
             ))
     
-    return result
+    return {
+        "items": result,
+        "total": total,
+        "page": page,
+        "size": size,
+        "pages": (total + size - 1) // size
+    }
 
 @app.delete("/api/discussions/{quiz_id}", tags=["Thảo luận đề thi"])
 def remove_from_discussion_endpoint(

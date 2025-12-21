@@ -109,6 +109,10 @@ def get_quiz_discussions(db: Database, skip: int = 0, limit: int = 50) -> list:
     """Get all quizzes in discussions"""
     return list(db.quiz_discussions.find().sort("addedAt", -1).skip(skip).limit(limit))
 
+def count_quiz_discussions(db: Database) -> int:
+    """Count total quiz discussions"""
+    return db.quiz_discussions.count_documents({})
+
 def get_quiz_discussion_by_quiz_id(db: Database, quiz_id: str) -> dict:
     """Get a specific quiz discussion by quiz ID"""
     return db.quiz_discussions.find_one({"quizId": quiz_id})

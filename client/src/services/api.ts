@@ -393,8 +393,8 @@ export async function addQuizToDiscussion(quizId: string): Promise<QuizDiscussio
   });
 }
 
-export async function getQuizDiscussions(): Promise<QuizDiscussion[]> {
-  return apiRequest<QuizDiscussion[]>('/api/discussions', {
+export async function getQuizDiscussions(page: number = 1, size: number = 10): Promise<PaginatedResponse<QuizDiscussion>> {
+  return apiRequest<PaginatedResponse<QuizDiscussion>>(`/api/discussions?page=${page}&size=${size}`, {
     method: 'GET',
   });
 }
