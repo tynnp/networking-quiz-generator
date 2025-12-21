@@ -8,6 +8,7 @@ Backend API server cho hệ thống Networking Quiz Generator được xây dự
 server/
 ├── main.py                     # Ứng dụng FastAPI và các API endpoints
 ├── auth.py                     # Các hàm xác thực và quản lý người dùng
+├── email_service.py            # Dịch vụ gửi email OTP
 ├── database.py                 # Kết nối và khởi tạo database
 ├── dtos.py                     # Pydantic models cho validation request/response
 ├── requirements.txt            # Python dependencies
@@ -60,6 +61,8 @@ GOOGLE_API_KEY=your-google-gemini-api-key
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=admin123
 ADMIN_NAME=Administrator
+SMTP_EMAIL=your-gmail@gmail.com
+SMTP_PASSWORD=your-google-app-password
 ```
 
 ### Biến môi trường
@@ -68,9 +71,11 @@ ADMIN_NAME=Administrator
 - `DATABASE_NAME`: Tên database (mặc định: `networking-quiz`)
 - `SECRET_KEY`: Secret key để ký JWT token (thay đổi trong production)
 - `GOOGLE_API_KEY`: Google Gemini API key để tạo câu hỏi
-- `ADMIN_EMAIL`: Email người dùng admin (mặc định: `admin@example.com`)
-- `ADMIN_PASSWORD`: Mật khẩu người dùng admin (mặc định: `admin123`)
+- `ADMIN_EMAIL`: Email người dùng admin
+- `ADMIN_PASSWORD`: Mật khẩu người dùng admin
 - `ADMIN_NAME`: Tên người dùng admin (mặc định: `Administrator`)
+- `SMTP_EMAIL`: Địa chỉ Gmail dùng để gửi mã xác nhận OTP
+- `SMTP_PASSWORD`: Mật khẩu ứng dụng (App Password) của Google cho Gmail
 
 ## Chạy server
 
@@ -98,7 +103,8 @@ server/
 
 ### Xác thực
 
-- `POST /api/auth/login` - Đăng nhập người dùng
+- `POST /api/auth/send-otp` - Gửi mã OTP xác nhận đăng ký
+- `POST /api/auth/register` - Đăng ký người dùng mới với xác thực OTP
 - `GET /api/auth/me` - Lấy thông tin người dùng hiện tại
 - `PUT /api/auth/profile` - Cập nhật hồ sơ người dùng
 - `PUT /api/auth/change-password` - Đổi mật khẩu
@@ -176,6 +182,7 @@ API `/api/quizzes` hỗ trợ phân trang với các tham số:
 - `private_messages`: Tin nhắn riêng giữa các người dùng
 - `quiz_discussions`: Đề thi được đưa vào thảo luận
 - `discussion_messages`: Tin nhắn thảo luận về đề thi
+- `otp_codes`: Lưu trữ mã xác nhận OTP tạm thời (TTL 5 phút)
 
 Indexes được tạo tự động trên:
 - `users.email` (unique)
@@ -202,6 +209,8 @@ Indexes được tạo tự động trên:
 - `discussion_messages.id` (unique)
 - `discussion_messages.quizId`
 - `discussion_messages.timestamp`
+- `otp_codes.email` (unique)
+- `otp_codes.expiresAt` (TTL)
 
 ## Xác thực
 

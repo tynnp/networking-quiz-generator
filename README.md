@@ -10,8 +10,35 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 
 Đây là một ứng dụng web full-stack được thiết kế để giúp sinh viên luyện tập và kiểm tra kiến thức về mạng máy tính. Hệ thống sử dụng Google Gemini AI để tạo câu hỏi dựa trên các chương và chủ đề của khóa học, đồng thời cung cấp phân tích và phản hồi chi tiết.
 
+## Cấu trúc dự án
+
+```
+networking-quiz-generator/
+├── assets/                 # Tài nguyên hình ảnh (demo, logo...)
+├── client/                 # Ứng dụng React frontend
+│   ├── src/
+│   │   ├── components/     # Các component React (Quiz, Analysis, Admin...)
+│   │   ├── contexts/       # React Context providers (Auth, Data, Toast)
+│   │   ├── services/       # API services
+│   │   └── types/          # Định nghĩa TypeScript types
+│   └── README.md
+├── docker-images/          # Thư mục chứa artifacts để deploy (sinh ra từ script build)
+├── server/                 # Ứng dụng FastAPI backend
+│   ├── main.py             # FastAPI app và endpoints
+│   ├── auth.py             # Các hàm xác thực
+│   ├── email_service.py    # Dịch vụ gửi email OTP
+│   ├── database.py         # Kết nối database
+│   ├── dtos.py             # Pydantic models
+│   └── README.md
+├── build-and-save.bat      # Script build docker images (Windows)
+├── deploy.sh               # Script deploy (Linux)
+├── docker-compose.yml      # Cấu hình Docker Compose
+└── README.md               # File này
+```
+
 ## Tính năng chính
 
+- Đăng ký tài khoản người dùng qua email với xác thực OTP (Google SMTP)
 - Tạo đề thi trắc nghiệm tự động bằng AI (Google Gemini)
 - Làm bài thi thời gian thực với bộ đếm ngược
 - Tính điểm tự động và hiển thị kết quả chi tiết
@@ -42,31 +69,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 - Google Gemini AI
 - JWT Authentication
 - Bcrypt password hashing
-
-## Cấu trúc dự án
-
-```
-networking-quiz-generator/
-├── assets/                 # Tài nguyên hình ảnh (demo, logo...)
-├── client/                 # Ứng dụng React frontend
-│   ├── src/
-│   │   ├── components/     # Các component React (Quiz, Analysis, Admin...)
-│   │   ├── contexts/       # React Context providers (Auth, Data, Toast)
-│   │   ├── services/       # API services
-│   │   └── types/          # Định nghĩa TypeScript types
-│   └── README.md
-├── docker-images/          # Thư mục chứa artifacts để deploy (sinh ra từ script build)
-├── server/                 # Ứng dụng FastAPI backend
-│   ├── main.py            # FastAPI app và endpoints
-│   ├── auth.py            # Các hàm xác thực
-│   ├── database.py        # Kết nối database
-│   ├── dtos.py            # Pydantic models
-│   └── README.md
-├── build-and-save.bat     # Script build docker images (Windows)
-├── deploy.sh              # Script deploy (Linux)
-├── docker-compose.yml     # Cấu hình Docker Compose
-└── README.md              # File này
-```
+- Google SMTP (cho gửi mã OTP xác nhận)
 
 ## Bắt đầu
 

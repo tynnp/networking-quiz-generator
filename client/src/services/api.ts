@@ -77,10 +77,21 @@ export interface ChangePasswordRequest {
   new_password: string;
 }
 
+export interface SendOTPRequest {
+  email: string;
+  name: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  otp: string;
 }
 
 export interface AuthResponse {
@@ -89,10 +100,30 @@ export interface AuthResponse {
   user: User;
 }
 
+export async function login(data: LoginRequest): Promise<AuthResponse> {
+  return apiRequest<AuthResponse>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function sendOTP(data: SendOTPRequest): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/auth/send-otp', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function register(data: RegisterRequest): Promise<AuthResponse> {
   return apiRequest<AuthResponse>('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify(data),
+  });
+}
+
+export async function getMe(): Promise<User> {
+  return apiRequest<User>('/api/auth/me', {
+    method: 'GET',
   });
 }
 

@@ -3,7 +3,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 import Snowfall from './Snowfall';
 
-export default function Login() {
+interface LoginProps {
+  onSwitchToRegister: () => void;
+}
+
+export default function Login({ onSwitchToRegister }: LoginProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -118,6 +122,20 @@ export default function Login() {
                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
             </form>
+
+            {/* Switch to register */}
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600">
+                Chưa có tài khoản?{' '}
+                <button
+                  type="button"
+                  onClick={onSwitchToRegister}
+                  className="text-[#124874] font-semibold hover:underline"
+                >
+                  Đăng ký ngay
+                </button>
+              </p>
+            </div>
           </div>
 
           {/* Footer */}
