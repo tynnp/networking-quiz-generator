@@ -63,9 +63,35 @@ function AppContent() {
     window.addEventListener('contextmenu', handleContextMenu);
     window.addEventListener('keydown', handleKeyDown);
 
+    // Phát hiện DevTools chủ động
+    const detectDevTools = () => {
+      const threshold = 160;
+      const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+      const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+
+      if (widthThreshold || heightThreshold) {
+        showToast('Phát hiện DevTools đang mở. Vui lòng đóng lại để tiếp tục.', 'error');
+      }
+    };
+
+    const interval = setInterval(detectDevTools, 2000);
+
+    const debuggerTrap = setInterval(() => {
+      const startTime = performance.now();
+      debugger;
+      const endTime = performance.now();
+      if (endTime - startTime > 100) {
+        console.clear();
+        console.log('%cDừng lại!', 'color: red; font-size: 50px; font-weight: bold;');
+        console.log('%cĐây là tính năng dành cho nhà phát triển. Nếu bạn được yêu cầu sao chép-dán bất kỳ thứ gì ở đây, đó có thể là một cuộc tấn công lừa đảo.', 'font-size: 20px;');
+      }
+    }, 5000);
+
     return () => {
       window.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('keydown', handleKeyDown);
+      clearInterval(interval);
+      clearInterval(debuggerTrap);
     };
   }, [showToast]);
 

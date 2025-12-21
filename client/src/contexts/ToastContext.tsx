@@ -34,7 +34,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
   };
 
   const colors = 'bg-white text-gray-900';
-  
+
   const iconColors = {
     success: 'text-green-600',
     error: 'text-red-600',
@@ -120,7 +120,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               key={toast.id}
               className="pointer-events-auto"
               style={{
-                animation: isRemoving 
+                animation: isRemoving
                   ? 'slideOutRight 0.3s ease-in forwards'
                   : 'slideInRight 0.3s ease-out',
                 animationFillMode: 'both',
