@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { getQuizDiscussions, removeQuizFromDiscussion } from '../services/api';
 import { QuizDiscussion as QuizDiscussionType } from '../types';
-import { MessageSquare, Trash2, Users, Clock, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageSquare, Trash2, Users, Clock, MessageCircle, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-react';
 
 interface QuizDiscussionProps {
     onOpenChat: (quizId: string, quizTitle: string) => void;
@@ -19,6 +19,11 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
+
+    // Delete confirmation modal
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ quizId: string; quizTitle: string } | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const loadDiscussions = async (pageNum: number = 1) => {
         try {
@@ -42,14 +47,24 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
         loadDiscussions(1);
     }, []);
 
-    const handleRemove = async (quizId: string, quizTitle: string) => {
-        if (!window.confirm(`Bạn có chắc muốn xóa thảo luận về "${quizTitle}"?`)) {
-            return;
-        }
+    const openDeleteModal = (quizId: string, quizTitle: string) => {
+        setDeleteTarget({ quizId, quizTitle });
+        setShowDeleteModal(true);
+    };
 
+    const closeDeleteModal = () => {
+        setShowDeleteModal(false);
+        setDeleteTarget(null);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        setIsDeleting(true);
         try {
-            await removeQuizFromDiscussion(quizId);
+            await removeQuizFromDiscussion(deleteTarget.quizId);
             showToast('Đã xóa thảo luận thành công!', 'success');
+            closeDeleteModal();
             // If we deleted the last item on the current page and it's not the first page, go back
             if (discussions.length === 1 && page > 1) {
                 loadDiscussions(page - 1);
@@ -61,6 +76,8 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
                 error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa thảo luận',
                 'error'
             );
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -147,7 +164,7 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
                                             {(disc.addedBy === user?.id || user?.role === 'admin') && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => handleRemove(disc.quizId, disc.quizTitle)}
+                                                    onClick={() => openDeleteModal(disc.quizId, disc.quizTitle)}
                                                     className="px-2 md:px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 transition-colors"
                                                     title="Xóa khỏi thảo luận"
                                                 >
@@ -188,8 +205,8 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
                                                         key={pageNum}
                                                         onClick={() => handlePageChange(pageNum)}
                                                         className={`min-w-[32px] md:min-w-[38px] px-2 md:px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all duration-200 ${page === pageNum
-                                                                ? 'bg-[#124874] text-white shadow-md'
-                                                                : 'text-gray-700 hover:bg-gray-100'
+                                                            ? 'bg-[#124874] text-white shadow-md'
+                                                            : 'text-gray-700 hover:bg-gray-100'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -219,6 +236,50 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
                     </>
                 )}
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && deleteTarget && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-red-100 rounded-full">
+                                <AlertTriangle className="w-6 h-6 text-red-600" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-gray-900">Xác nhận xóa thảo luận</h3>
+                            <button
+                                onClick={closeDeleteModal}
+                                className="ml-auto p-1 hover:bg-gray-100 rounded"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+                        <p className="text-gray-600 mb-2">
+                            Bạn có chắc muốn xóa thảo luận về <strong>"{deleteTarget.quizTitle}"</strong>?
+                        </p>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                            <p className="text-yellow-800 text-sm">
+                                <strong>Lưu ý:</strong> Khi xóa thảo luận, tất cả tin nhắn trong cuộc thảo luận này cũng sẽ bị xóa. Hành động này không thể hoàn tác!
+                            </p>
+                        </div>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={closeDeleteModal}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                disabled={isDeleting}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                disabled={isDeleting}
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                            >
+                                {isDeleting ? 'Đang xóa...' : 'Xóa thảo luận'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
