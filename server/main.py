@@ -84,7 +84,25 @@ from auth import (
 )
 
 load_dotenv()
-app = FastAPI()
+
+tags_metadata = [
+    {"name": "Xác thực", "description": "Đăng nhập, đăng ký và quản lý hồ sơ người dùng"},
+    {"name": "Quản lý đề thi", "description": "Tạo, xem, sửa, xóa đề thi trắc nghiệm"},
+    {"name": "Quản lý câu hỏi", "description": "Sửa, xóa câu hỏi trong đề thi"},
+    {"name": "Làm bài thi", "description": "Nộp bài làm và xem kết quả bài thi"},
+    {"name": "Tính năng AI", "description": "Tạo câu hỏi, phân tích kết quả bằng AI"},
+    {"name": "Lịch sử phân tích", "description": "Quản lý lịch sử phân tích AI"},
+    {"name": "Quản lý người dùng", "description": "Chức năng quản trị viên - quản lý tài khoản người dùng"},
+    {"name": "Chat cộng đồng", "description": "Chat chung và chat riêng với các thành viên"},
+    {"name": "Thảo luận đề thi", "description": "Thảo luận về từng đề thi với cộng đồng"},
+]
+
+app = FastAPI(
+    title="Networking Quiz Generator API",
+    description="API cho hệ thống trắc nghiệm môn Mạng Máy Tính",
+    version="2.0.0",
+    openapi_tags=tags_metadata
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -326,7 +344,7 @@ def get_admin_user(
 def root():
     return {"status": "running"}
 
-@app.post("/api/auth/login", response_model=AuthResponse)
+@app.post("/api/auth/login", response_model=AuthResponse, tags=["Xác thực"])
 def login(request: LoginRequest, db: Database = Depends(get_db)):
     user = get_user_by_email(db, request.email)
     if not user:
@@ -354,7 +372,7 @@ def login(request: LoginRequest, db: Database = Depends(get_db)):
         )
     )
 
-@app.get("/api/auth/me", response_model=UserResponse)
+@app.get("/api/auth/me", response_model=UserResponse, tags=["Xác thực"])
 def get_me(current_user: dict = Depends(get_current_user)):
     return UserResponse(
         id=current_user["id"],
@@ -366,7 +384,7 @@ def get_me(current_user: dict = Depends(get_current_user)):
         isLocked=current_user.get("isLocked", False)
     )
 
-@app.put("/api/auth/profile", response_model=UserResponse)
+@app.put("/api/auth/profile", response_model=UserResponse, tags=["Xác thực"])
 def update_profile(
     request: UpdateProfileRequest,
     current_user: dict = Depends(get_current_user),
@@ -395,7 +413,7 @@ def update_profile(
         isLocked=updated_user.get("isLocked", False)
     )
 
-@app.put("/api/auth/change-password")
+@app.put("/api/auth/change-password", tags=["Xác thực"])
 def change_password(
     request: ChangePasswordRequest,
     current_user: dict = Depends(get_current_user),
@@ -412,7 +430,7 @@ def change_password(
     return {"message": "Đổi mật khẩu thành công"}
 
 # Admin endpoints
-@app.get("/api/admin/users", response_model=List[UserResponse])
+@app.get("/api/admin/users", response_model=List[UserResponse], tags=["Quản lý người dùng"])
 def get_all_users_admin(
     admin_user: dict = Depends(get_admin_user),
     db: Database = Depends(get_db)
@@ -432,7 +450,7 @@ def get_all_users_admin(
         for u in users
     ]
 
-@app.post("/api/admin/users", response_model=UserResponse)
+@app.post("/api/admin/users", response_model=UserResponse, tags=["Quản lý người dùng"])
 def create_user_admin(
     request: CreateUserRequest,
     admin_user: dict = Depends(get_admin_user),
@@ -455,7 +473,7 @@ def create_user_admin(
         isLocked=user.get("isLocked", False)
     )
 
-@app.delete("/api/admin/users/{user_id}")
+@app.delete("/api/admin/users/{user_id}", tags=["Quản lý người dùng"])
 def delete_user_admin(
     user_id: str,
     admin_user: dict = Depends(get_admin_user),
@@ -471,7 +489,7 @@ def delete_user_admin(
     
     return {"message": "Xóa người dùng thành công"}
 
-@app.put("/api/admin/users/{user_id}/lock")
+@app.put("/api/admin/users/{user_id}/lock", tags=["Quản lý người dùng"])
 def lock_user_admin(
     user_id: str,
     admin_user: dict = Depends(get_admin_user),
@@ -487,7 +505,7 @@ def lock_user_admin(
     
     return {"message": "Khóa người dùng thành công"}
 
-@app.put("/api/admin/users/{user_id}/unlock")
+@app.put("/api/admin/users/{user_id}/unlock", tags=["Quản lý người dùng"])
 def unlock_user_admin(
     user_id: str,
     admin_user: dict = Depends(get_admin_user),
@@ -523,7 +541,7 @@ def handle_gemini_error(exc: Exception):
         
     raise HTTPException(status_code=500, detail="Lỗi khi gọi Gemini API")
 
-@app.post("/api/generate-questions", response_model=GenerateQuestionsResponse)
+@app.post("/api/generate-questions", response_model=GenerateQuestionsResponse, tags=["Tính năng AI"])
 def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsResponse:
     if client is None:
         raise HTTPException(
@@ -547,7 +565,7 @@ def generate_questions(request: GenerateQuestionsRequest) -> GenerateQuestionsRe
     except Exception as exc:
         handle_gemini_error(exc)
 
-@app.post("/api/analyze-result", response_model=AnalyzeResultResponse)
+@app.post("/api/analyze-result", response_model=AnalyzeResultResponse, tags=["Tính năng AI"])
 def analyze_result(
     request: AnalyzeResultRequest,
     current_user: dict = Depends(get_current_user),
@@ -605,7 +623,7 @@ def analyze_result(
     except Exception as exc:
         handle_gemini_error(exc)
 
-@app.post("/api/analyze-overall", response_model=AnalyzeResultResponse)
+@app.post("/api/analyze-overall", response_model=AnalyzeResultResponse, tags=["Tính năng AI"])
 def analyze_overall(
     request: AnalyzeOverallRequest,
     current_user: dict = Depends(get_current_user),
@@ -703,7 +721,7 @@ Trả về JSON với format:
 CHỈ trả về JSON, không có text khác."""
     return prompt
 
-@app.post("/api/analyze-progress", response_model=AnalyzeResultResponse)
+@app.post("/api/analyze-progress", response_model=AnalyzeResultResponse, tags=["Tính năng AI"])
 def analyze_progress(
     request: AnalyzeProgressRequest,
     current_user: dict = Depends(get_current_user),
@@ -762,7 +780,7 @@ def analyze_progress(
         handle_gemini_error(exc)
 
 # Analysis History endpoints
-@app.get("/api/analysis-history", response_model=PaginatedResponse[AnalysisHistoryResponse])
+@app.get("/api/analysis-history", response_model=PaginatedResponse[AnalysisHistoryResponse], tags=["Lịch sử phân tích"])
 def get_analysis_history(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
@@ -796,7 +814,7 @@ def get_analysis_history(
         pages=pages
     )
 
-@app.delete("/api/analysis-history/{analysis_id}")
+@app.delete("/api/analysis-history/{analysis_id}", tags=["Lịch sử phân tích"])
 def delete_analysis_history_endpoint(
     analysis_id: str,
     current_user: dict = Depends(get_current_user),
@@ -809,7 +827,7 @@ def delete_analysis_history_endpoint(
     return {"message": "Xóa bản ghi phân tích thành công"}
 
 # Quiz endpoints
-@app.get("/api/quizzes", response_model=PaginatedResponse[QuizResponse])
+@app.get("/api/quizzes", response_model=PaginatedResponse[QuizResponse], tags=["Quản lý đề thi"])
 def get_quizzes(
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
@@ -845,7 +863,7 @@ def get_quizzes(
         pages=pages
     )
 
-@app.get("/api/quizzes/{quiz_id}", response_model=QuizResponse)
+@app.get("/api/quizzes/{quiz_id}", response_model=QuizResponse, tags=["Quản lý đề thi"])
 def get_quiz(
     quiz_id: str,
     current_user: dict = Depends(get_current_user),
@@ -870,7 +888,7 @@ def get_quiz(
         settings=QuizSettings(**quiz.get("settings", {"questionCount": len(quiz.get("questions", []))}))
     )
 
-@app.post("/api/quizzes", response_model=QuizResponse)
+@app.post("/api/quizzes", response_model=QuizResponse, tags=["Quản lý đề thi"])
 def create_quiz_endpoint(
     request: CreateQuizRequest,
     current_user: dict = Depends(get_current_user),
@@ -902,7 +920,7 @@ def create_quiz_endpoint(
         settings=QuizSettings(**created_quiz.get("settings", {"questionCount": len(created_quiz.get("questions", []))}))
     )
 
-@app.put("/api/quizzes/{quiz_id}", response_model=QuizResponse)
+@app.put("/api/quizzes/{quiz_id}", response_model=QuizResponse, tags=["Quản lý đề thi"])
 def update_quiz_endpoint(
     quiz_id: str,
     request: UpdateQuizRequest,
@@ -945,7 +963,7 @@ def update_quiz_endpoint(
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
 
-@app.delete("/api/quizzes/{quiz_id}")
+@app.delete("/api/quizzes/{quiz_id}", tags=["Quản lý đề thi"])
 def delete_quiz_endpoint(
     quiz_id: str,
     current_user: dict = Depends(get_current_user),
@@ -965,7 +983,7 @@ def delete_quiz_endpoint(
     
     return {"message": "Xóa đề thi thành công"}
 
-@app.put("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse)
+@app.put("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse, tags=["Quản lý câu hỏi"])
 def update_question_endpoint(
     quiz_id: str,
     question_id: str,
@@ -1014,7 +1032,7 @@ def update_question_endpoint(
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
 
-@app.delete("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse)
+@app.delete("/api/quizzes/{quiz_id}/questions/{question_id}", response_model=QuizResponse, tags=["Quản lý câu hỏi"])
 def delete_question_endpoint(
     quiz_id: str,
     question_id: str,
@@ -1045,7 +1063,7 @@ def delete_question_endpoint(
     )
 
 # Attempt endpoints
-@app.post("/api/attempts", response_model=AttemptResponse)
+@app.post("/api/attempts", response_model=AttemptResponse, tags=["Làm bài thi"])
 def create_attempt_endpoint(
     request: CreateAttemptRequest,
     current_user: dict = Depends(get_current_user),
@@ -1082,7 +1100,7 @@ def create_attempt_endpoint(
         timeSpent=created_attempt["timeSpent"]
     )
 
-@app.get("/api/attempts", response_model=List[AttemptResponse])
+@app.get("/api/attempts", response_model=List[AttemptResponse], tags=["Làm bài thi"])
 def get_attempts_endpoint(
     quiz_id: Optional[str] = Query(None, alias="quiz_id"),
     current_user: dict = Depends(get_current_user),
@@ -1113,7 +1131,7 @@ def get_attempts_endpoint(
         for a in attempts
     ]
 
-@app.get("/api/attempts/{attempt_id}", response_model=AttemptResponse)
+@app.get("/api/attempts/{attempt_id}", response_model=AttemptResponse, tags=["Làm bài thi"])
 def get_attempt_endpoint(
     attempt_id: str,
     current_user: dict = Depends(get_current_user),
@@ -1306,7 +1324,7 @@ async def websocket_chat(websocket: WebSocket, token: str = Query(None)):
         manager.disconnect(user["id"])
         await manager.broadcast_online_users()
 
-@app.get("/api/chat/messages")
+@app.get("/api/chat/messages", tags=["Chat cộng đồng"])
 def get_chat_messages(
     limit: int = Query(50, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
@@ -1321,7 +1339,7 @@ def get_chat_messages(
     messages.reverse()
     return {"messages": messages}
 
-@app.get("/api/chat/private/{user_id}")
+@app.get("/api/chat/private/{user_id}", tags=["Chat cộng đồng"])
 def get_private_messages(
     user_id: str,
     limit: int = Query(50, ge=1, le=100),
@@ -1343,14 +1361,14 @@ def get_private_messages(
     messages.reverse()
     return {"messages": messages}
 
-@app.get("/api/chat/online")
+@app.get("/api/chat/online", tags=["Chat cộng đồng"])
 def get_online_users_endpoint(
     current_user: dict = Depends(get_current_user)
 ):
     """Get list of currently online users"""
     return {"users": manager.get_online_users()}
 
-@app.delete("/api/chat/private/{user_id}")
+@app.delete("/api/chat/private/{user_id}", tags=["Chat cộng đồng"])
 def delete_private_chat(
     user_id: str,
     current_user: dict = Depends(get_current_user),
@@ -1365,7 +1383,7 @@ def delete_private_chat(
     })
     return {"message": f"Đã xóa {result.deleted_count} tin nhắn riêng"}
 
-@app.delete("/api/chat/messages/{message_id}")
+@app.delete("/api/chat/messages/{message_id}", tags=["Chat cộng đồng"])
 def delete_chat_message(
     message_id: str,
     admin_user: dict = Depends(get_admin_user),
@@ -1377,7 +1395,7 @@ def delete_chat_message(
         raise HTTPException(status_code=404, detail="Không tìm thấy tin nhắn")
     return {"message": "Đã xóa tin nhắn"}
 
-@app.delete("/api/chat/messages")
+@app.delete("/api/chat/messages", tags=["Chat cộng đồng"])
 def delete_all_chat_messages(
     admin_user: dict = Depends(get_admin_user),
     db: Database = Depends(get_db)
@@ -1387,7 +1405,7 @@ def delete_all_chat_messages(
     return {"message": f"Đã xóa {result.deleted_count} tin nhắn cộng đồng"}
 
 # ===== Quiz Discussion Endpoints =====
-@app.post("/api/discussions", response_model=QuizDiscussionResponse)
+@app.post("/api/discussions", response_model=QuizDiscussionResponse, tags=["Thảo luận đề thi"])
 def add_to_discussion_endpoint(
     request: AddToDiscussionRequest,
     current_user: dict = Depends(get_current_user),
@@ -1421,7 +1439,7 @@ def add_to_discussion_endpoint(
         messageCount=0
     )
 
-@app.get("/api/discussions", response_model=List[QuizDiscussionResponse])
+@app.get("/api/discussions", response_model=List[QuizDiscussionResponse], tags=["Thảo luận đề thi"])
 def get_discussions_endpoint(
     current_user: dict = Depends(get_current_user),
     db: Database = Depends(get_db)
@@ -1451,7 +1469,7 @@ def get_discussions_endpoint(
     
     return result
 
-@app.delete("/api/discussions/{quiz_id}")
+@app.delete("/api/discussions/{quiz_id}", tags=["Thảo luận đề thi"])
 def remove_from_discussion_endpoint(
     quiz_id: str,
     current_user: dict = Depends(get_current_user),
@@ -1470,7 +1488,7 @@ def remove_from_discussion_endpoint(
     
     return {"message": "Đã xóa đề thi khỏi thảo luận"}
 
-@app.get("/api/discussions/{quiz_id}/messages", response_model=List[DiscussionMessageResponse])
+@app.get("/api/discussions/{quiz_id}/messages", response_model=List[DiscussionMessageResponse], tags=["Thảo luận đề thi"])
 def get_discussion_messages_endpoint(
     quiz_id: str,
     limit: int = Query(100, ge=1, le=500),
@@ -1643,7 +1661,7 @@ async def websocket_discussion(websocket: WebSocket, quiz_id: str, token: str = 
         except:
             pass
 
-@app.get("/api/discussions/{quiz_id}/online")
+@app.get("/api/discussions/{quiz_id}/online", tags=["Thảo luận đề thi"])
 def get_discussion_online_users(
     quiz_id: str,
     current_user: dict = Depends(get_current_user)
