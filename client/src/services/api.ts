@@ -488,6 +488,16 @@ export async function getDiscussionMessages(quizId: string, limit: number = 100)
   });
 }
 
+export async function getDiscussionQuiz(quizId: string): Promise<Quiz> {
+  const quiz = await apiRequest<Quiz>(`/api/discussions/${quizId}/quiz`, {
+    method: 'GET',
+  });
+  return {
+    ...quiz,
+    createdAt: new Date(quiz.createdAt)
+  };
+}
+
 export async function getDiscussionOnlineUsers(quizId: string): Promise<{ users: OnlineUser[] }> {
   return apiRequest<{ users: OnlineUser[] }>(`/api/discussions/${quizId}/online`, {
     method: 'GET',

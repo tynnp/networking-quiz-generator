@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getAuthToken, getDiscussionMessages, getQuiz } from '../services/api';
+import { getAuthToken, getDiscussionMessages, getDiscussionQuiz } from '../services/api';
 import { createDiscussionWebSocket, DiscussionWebSocketMessage, SendDiscussionMessage } from '../services/websocket';
 import { DiscussionMessage, OnlineUser, Quiz, Question } from '../types';
 import { Send, ArrowLeft, Users, MessageSquare, ChevronDown, ChevronUp, Quote, HelpCircle, X } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface QuizDiscussionChatProps {
     quizId: string;
@@ -43,7 +44,7 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
         const loadQuiz = async () => {
             try {
                 setLoadingQuiz(true);
-                const data = await getQuiz(quizId);
+                const data = await getDiscussionQuiz(quizId);
                 setQuiz(data);
             } catch (error) {
                 console.error('Failed to load quiz:', error);
@@ -184,14 +185,27 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
         }
     };
 
-    // Render message with question references highlighted
-    const renderMessageContent = (content: string) => {
+    // Render message with question references highlighted and markdown support
+    const renderMessageContent = (content: string, isOwnMessage: boolean) => {
         const parts = content.split(/(\[Câu \d+\])/g);
         return parts.map((part, i) => {
             if (part.match(/\[Câu \d+\]/)) {
-                return <span key={i} className="font-semibold text-blue-600">{part}</span>;
+                return <span key={i} className={`font-semibold ${isOwnMessage ? 'text-blue-200' : 'text-blue-600'}`}>{part}</span>;
             }
-            return part;
+            // Use ReactMarkdown for text parts to support markdown/formatting
+            return (
+                <ReactMarkdown
+                    key={i}
+                    components={{
+                        p: ({ children }) => <span>{children}</span>,
+                        strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                        em: ({ children }) => <em className="italic">{children}</em>,
+                        code: ({ children }) => <code className={`px-1 rounded ${isOwnMessage ? 'bg-white/20' : 'bg-gray-200'}`}>{children}</code>,
+                    }}
+                >
+                    {part}
+                </ReactMarkdown>
+            );
         });
     };
 
@@ -281,7 +295,7 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
                                                 {msg.userName}
                                             </div>
                                         )}
-                                        <div className="whitespace-pre-wrap text-sm md:text-base">{renderMessageContent(msg.content)}</div>
+                                        <div className="whitespace-pre-wrap text-sm md:text-base">{renderMessageContent(msg.content, msg.userId === user?.id)}</div>
                                         <div
                                             className={`text-xs mt-1 ${msg.userId === user?.id
                                                 ? 'text-white/70'

@@ -1689,6 +1689,32 @@ def remove_from_discussion_endpoint(
     
     return {"message": "Đã xóa đề thi khỏi thảo luận"}
 
+@app.get("/api/discussions/{quiz_id}/quiz", response_model=QuizResponse, tags=["Thảo luận đề thi"])
+def get_discussion_quiz_endpoint(
+    quiz_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get quiz data for discussion participants (no owner check)"""
+    discussion = get_quiz_discussion_by_quiz_id(db, quiz_id)
+    if not discussion:
+        raise HTTPException(status_code=404, detail="Đề thi này chưa được thêm vào thảo luận")
+    
+    quiz = get_quiz_by_id(db, quiz_id)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
+    
+    return QuizResponse(
+        id=quiz["id"],
+        title=quiz["title"],
+        description=quiz.get("description", ""),
+        questions=quiz["questions"],
+        duration=quiz["duration"],
+        createdBy=quiz["createdBy"],
+        createdAt=quiz.get("createdAt", datetime.now().isoformat()),
+        settings=QuizSettings(**quiz.get("settings", {"questionCount": len(quiz.get("questions", []))}))
+    )
+
 @app.get("/api/discussions/{quiz_id}/messages", response_model=List[DiscussionMessageResponse], tags=["Thảo luận đề thi"])
 def get_discussion_messages_endpoint(
     quiz_id: str,
