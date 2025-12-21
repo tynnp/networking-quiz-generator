@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
-import { ToastProvider } from './contexts/ToastContext';
+import { ToastProvider, useToast } from './contexts/ToastContext';
 import Login from './components/Login';
 import Layout from './components/Layout';
 import CreateQuiz from './components/CreateQuiz';
@@ -21,11 +21,53 @@ import QuizDiscussionChat from './components/QuizDiscussionChat';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
+  const { showToast } = useToast();
   const [currentView, setCurrentView] = useState('quiz-list');
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
   const [selectedDiscussionQuiz, setSelectedDiscussionQuiz] = useState<{ id: string; title: string } | null>(null);
   const [isSnowEnabled, setIsSnowEnabled] = useState(true);
+
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+      showToast('Tính năng này đã bị vô hiệu hóa để bảo vệ nội dung.', 'warning');
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Chặn F12
+      if (e.key === 'F12') {
+        e.preventDefault();
+        showToast('DevTools đã bị vô hiệu hóa.', 'warning');
+      }
+
+      // Chặn Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+      if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
+        e.preventDefault();
+        showToast('DevTools đã bị vô hiệu hóa.', 'warning');
+      }
+
+      // Chặn Ctrl+U (View Source)
+      if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        showToast('Tính năng xem nguồn đã bị vô hiệu hóa.', 'warning');
+      }
+
+      // Chặn Ctrl+S (Save Page)
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        showToast('Tính năng lưu trang đã bị vô hiệu hóa.', 'warning');
+      }
+    };
+
+    window.addEventListener('contextmenu', handleContextMenu);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('contextmenu', handleContextMenu);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showToast]);
 
   if (loading) {
     return (
