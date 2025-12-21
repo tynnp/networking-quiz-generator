@@ -183,3 +183,25 @@ class AnalysisHistoryResponse(BaseModel):
     result: AnalysisResultData
     context: Optional[Dict[str, Any]] = None
     createdAt: str
+
+# Quiz Discussion DTOs
+class AddToDiscussionRequest(BaseModel):
+    quizId: str = Field(..., max_length=100)
+
+class QuizDiscussionResponse(BaseModel):
+    id: str
+    quizId: str
+    quizTitle: str
+    quizDescription: Optional[str] = None
+    addedBy: str
+    addedByName: str
+    addedAt: str
+    messageCount: int
+
+class DiscussionMessageResponse(BaseModel):
+    id: str
+    quizId: str
+    userId: str
+    userName: str
+    content: str
+    timestamp: str

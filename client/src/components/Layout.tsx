@@ -13,7 +13,8 @@ import {
   X,
   History,
   MessageCircle,
-  ClipboardList
+  ClipboardList,
+  MessagesSquare
 } from 'lucide-react';
 import Snowfall from './Snowfall';
 
@@ -37,6 +38,7 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
     { id: 'analysis-history', label: 'Lịch sử phân tích', icon: History },
     { id: 'my-results', label: 'Kết quả của tôi', icon: ClipboardList },
     { id: 'community-chat', label: 'Chat với cộng đồng', icon: MessageCircle },
+    { id: 'quiz-discussion', label: 'Thảo luận đề thi', icon: MessagesSquare },
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
     ...(user?.role === 'admin' ? [{ id: 'admin-users', label: 'Quản lý người dùng', icon: Users }] : [])
   ];

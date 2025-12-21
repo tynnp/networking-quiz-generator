@@ -19,6 +19,8 @@ client/
 │   │   ├── Login.tsx
 │   │   ├── MyResults.tsx
 │   │   ├── Profile.tsx
+│   │   ├── QuizDiscussion.tsx
+│   │   ├── QuizDiscussionChat.tsx
 │   │   ├── QuizList.tsx
 │   │   ├── QuizPreview.tsx
 │   │   ├── Register.tsx

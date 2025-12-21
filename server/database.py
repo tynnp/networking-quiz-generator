@@ -67,6 +67,14 @@ def init_db():
     db.private_messages.create_index("id", unique=True)
     db.private_messages.create_index([("fromUserId", 1), ("toUserId", 1)])
     db.private_messages.create_index("timestamp")
+    # Quiz discussion indexes
+    db.quiz_discussions.create_index("id", unique=True)
+    db.quiz_discussions.create_index("quizId", unique=True)
+    db.quiz_discussions.create_index("addedAt")
+    # Discussion message indexes
+    db.discussion_messages.create_index("id", unique=True)
+    db.discussion_messages.create_index("quizId")
+    db.discussion_messages.create_index("timestamp")
     seed_admin_user()
 
 # Analysis History CRUD functions
@@ -91,3 +99,35 @@ def delete_analysis_history(db: Database, id: str, user_id: str) -> bool:
     result = db.analysis_history.delete_one({"id": id, "userId": user_id})
     return result.deleted_count > 0
 
+# Quiz Discussion CRUD functions
+def add_quiz_to_discussion(db: Database, data: dict) -> dict:
+    """Add a quiz to discussions"""
+    db.quiz_discussions.insert_one(data)
+    return data
+
+def get_quiz_discussions(db: Database, skip: int = 0, limit: int = 50) -> list:
+    """Get all quizzes in discussions"""
+    return list(db.quiz_discussions.find().sort("addedAt", -1).skip(skip).limit(limit))
+
+def get_quiz_discussion_by_quiz_id(db: Database, quiz_id: str) -> dict:
+    """Get a specific quiz discussion by quiz ID"""
+    return db.quiz_discussions.find_one({"quizId": quiz_id})
+
+def remove_quiz_from_discussion(db: Database, quiz_id: str) -> bool:
+    """Remove a quiz from discussions"""
+    result = db.quiz_discussions.delete_one({"quizId": quiz_id})
+    return result.deleted_count > 0
+
+def create_discussion_message(db: Database, data: dict) -> dict:
+    """Create a new discussion message"""
+    db.discussion_messages.insert_one(data)
+    return data
+
+def get_discussion_messages(db: Database, quiz_id: str, skip: int = 0, limit: int = 100) -> list:
+    """Get discussion messages for a quiz"""
+    return list(db.discussion_messages.find({"quizId": quiz_id}).sort("timestamp", 1).skip(skip).limit(limit))
+
+def delete_discussion_messages_by_quiz(db: Database, quiz_id: str) -> int:
+    """Delete all discussion messages for a quiz"""
+    result = db.discussion_messages.delete_many({"quizId": quiz_id})
+    return result.deleted_count

@@ -149,6 +149,15 @@ server/
 - `DELETE /api/chat/messages/{message_id}` - Xóa tin nhắn cộng đồng (chỉ admin)
 - `DELETE /api/chat/messages` - Xóa tất cả tin nhắn cộng đồng (chỉ admin)
 
+### Thảo luận đề thi
+
+- `POST /api/discussions` - Thêm đề thi vào thảo luận
+- `GET /api/discussions` - Lấy danh sách đề thi đang thảo luận
+- `DELETE /api/discussions/{quiz_id}` - Xóa đề thi khỏi thảo luận
+- `GET /api/discussions/{quiz_id}/messages` - Lấy tin nhắn thảo luận của đề thi
+- `GET /api/discussions/{quiz_id}/online` - Lấy danh sách người dùng đang online trong phòng thảo luận
+- `WS /ws/discussion/{quiz_id}` - WebSocket endpoint cho thảo luận real-time (xác thực qua query param `token`)
+
 ### Phân trang
 
 API `/api/quizzes` hỗ trợ phân trang với các tham số:
@@ -165,6 +174,8 @@ API `/api/quizzes` hỗ trợ phân trang với các tham số:
 - `analysis_history`: Lưu trữ lịch sử phân tích AI
 - `chat_messages`: Tin nhắn chat cộng đồng
 - `private_messages`: Tin nhắn riêng giữa các người dùng
+- `quiz_discussions`: Đề thi được đưa vào thảo luận
+- `discussion_messages`: Tin nhắn thảo luận về đề thi
 
 Indexes được tạo tự động trên:
 - `users.email` (unique)
@@ -185,6 +196,12 @@ Indexes được tạo tự động trên:
 - `private_messages.id` (unique)
 - `private_messages.(fromUserId, toUserId)`
 - `private_messages.timestamp`
+- `quiz_discussions.id` (unique)
+- `quiz_discussions.quizId` (unique)
+- `quiz_discussions.addedAt`
+- `discussion_messages.id` (unique)
+- `discussion_messages.quizId`
+- `discussion_messages.timestamp`
 
 ## Xác thực
 

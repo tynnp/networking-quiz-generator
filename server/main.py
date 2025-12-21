@@ -36,6 +36,9 @@ from dtos import (
     PaginatedResponse,
     AnalysisHistoryResponse,
     AnalysisResultData,
+    AddToDiscussionRequest,
+    QuizDiscussionResponse,
+    DiscussionMessageResponse,
 )
 
 from database import (
@@ -45,6 +48,13 @@ from database import (
     get_analysis_history_by_user,
     get_analysis_history_by_id,
     delete_analysis_history,
+    add_quiz_to_discussion,
+    get_quiz_discussions,
+    get_quiz_discussion_by_quiz_id,
+    remove_quiz_from_discussion,
+    create_discussion_message,
+    get_discussion_messages,
+    delete_discussion_messages_by_quiz,
 )
 
 from auth import (
@@ -1375,3 +1385,268 @@ def delete_all_chat_messages(
     """Delete all public chat messages (admin only)"""
     result = db.chat_messages.delete_many({})
     return {"message": f"Đã xóa {result.deleted_count} tin nhắn cộng đồng"}
+
+# ===== Quiz Discussion Endpoints =====
+@app.post("/api/discussions", response_model=QuizDiscussionResponse)
+def add_to_discussion_endpoint(
+    request: AddToDiscussionRequest,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Add a quiz to discussions"""
+    quiz = get_quiz_by_id(db, request.quizId)
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Không tìm thấy đề thi")
+    
+    existing = get_quiz_discussion_by_quiz_id(db, request.quizId)
+    if existing:
+        raise HTTPException(status_code=400, detail="Đề thi này đã được thêm vào thảo luận")
+    
+    discussion_data = {
+        "id": f"disc-{int(time.time() * 1000)}",
+        "quizId": request.quizId,
+        "addedBy": current_user["id"],
+        "addedAt": datetime.now().isoformat()
+    }
+    add_quiz_to_discussion(db, discussion_data)
+    
+    return QuizDiscussionResponse(
+        id=discussion_data["id"],
+        quizId=discussion_data["quizId"],
+        quizTitle=quiz["title"],
+        quizDescription=quiz.get("description"),
+        addedBy=current_user["id"],
+        addedByName=current_user["name"],
+        addedAt=discussion_data["addedAt"],
+        messageCount=0
+    )
+
+@app.get("/api/discussions", response_model=List[QuizDiscussionResponse])
+def get_discussions_endpoint(
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get all quizzes in discussions"""
+    discussions = get_quiz_discussions(db)
+    
+    result = []
+    for disc in discussions:
+        quiz = get_quiz_by_id(db, disc["quizId"])
+        if quiz:
+            added_by_user = get_user_by_id(db, disc["addedBy"])
+            added_by_name = added_by_user["name"] if added_by_user else "Unknown"
+            
+            message_count = db.discussion_messages.count_documents({"quizId": disc["quizId"]})
+            
+            result.append(QuizDiscussionResponse(
+                id=disc["id"],
+                quizId=disc["quizId"],
+                quizTitle=quiz["title"],
+                quizDescription=quiz.get("description"),
+                addedBy=disc["addedBy"],
+                addedByName=added_by_name,
+                addedAt=disc["addedAt"],
+                messageCount=message_count
+            ))
+    
+    return result
+
+@app.delete("/api/discussions/{quiz_id}")
+def remove_from_discussion_endpoint(
+    quiz_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Remove a quiz from discussions (only by owner or admin)"""
+    discussion = get_quiz_discussion_by_quiz_id(db, quiz_id)
+    if not discussion:
+        raise HTTPException(status_code=404, detail="Không tìm thấy thảo luận")
+    
+    if discussion["addedBy"] != current_user["id"] and current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Bạn không có quyền xóa thảo luận này")
+    
+    delete_discussion_messages_by_quiz(db, quiz_id)
+    remove_quiz_from_discussion(db, quiz_id)
+    
+    return {"message": "Đã xóa đề thi khỏi thảo luận"}
+
+@app.get("/api/discussions/{quiz_id}/messages", response_model=List[DiscussionMessageResponse])
+def get_discussion_messages_endpoint(
+    quiz_id: str,
+    limit: int = Query(100, ge=1, le=500),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get discussion messages for a quiz"""
+    discussion = get_quiz_discussion_by_quiz_id(db, quiz_id)
+    if not discussion:
+        raise HTTPException(status_code=404, detail="Không tìm thấy thảo luận")
+    
+    messages = get_discussion_messages(db, quiz_id, limit=limit)
+    
+    return [
+        DiscussionMessageResponse(
+            id=msg["id"],
+            quizId=msg["quizId"],
+            userId=msg["userId"],
+            userName=msg["userName"],
+            content=msg["content"],
+            timestamp=msg["timestamp"]
+        )
+        for msg in messages
+    ]
+
+# ===== Quiz Discussion WebSocket =====
+class DiscussionConnectionManager:
+    """Manages WebSocket connections for quiz discussion chat"""
+    
+    def __init__(self):
+        self.room_connections: dict[str, dict[str, dict]] = {}
+    
+    async def connect(self, websocket: WebSocket, quiz_id: str, user: dict):
+        await websocket.accept()
+        if quiz_id not in self.room_connections:
+            self.room_connections[quiz_id] = {}
+        
+        if user["id"] in self.room_connections[quiz_id]:
+            try:
+                old_ws = self.room_connections[quiz_id][user["id"]]["ws"]
+                await old_ws.close()
+            except:
+                pass
+        
+        self.room_connections[quiz_id][user["id"]] = {
+            "ws": websocket,
+            "user": user
+        }
+        await self.broadcast_online_users(quiz_id)
+    
+    def disconnect(self, quiz_id: str, user_id: str):
+        if quiz_id in self.room_connections:
+            if user_id in self.room_connections[quiz_id]:
+                del self.room_connections[quiz_id][user_id]
+            if not self.room_connections[quiz_id]:
+                del self.room_connections[quiz_id]
+    
+    async def broadcast_message(self, quiz_id: str, message: dict):
+        """Broadcast message to all users in a room"""
+        if quiz_id not in self.room_connections:
+            return
+        
+        disconnected = []
+        for user_id, conn in self.room_connections[quiz_id].items():
+            try:
+                await conn["ws"].send_json(message)
+            except:
+                disconnected.append(user_id)
+        
+        for user_id in disconnected:
+            self.disconnect(quiz_id, user_id)
+    
+    async def broadcast_online_users(self, quiz_id: str):
+        """Broadcast online users list to room"""
+        if quiz_id not in self.room_connections:
+            return
+        
+        users = [
+            {"id": conn["user"]["id"], "name": conn["user"]["name"]}
+            for conn in self.room_connections[quiz_id].values()
+        ]
+        
+        await self.broadcast_message(quiz_id, {
+            "type": "online_users",
+            "users": users
+        })
+    
+    def get_online_users(self, quiz_id: str) -> list:
+        """Get online users for a room"""
+        if quiz_id not in self.room_connections:
+            return []
+        return [
+            {"id": conn["user"]["id"], "name": conn["user"]["name"]}
+            for conn in self.room_connections[quiz_id].values()
+        ]
+
+discussion_manager = DiscussionConnectionManager()
+
+def get_db_sync_discussion():
+    """Get database instance synchronously for discussion WebSocket"""
+    from database import get_database
+    return get_database()
+
+@app.websocket("/ws/discussion/{quiz_id}")
+async def websocket_discussion(websocket: WebSocket, quiz_id: str, token: str = Query(None)):
+    """WebSocket endpoint for quiz discussion chat"""
+    if not token:
+        await websocket.close(code=4001)
+        return
+    
+    payload = verify_token(token)
+    if not payload:
+        await websocket.close(code=4001)
+        return
+    
+    user_id = payload.get("sub")
+    if not user_id:
+        await websocket.close(code=4001)
+        return
+    
+    db = get_db_sync_discussion()
+    user = get_user_by_id(db, user_id)
+    if not user:
+        await websocket.close(code=4001)
+        return
+    
+    discussion = get_quiz_discussion_by_quiz_id(db, quiz_id)
+    if not discussion:
+        await websocket.close(code=4004)
+        return
+    
+    await discussion_manager.connect(websocket, quiz_id, user)
+    
+    try:
+        while True:
+            data = await websocket.receive_json()
+            
+            if data.get("type") == "message":
+                content = data.get("content", "").strip()
+                if content:
+                    timestamp = datetime.now().isoformat()
+                    
+                    message_data = {
+                        "id": f"dmsg-{int(time.time() * 1000)}",
+                        "quizId": quiz_id,
+                        "userId": user["id"],
+                        "userName": user["name"],
+                        "content": content,
+                        "timestamp": timestamp
+                    }
+                    create_discussion_message(db, message_data)
+                    
+                    await discussion_manager.broadcast_message(quiz_id, {
+                        "type": "message",
+                        "id": message_data["id"],
+                        "userId": user["id"],
+                        "userName": user["name"],
+                        "content": content,
+                        "timestamp": timestamp
+                    })
+    
+    except WebSocketDisconnect:
+        discussion_manager.disconnect(quiz_id, user["id"])
+        await discussion_manager.broadcast_online_users(quiz_id)
+    except Exception as e:
+        print(f"Discussion WebSocket error: {e}")
+        discussion_manager.disconnect(quiz_id, user["id"])
+        try:
+            await discussion_manager.broadcast_online_users(quiz_id)
+        except:
+            pass
+
+@app.get("/api/discussions/{quiz_id}/online")
+def get_discussion_online_users(
+    quiz_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get online users in a discussion room"""
+    return {"users": discussion_manager.get_online_users(quiz_id)}

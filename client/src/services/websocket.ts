@@ -33,3 +33,23 @@ export interface SendChatMessage {
     content: string;
     to?: string;
 }
+
+export function createDiscussionWebSocket(token: string, quizId: string): WebSocket {
+    const wsUrl = `${WS_BASE_URL}/ws/discussion/${quizId}?token=${encodeURIComponent(token)}`;
+    return new WebSocket(wsUrl);
+}
+
+export interface DiscussionWebSocketMessage {
+    type: 'message' | 'online_users' | 'error';
+    id?: string;
+    userId?: string;
+    userName?: string;
+    content?: string;
+    timestamp?: string;
+    users?: Array<{ id: string; name: string }>;
+}
+
+export interface SendDiscussionMessage {
+    type: 'message';
+    content: string;
+}

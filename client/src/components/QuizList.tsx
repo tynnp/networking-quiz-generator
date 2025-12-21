@@ -2,7 +2,8 @@ import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
+import { addQuizToDiscussion } from '../services/api';
 
 interface QuizListProps {
   onTakeQuiz: (quizId: string) => void;
@@ -57,7 +58,17 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
     }
   };
 
-
+  const handleAddToDiscussion = async (quizId: string) => {
+    try {
+      await addQuizToDiscussion(quizId);
+      showToast('Đã thêm đề thi vào thảo luận!', 'success');
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Có lỗi xảy ra khi thêm đề vào thảo luận.',
+        'error'
+      );
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -161,6 +172,14 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                                 title="Làm bài"
                               >
                                 <PlayCircle className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddToDiscussion(quiz.id)}
+                                className="px-2 md:px-3 py-1.5 rounded-lg border border-green-500 text-green-600 hover:bg-green-50 transition-colors"
+                                title="Thêm vào thảo luận"
+                              >
+                                <MessageSquarePlus className="w-4 h-4" />
                               </button>
                               {quiz.createdBy === user.id && (
                                 <button

@@ -383,4 +383,36 @@ export async function deleteAllChatMessages(): Promise<{ message: string }> {
   });
 }
 
+// Quiz Discussion API functions
+import { QuizDiscussion, DiscussionMessage } from '../types';
 
+export async function addQuizToDiscussion(quizId: string): Promise<QuizDiscussion> {
+  return apiRequest<QuizDiscussion>('/api/discussions', {
+    method: 'POST',
+    body: JSON.stringify({ quizId }),
+  });
+}
+
+export async function getQuizDiscussions(): Promise<QuizDiscussion[]> {
+  return apiRequest<QuizDiscussion[]>('/api/discussions', {
+    method: 'GET',
+  });
+}
+
+export async function removeQuizFromDiscussion(quizId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/discussions/${quizId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function getDiscussionMessages(quizId: string, limit: number = 100): Promise<DiscussionMessage[]> {
+  return apiRequest<DiscussionMessage[]>(`/api/discussions/${quizId}/messages?limit=${limit}`, {
+    method: 'GET',
+  });
+}
+
+export async function getDiscussionOnlineUsers(quizId: string): Promise<{ users: OnlineUser[] }> {
+  return apiRequest<{ users: OnlineUser[] }>(`/api/discussions/${quizId}/online`, {
+    method: 'GET',
+  });
+}

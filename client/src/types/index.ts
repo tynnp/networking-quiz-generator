@@ -100,3 +100,23 @@ export interface OnlineUser {
   id: string;
   name: string;
 }
+
+export interface QuizDiscussion {
+  id: string;
+  quizId: string;
+  quizTitle: string;
+  quizDescription?: string;
+  addedBy: string;
+  addedByName: string;
+  addedAt: string;
+  messageCount: number;
+}
+
+export interface DiscussionMessage {
+  id: string;
+  quizId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  timestamp: string;
+}

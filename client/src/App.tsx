@@ -16,12 +16,15 @@ import AiResultFeedback from './components/AiResultFeedback';
 import AdminUserManagement from './components/AdminUserManagement';
 import AnalysisHistory from './components/AnalysisHistory';
 import CommunityChat from './components/CommunityChat';
+import QuizDiscussion from './components/QuizDiscussion';
+import QuizDiscussionChat from './components/QuizDiscussionChat';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
   const [currentView, setCurrentView] = useState('quiz-list');
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
+  const [selectedDiscussionQuiz, setSelectedDiscussionQuiz] = useState<{ id: string; title: string } | null>(null);
   const [isSnowEnabled, setIsSnowEnabled] = useState(true);
 
   if (loading) {
@@ -67,6 +70,17 @@ function AppContent() {
     setCurrentView(view);
     setSelectedQuizId(null);
     setSelectedAttemptId(null);
+    setSelectedDiscussionQuiz(null);
+  };
+
+  const handleOpenDiscussionChat = (quizId: string, quizTitle: string) => {
+    setSelectedDiscussionQuiz({ id: quizId, title: quizTitle });
+    setCurrentView('quiz-discussion-chat');
+  };
+
+  const handleBackFromDiscussionChat = () => {
+    setSelectedDiscussionQuiz(null);
+    setCurrentView('quiz-discussion');
   };
 
   const handleViewAttemptDetail = (attemptId: string) => {
@@ -116,6 +130,16 @@ function AppContent() {
         return <AnalysisHistory />;
       case 'community-chat':
         return <CommunityChat />;
+      case 'quiz-discussion':
+        return <QuizDiscussion onOpenChat={handleOpenDiscussionChat} />;
+      case 'quiz-discussion-chat':
+        return selectedDiscussionQuiz
+          ? <QuizDiscussionChat
+            quizId={selectedDiscussionQuiz.id}
+            quizTitle={selectedDiscussionQuiz.title}
+            onBack={handleBackFromDiscussionChat}
+          />
+          : <QuizDiscussion onOpenChat={handleOpenDiscussionChat} />;
       case 'admin-users':
         return <AdminUserManagement />;
       default:
