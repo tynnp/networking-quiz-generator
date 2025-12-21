@@ -44,8 +44,6 @@ def seed_admin_user():
     else:
         print(f"Admin user already exists: {admin_email}")
 
-
-
 def init_db():
     """Initialize database - create indexes and seed admin user"""
     db = get_database()
@@ -62,6 +60,13 @@ def init_db():
     db.analysis_history.create_index("userId")
     db.analysis_history.create_index("analysisType")
     db.analysis_history.create_index("createdAt")
+    # Chat message indexes
+    db.chat_messages.create_index("id", unique=True)
+    db.chat_messages.create_index("timestamp")
+    # Private message indexes
+    db.private_messages.create_index("id", unique=True)
+    db.private_messages.create_index([("fromUserId", 1), ("toUserId", 1)])
+    db.private_messages.create_index("timestamp")
     seed_admin_user()
 
 # Analysis History CRUD functions

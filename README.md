@@ -21,6 +21,7 @@ Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạn
 - Lưu lịch sử phân tích AI để xem lại
 - Quản lý đề thi (xem, sửa, xóa câu hỏi)
 - Quản lý người dùng dành cho admin (tạo, khóa, xóa tài khoản)
+- Chat cộng đồng, chat chung với tất cả mọi người, chat riêng với một người
 
 ## Công nghệ sử dụng
 

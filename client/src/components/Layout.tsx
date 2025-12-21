@@ -11,7 +11,8 @@ import {
   Users,
   Menu,
   X,
-  History
+  History,
+  MessageCircle
 } from 'lucide-react';
 import Snowfall from './Snowfall';
 
@@ -34,6 +35,7 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
     { id: 'analytics', label: 'Phân tích kiến thức', icon: BarChart3 },
     { id: 'analysis-history', label: 'Lịch sử phân tích', icon: History },
     { id: 'my-results', label: 'Kết quả của tôi', icon: BarChart3 },
+    { id: 'community-chat', label: 'Chat với cộng đồng', icon: MessageCircle },
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
     ...(user?.role === 'admin' ? [{ id: 'admin-users', label: 'Quản lý người dùng', icon: Users }] : [])
   ];

@@ -2,6 +2,49 @@
 
 Ứng dụng frontend cho hệ thống Networking Quiz Generator được xây dựng bằng React, TypeScript và Tailwind CSS.
 
+## Cấu trúc dự án
+
+```
+client/
+├── src/
+│   ├── components/             # Các component React
+│   │   ├── AdminUserManagement.tsx
+│   │   ├── AiResultFeedback.tsx
+│   │   ├── AnalysisHistory.tsx
+│   │   ├── Analytics.tsx
+│   │   ├── AttemptDetail.tsx
+│   │   ├── CommunityChat.tsx
+│   │   ├── CreateQuiz.tsx
+│   │   ├── Layout.tsx
+│   │   ├── Login.tsx
+│   │   ├── MyResults.tsx
+│   │   ├── Profile.tsx
+│   │   ├── QuizList.tsx
+│   │   ├── QuizPreview.tsx
+│   │   ├── Register.tsx
+│   │   ├── Snowfall.tsx
+│   │   └── TakeQuiz.tsx
+│   ├── contexts/               # React Context providers
+│   │   ├── AuthContext.tsx
+│   │   ├── DataContext.tsx
+│   │   └── ToastContext.tsx
+│   ├── services/               # API services
+│   │   ├── api.ts
+│   │   ├── gemini.ts
+│   │   └── websocket.ts        # WebSocket service cho chat real-time
+│   ├── types/                  # Định nghĩa kiểu TypeScript
+│   │   └── index.ts
+│   ├── App.tsx                 # Component ứng dụng chính
+│   ├── main.tsx                # Điểm vào ứng dụng
+│   └── index.css               # Styles toàn cục
+├── public/                     # Tài nguyên tĩnh
+├── index.html                  # HTML template
+├── package.json                # Dependencies và scripts
+├── tsconfig.json               # Cấu hình TypeScript
+├── vite.config.ts              # Cấu hình Vite
+└── tailwind.config.js          # Cấu hình Tailwind CSS
+```
+
 ## Công nghệ
 
 - React 18.3.1
@@ -34,63 +77,6 @@ Khởi động development server:
 npm run dev
 ```
 Ứng dụng sẽ có sẵn tại `http://localhost:5173`
-
-## Cấu trúc dự án
-
-```
-client/
-├── src/
-│   ├── components/          # Các component React
-│   │   ├── AdminUserManagement.tsx
-│   │   ├── AiResultFeedback.tsx
-│   │   ├── AnalysisHistory.tsx
-│   │   ├── Analytics.tsx
-│   │   ├── AttemptDetail.tsx
-│   │   ├── CreateQuiz.tsx
-│   │   ├── Layout.tsx
-│   │   ├── Login.tsx
-│   │   ├── MyResults.tsx
-│   │   ├── Profile.tsx
-│   │   ├── QuizList.tsx
-│   │   ├── QuizPreview.tsx
-│   │   ├── Register.tsx
-│   │   ├── Snowfall.tsx
-│   │   └── TakeQuiz.tsx
-│   ├── contexts/            # React Context providers
-│   │   ├── AuthContext.tsx
-│   │   ├── DataContext.tsx
-│   │   └── ToastContext.tsx
-│   ├── services/            # API services
-│   │   ├── api.ts
-│   │   └── gemini.ts
-│   ├── types/              # Định nghĩa kiểu TypeScript
-│   │   └── index.ts
-│   ├── App.tsx             # Component ứng dụng chính
-│   ├── main.tsx            # Điểm vào ứng dụng
-│   └── index.css           # Styles toàn cục
-├── public/                  # Tài nguyên tĩnh
-├── index.html              # HTML template
-├── package.json            # Dependencies và scripts
-├── tsconfig.json           # Cấu hình TypeScript
-├── vite.config.ts          # Cấu hình Vite
-└── tailwind.config.js      # Cấu hình Tailwind CSS
-```
-
-## Tính năng
-
-- Xác thực người dùng (đăng nhập, đăng ký)
-- Tạo đề thi với câu hỏi được tạo bằng AI
-- Làm bài thi với bộ đếm thời gian
-- Xem trước và chỉnh sửa đề thi
-- Chỉnh sửa và xóa câu hỏi
-- Xem kết quả và phân tích
-- Phản hồi bằng AI
-- Quản lý hồ sơ người dùng
-- Quản lý người dùng admin (tạo, xóa, khóa, mở khóa người dùng)
-- Tìm kiếm đề thi theo tiêu đề, chương, độ khó
-- Phân trang danh sách đề thi
-- Theo dõi tiến triển học tập theo chương với phân tích AI
-- Xem lại lịch sử phân tích AI
 
 ## Biến môi trường
 

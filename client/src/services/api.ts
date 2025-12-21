@@ -343,3 +343,44 @@ export async function deleteAnalysisHistoryItem(analysisId: string): Promise<{ m
     method: 'DELETE',
   });
 }
+
+// Chat API functions
+import { ChatMessage, OnlineUser, PrivateMessage } from '../types';
+
+export async function getChatMessages(limit: number = 50): Promise<{ messages: ChatMessage[] }> {
+  return apiRequest<{ messages: ChatMessage[] }>(`/api/chat/messages?limit=${limit}`, {
+    method: 'GET',
+  });
+}
+
+export async function getPrivateChatMessages(userId: string, limit: number = 50): Promise<{ messages: PrivateMessage[] }> {
+  return apiRequest<{ messages: PrivateMessage[] }>(`/api/chat/private/${userId}?limit=${limit}`, {
+    method: 'GET',
+  });
+}
+
+export async function getOnlineUsers(): Promise<{ users: OnlineUser[] }> {
+  return apiRequest<{ users: OnlineUser[] }>('/api/chat/online', {
+    method: 'GET',
+  });
+}
+
+export async function deletePrivateChat(userId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/chat/private/${userId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function deleteChatMessage(messageId: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/chat/messages/${messageId}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function deleteAllChatMessages(): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/chat/messages', {
+    method: 'DELETE',
+  });
+}
+
+

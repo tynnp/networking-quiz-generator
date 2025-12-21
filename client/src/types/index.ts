@@ -81,3 +81,22 @@ export interface AnalysisHistory {
   context?: Record<string, unknown>;
   createdAt: Date;
 }
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  content: string;
+  timestamp: string;
+}
+
+export interface PrivateMessage extends ChatMessage {
+  fromUserId: string;
+  fromUserName: string;
+  toUserId: string;
+}
+
+export interface OnlineUser {
+  id: string;
+  name: string;
+}

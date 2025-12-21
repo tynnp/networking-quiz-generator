@@ -2,6 +2,18 @@
 
 Backend API server cho hệ thống Networking Quiz Generator được xây dựng bằng FastAPI, MongoDB và Google Gemini AI.
 
+## Cấu trúc dự án
+
+```
+server/
+├── main.py                     # Ứng dụng FastAPI và các API endpoints
+├── auth.py                     # Các hàm xác thực và quản lý người dùng
+├── database.py                 # Kết nối và khởi tạo database
+├── dtos.py                     # Pydantic models cho validation request/response
+├── requirements.txt            # Python dependencies
+└── README.md                   # File này
+```
+
 ## Công nghệ
 
 - FastAPI
@@ -127,6 +139,16 @@ server/
 - `GET /api/analysis-history` - Lấy lịch sử phân tích của người dùng
 - `DELETE /api/analysis-history/{analysis_id}` - Xóa bản ghi lịch sử phân tích
 
+### Chat cộng đồng
+
+- `WS /ws/chat` - WebSocket endpoint cho chat real-time (xác thực qua query param `token`)
+- `GET /api/chat/messages` - Lấy lịch sử tin nhắn chat cộng đồng
+- `GET /api/chat/private/{user_id}` - Lấy lịch sử tin nhắn riêng với người dùng
+- `GET /api/chat/online` - Lấy danh sách người dùng đang online
+- `DELETE /api/chat/private/{user_id}` - Xóa đoạn chat riêng với người dùng
+- `DELETE /api/chat/messages/{message_id}` - Xóa tin nhắn cộng đồng (chỉ admin)
+- `DELETE /api/chat/messages` - Xóa tất cả tin nhắn cộng đồng (chỉ admin)
+
 ### Phân trang
 
 API `/api/quizzes` hỗ trợ phân trang với các tham số:
@@ -141,6 +163,8 @@ API `/api/quizzes` hỗ trợ phân trang với các tham số:
 - `quizzes`: Định nghĩa đề thi
 - `attempts`: Bản ghi bài làm đề thi
 - `analysis_history`: Lưu trữ lịch sử phân tích AI
+- `chat_messages`: Tin nhắn chat cộng đồng
+- `private_messages`: Tin nhắn riêng giữa các người dùng
 
 Indexes được tạo tự động trên:
 - `users.email` (unique)
@@ -156,6 +180,11 @@ Indexes được tạo tự động trên:
 - `analysis_history.userId`
 - `analysis_history.analysisType`
 - `analysis_history.createdAt`
+- `chat_messages.id` (unique)
+- `chat_messages.timestamp`
+- `private_messages.id` (unique)
+- `private_messages.(fromUserId, toUserId)`
+- `private_messages.timestamp`
 
 ## Xác thực
 

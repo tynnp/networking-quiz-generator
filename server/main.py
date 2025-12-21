@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends, Header, Query
+from fastapi import FastAPI, HTTPException, Depends, Header, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import List, Optional
@@ -1126,3 +1126,252 @@ def get_attempt_endpoint(
         completedAt=attempt["completedAt"],
         timeSpent=attempt["timeSpent"]
     )
+
+# ===== Community Chat WebSocket =====
+class ConnectionManager:
+    """Manages WebSocket connections for community chat"""
+    def __init__(self):
+        self.active_connections: dict[str, dict] = {}
+        self.private_connections: dict[str, list[WebSocket]] = {}
+    
+    async def connect(self, websocket: WebSocket, user: dict):
+        await websocket.accept()
+        user_id = user["id"]
+        self.active_connections[user_id] = {
+            "websocket": websocket,
+            "user": {"id": user["id"], "name": user["name"]}
+        }
+        await self.broadcast_online_users()
+    
+    def disconnect(self, user_id: str):
+        if user_id in self.active_connections:
+            user_name = self.active_connections[user_id]["user"]["name"]
+            del self.active_connections[user_id]
+            return user_name
+        return None
+    
+    async def broadcast_message(self, message: dict):
+        """Broadcast message to all connected users"""
+        disconnected = []
+        for user_id, conn_data in list(self.active_connections.items()):
+            try:
+                await conn_data["websocket"].send_json(message)
+            except:
+                disconnected.append(user_id)
+        for user_id in disconnected:
+            self.disconnect(user_id)
+    
+    async def broadcast_system_message(self, content: str):
+        """Broadcast a system message"""
+        message = {
+            "type": "system",
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        }
+        await self.broadcast_message(message)
+    
+    async def broadcast_online_users(self):
+        """Broadcast the current list of online users"""
+        online_users = [
+            conn_data["user"] for conn_data in self.active_connections.values()
+        ]
+        message = {
+            "type": "online_users",
+            "users": online_users
+        }
+        await self.broadcast_message(message)
+    
+    def get_online_users(self) -> list[dict]:
+        """Get list of online users"""
+        return [conn_data["user"] for conn_data in self.active_connections.values()]
+    
+    async def send_private_message(self, from_user: dict, to_user_id: str, content: str) -> bool:
+        """Send a private message to a specific user"""
+        if to_user_id not in self.active_connections:
+            return False
+        
+        message = {
+            "type": "private_message",
+            "from": {"id": from_user["id"], "name": from_user["name"]},
+            "content": content,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        try:
+            await self.active_connections[to_user_id]["websocket"].send_json(message)
+            return True
+        except:
+            return False
+
+manager = ConnectionManager()
+
+def get_db_sync():
+    """Get database instance synchronously"""
+    from database import get_database
+    return get_database()
+
+@app.websocket("/ws/chat")
+async def websocket_chat(websocket: WebSocket, token: str = Query(None)):
+    """WebSocket endpoint for community chat"""
+    if not token:
+        await websocket.close(code=4001, reason="Token không hợp lệ")
+        return
+    
+    try:
+        payload = verify_token(token)
+        if not payload:
+            await websocket.close(code=4001, reason="Token không hợp lệ")
+            return
+        
+        user_id = payload.get("sub")
+        if not user_id:
+            await websocket.close(code=4001, reason="Token không hợp lệ")
+            return
+        
+        db = get_db_sync()
+        user = get_user_by_id(db, user_id)
+        if not user:
+            await websocket.close(code=4001, reason="Không tìm thấy người dùng")
+            return
+    except Exception as e:
+        await websocket.close(code=4001, reason="Token không hợp lệ")
+        return
+    
+    await manager.connect(websocket, user)
+    
+    try:
+        while True:
+            data = await websocket.receive_json()
+            msg_type = data.get("type", "message")
+            
+            if msg_type == "message":
+                content = data.get("content", "").strip()
+                if content:
+                    db = get_db_sync()
+                    message_data = {
+                        "id": f"msg-{int(time.time() * 1000)}",
+                        "userId": user["id"],
+                        "userName": user["name"],
+                        "content": content,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    db.chat_messages.insert_one(message_data)
+                    
+                    broadcast_msg = {
+                        "type": "message",
+                        "id": message_data["id"],
+                        "userId": user["id"],
+                        "userName": user["name"],
+                        "content": content,
+                        "timestamp": message_data["timestamp"]
+                    }
+                    await manager.broadcast_message(broadcast_msg)
+            
+            elif msg_type == "private":
+                to_user_id = data.get("to")
+                content = data.get("content", "").strip()
+                if to_user_id and content:
+                    db = get_db_sync()
+                    private_msg_data = {
+                        "id": f"pmsg-{int(time.time() * 1000)}",
+                        "fromUserId": user["id"],
+                        "fromUserName": user["name"],
+                        "toUserId": to_user_id,
+                        "content": content,
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    db.private_messages.insert_one(private_msg_data)
+                    
+                    await manager.send_private_message(user, to_user_id, content)
+                    
+                    sender_msg = {
+                        "type": "private_sent",
+                        "to": to_user_id,
+                        "content": content,
+                        "timestamp": private_msg_data["timestamp"]
+                    }
+                    await websocket.send_json(sender_msg)
+    
+    except WebSocketDisconnect:
+        manager.disconnect(user["id"])
+        await manager.broadcast_online_users()
+
+@app.get("/api/chat/messages")
+def get_chat_messages(
+    limit: int = Query(50, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get recent public chat messages"""
+    messages = list(
+        db.chat_messages.find({}, {"_id": 0})
+        .sort("timestamp", -1)
+        .limit(limit)
+    )
+    messages.reverse()
+    return {"messages": messages}
+
+@app.get("/api/chat/private/{user_id}")
+def get_private_messages(
+    user_id: str,
+    limit: int = Query(50, ge=1, le=100),
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get private message history with a specific user"""
+    messages = list(
+        db.private_messages.find(
+            {
+                "$or": [
+                    {"fromUserId": current_user["id"], "toUserId": user_id},
+                    {"fromUserId": user_id, "toUserId": current_user["id"]}
+                ]
+            },
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(limit)
+    )
+    messages.reverse()
+    return {"messages": messages}
+
+@app.get("/api/chat/online")
+def get_online_users_endpoint(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get list of currently online users"""
+    return {"users": manager.get_online_users()}
+
+@app.delete("/api/chat/private/{user_id}")
+def delete_private_chat(
+    user_id: str,
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Delete all private messages with a specific user"""
+    result = db.private_messages.delete_many({
+        "$or": [
+            {"fromUserId": current_user["id"], "toUserId": user_id},
+            {"fromUserId": user_id, "toUserId": current_user["id"]}
+        ]
+    })
+    return {"message": f"Đã xóa {result.deleted_count} tin nhắn riêng"}
+
+@app.delete("/api/chat/messages/{message_id}")
+def delete_chat_message(
+    message_id: str,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Delete a public chat message (admin only)"""
+    result = db.chat_messages.delete_one({"id": message_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tin nhắn")
+    return {"message": "Đã xóa tin nhắn"}
+
+@app.delete("/api/chat/messages")
+def delete_all_chat_messages(
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Delete all public chat messages (admin only)"""
+    result = db.chat_messages.delete_many({})
+    return {"message": f"Đã xóa {result.deleted_count} tin nhắn cộng đồng"}

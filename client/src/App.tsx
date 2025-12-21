@@ -15,6 +15,7 @@ import AttemptDetail from './components/AttemptDetail';
 import AiResultFeedback from './components/AiResultFeedback';
 import AdminUserManagement from './components/AdminUserManagement';
 import AnalysisHistory from './components/AnalysisHistory';
+import CommunityChat from './components/CommunityChat';
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -113,6 +114,8 @@ function AppContent() {
         return <Profile />;
       case 'analysis-history':
         return <AnalysisHistory />;
+      case 'community-chat':
+        return <CommunityChat />;
       case 'admin-users':
         return <AdminUserManagement />;
       default:
