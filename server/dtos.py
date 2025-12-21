@@ -218,3 +218,11 @@ class DiscussionMessageResponse(BaseModel):
     userName: str
     content: str
     timestamp: str
+
+class GeminiSettingsRequest(BaseModel):
+    model: Optional[str] = Field(None, max_length=50)
+    apiKey: Optional[str] = Field(None, max_length=200)
+
+class GeminiSettingsResponse(BaseModel):
+    model: Optional[str] = None
+    apiKey: Optional[str] = None

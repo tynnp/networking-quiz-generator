@@ -25,6 +25,28 @@ export function removeAuthToken(): void {
   localStorage.removeItem('auth_token');
 }
 
+export interface GeminiSettings {
+  model?: string;
+  apiKey?: string;
+}
+
+export async function getGeminiSettings(): Promise<GeminiSettings | null> {
+  try {
+    return await apiRequest<GeminiSettings>('/api/settings/gemini', {
+      method: 'GET',
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function saveGeminiSettings(settings: GeminiSettings): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/settings/gemini', {
+    method: 'PUT',
+    body: JSON.stringify(settings),
+  });
+}
+
 export async function apiRequest<T>(
   endpoint: string,
   options: RequestInit = {}

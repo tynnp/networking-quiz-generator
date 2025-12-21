@@ -15,7 +15,8 @@ import {
   MessageCircle,
   ClipboardList,
   MessagesSquare,
-  Info
+  Info,
+  Settings
 } from 'lucide-react';
 import Snowfall from './Snowfall';
 
@@ -40,6 +41,7 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
     { id: 'my-results', label: 'Kết quả của tôi', icon: ClipboardList },
     { id: 'community-chat', label: 'Chat với cộng đồng', icon: MessageCircle },
     { id: 'quiz-discussion', label: 'Thảo luận đề thi', icon: MessagesSquare },
+    { id: 'settings', label: 'Cài đặt cấu hình', icon: Settings },
     { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
     { id: 'about-team', label: 'Giới thiệu tác giả', icon: Info },
     ...(user?.role === 'admin' ? [{ id: 'admin-users', label: 'Quản lý người dùng', icon: Users }] : [])
