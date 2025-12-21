@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Quiz, QuizAttempt, Question } from '../types';
 import { useAuth } from './AuthContext';
 import {
@@ -53,13 +53,12 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [attemptsLoading, setAttemptsLoading] = useState(true);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalQuizzes, setTotalQuizzes] = useState(0);
   const PAGE_SIZE = 10;
 
-  const loadQuizzes = async (page: number = 1) => {
+  const loadQuizzes = useCallback(async (page: number = 1) => {
     if (!isAuthenticated) {
       setLoading(false);
       return;
@@ -77,9 +76,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
-  const loadAttempts = async () => {
+  const loadAttempts = useCallback(async () => {
     if (!isAuthenticated) {
       setAttemptsLoading(false);
       return;
@@ -94,7 +93,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     } finally {
       setAttemptsLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -103,7 +102,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated]);
 
-  const addQuiz = async (quiz: Quiz) => {
+  const addQuiz = useCallback(async (quiz: Quiz) => {
     try {
       const quizRequest: CreateQuizRequest = {
         title: quiz.title,
@@ -114,36 +113,33 @@ export function DataProvider({ children }: { children: ReactNode }) {
       };
 
       await createQuizAPI(quizRequest);
-      // Reload current page to see update (or reset to 1)
       await loadQuizzes(currentPage);
     } catch (error) {
       console.error('Error creating quiz:', error);
       throw error;
     }
-  };
+  }, [loadQuizzes, currentPage]);
 
-  const addAttempt = (attempt: QuizAttempt) => {
-    // Check if attempt already exists (from server)
+  const addAttempt = useCallback((attempt: QuizAttempt) => {
     setAttempts(prev => {
       const exists = prev.find(a => a.id === attempt.id);
       if (exists) return prev;
       return [...prev, attempt];
     });
-  };
+  }, []);
 
-  const deleteQuiz = async (id: string) => {
+  const deleteQuiz = useCallback(async (id: string) => {
     try {
       await deleteQuizAPI(id);
-      // Reload current page
       await loadQuizzes(currentPage);
       setAttempts(prev => prev.filter(a => a.quizId !== id));
     } catch (error) {
       console.error('Error deleting quiz:', error);
       throw error;
     }
-  };
+  }, [loadQuizzes, currentPage]);
 
-  const updateQuiz = async (id: string, updates: UpdateQuizRequest) => {
+  const updateQuiz = useCallback(async (id: string, updates: UpdateQuizRequest) => {
     try {
       await updateQuizAPI(id, updates);
       await loadQuizzes(currentPage);
@@ -151,9 +147,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error('Error updating quiz:', error);
       throw error;
     }
-  };
+  }, [loadQuizzes, currentPage]);
 
-  const updateQuestion = async (quizId: string, questionId: string, updates: Partial<Question>) => {
+  const updateQuestion = useCallback(async (quizId: string, questionId: string, updates: Partial<Question>) => {
     try {
       const updateRequest: UpdateQuestionRequest = {};
       if (updates.content !== undefined) updateRequest.content = updates.content;
@@ -171,9 +167,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error('Error updating question:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const deleteQuestion = async (quizId: string, questionId: string) => {
+  const deleteQuestion = useCallback(async (quizId: string, questionId: string) => {
     try {
       const updatedQuiz = await deleteQuestionAPI(quizId, questionId);
       setQuizzes(prev => prev.map(q => q.id === quizId ? updatedQuiz : q));
@@ -181,48 +177,41 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error('Error deleting question:', error);
       throw error;
     }
-  };
+  }, []);
 
-  const getQuizById = (id: string) => {
+  const getQuizById = useCallback((id: string) => {
     return quizzes.find(q => q.id === id);
-  };
+  }, [quizzes]);
 
-  const loadQuizById = async (id: string): Promise<Quiz | undefined> => {
-    // Check local
+  const loadQuizById = useCallback(async (id: string): Promise<Quiz | undefined> => {
     const local = quizzes.find(q => q.id === id);
     if (local) return local;
 
-    // Fetch from server
     try {
       const serverQuiz = await getQuizAPI(id);
-      // We don't add it to the 'quizzes' list to avoid messing up pagination view
-      // But components can use the returned value.
-      // Optionally we could have a cache for 'loadedQuizzes' but let's keep it simple.
       return serverQuiz;
     } catch (e) {
       console.error('Error loading quiz by id:', e);
       return undefined;
     }
-  };
+  }, [quizzes]);
 
-  const getAttemptsByStudent = (studentId: string) => {
+  const getAttemptsByStudent = useCallback((studentId: string) => {
     return attempts.filter(a => a.studentId === studentId);
-  };
+  }, [attempts]);
 
-  const getAttemptsByQuiz = (quizId: string) => {
+  const getAttemptsByQuiz = useCallback((quizId: string) => {
     return attempts.filter(a => a.quizId === quizId);
-  };
+  }, [attempts]);
 
-  const getAttemptById = (id: string): QuizAttempt | undefined => {
+  const getAttemptById = useCallback((id: string): QuizAttempt | undefined => {
     return attempts.find(a => a.id === id);
-  };
+  }, [attempts]);
 
-  const loadAttemptById = async (id: string): Promise<QuizAttempt | undefined> => {
-    // First check local state
+  const loadAttemptById = useCallback(async (id: string): Promise<QuizAttempt | undefined> => {
     const localAttempt = attempts.find(a => a.id === id);
     if (localAttempt) return localAttempt;
 
-    // If not found, try to load from server
     try {
       const serverAttempt = await getAttemptAPI(id);
       setAttempts(prev => {
@@ -235,15 +224,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
       console.error('Error loading attempt:', error);
       return undefined;
     }
-  };
+  }, [attempts]);
 
-  const refreshQuizzes = async () => {
+  const refreshQuizzes = useCallback(async () => {
     await loadQuizzes(currentPage);
-  };
+  }, [loadQuizzes, currentPage]);
 
-  const refreshAttempts = async () => {
+  const refreshAttempts = useCallback(async () => {
     await loadAttempts();
-  };
+  }, [loadAttempts]);
 
   return (
     <DataContext.Provider value={{

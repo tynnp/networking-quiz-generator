@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Eye, PlayCircle, Trash2, Search } from 'lucide-react';
+import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface QuizListProps {
   onTakeQuiz: (quizId: string) => void;
@@ -181,28 +181,57 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                 </div>
 
                 {/* Pagination Controls */}
-                {!searchQuery && (
+                {!searchQuery && pagination && pagination.totalPages > 1 && (
                   <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 pt-4">
                     <p className="text-xs md:text-sm text-gray-500">
-                      Hiển thị {filteredQuizzes.length} đề thi
+                      Hiển thị {filteredQuizzes.length} đề thi (Trang {pagination.currentPage})
                     </p>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => pagination?.setPage(Math.max(1, pagination.currentPage - 1))}
-                        disabled={!pagination || pagination.currentPage === 1}
-                        className="px-3 py-1 border border-gray-300 rounded text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        onClick={() => pagination.setPage(Math.max(1, pagination.currentPage - 1))}
+                        disabled={pagination.currentPage === 1}
+                        className="flex items-center gap-1 px-2 md:px-3 py-1.5 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Trước
+                        <ChevronLeft className="w-4 h-4" />
+                        <span className="hidden sm:inline">Trước</span>
                       </button>
-                      <span className="text-xs md:text-sm font-medium text-gray-700">
-                        Trang {pagination?.currentPage} / {pagination?.totalPages}
-                      </span>
+
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => {
+                          if (
+                            page === 1 ||
+                            page === pagination.totalPages ||
+                            (page >= pagination.currentPage - 1 && page <= pagination.currentPage + 1)
+                          ) {
+                            return (
+                              <button
+                                key={page}
+                                onClick={() => pagination.setPage(page)}
+                                className={`min-w-[32px] md:min-w-[38px] px-2 md:px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all duration-200 ${pagination.currentPage === page
+                                  ? 'bg-[#124874] text-white shadow-md'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                                  }`}
+                              >
+                                {page}
+                              </button>
+                            );
+                          } else if (
+                            page === pagination.currentPage - 2 ||
+                            page === pagination.currentPage + 2
+                          ) {
+                            return <span key={page} className="px-1 text-gray-400">...</span>;
+                          }
+                          return null;
+                        })}
+                      </div>
+
                       <button
-                        onClick={() => pagination?.setPage(Math.min(pagination.totalPages, pagination.currentPage + 1))}
-                        disabled={!pagination || pagination.currentPage === pagination.totalPages}
-                        className="px-3 py-1 border border-gray-300 rounded text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                        onClick={() => pagination.setPage(Math.min(pagination.totalPages, pagination.currentPage + 1))}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                        className="flex items-center gap-1 px-2 md:px-3 py-1.5 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
-                        Sau
+                        <span className="hidden sm:inline">Sau</span>
+                        <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
