@@ -30,6 +30,7 @@ from dtos import (
     ChangePasswordRequest,
     CreateUserRequest,
     UpdateUserRoleRequest,
+    AdminResetPasswordRequest,
     CreateQuizRequest,
     UpdateQuizRequest,
     QuizResponse,
@@ -637,6 +638,27 @@ def update_user_role_admin(
     
     role_label = "Quản trị viên" if request.role == "admin" else "Người dùng"
     return {"message": f"Đã cập nhật vai trò thành {role_label}"}
+
+@app.put("/api/admin/users/{user_id}/reset-password", tags=["Quản lý người dùng"])
+def admin_reset_user_password(
+    user_id: str,
+    request: AdminResetPasswordRequest,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Reset a user's password (admin only)"""
+    if user_id == admin_user["id"]:
+        raise HTTPException(status_code=400, detail="Không thể đặt lại mật khẩu của chính bạn. Vui lòng dùng chức năng Đổi mật khẩu.")
+    
+    target_user = get_user_by_id(db, user_id)
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    success = update_user_password(db, user_id, request.new_password)
+    if not success:
+        raise HTTPException(status_code=400, detail="Không thể đặt lại mật khẩu")
+    
+    return {"message": "Đặt lại mật khẩu thành công"}
 
 @app.get("/api/settings/gemini", response_model=GeminiSettingsResponse, tags=["Cài đặt"])
 def get_gemini_settings(

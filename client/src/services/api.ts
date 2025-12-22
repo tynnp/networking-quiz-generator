@@ -233,6 +233,13 @@ export async function updateUserRole(userId: string, role: 'student' | 'admin'):
   });
 }
 
+export async function adminResetPassword(userId: string, newPassword: string): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/admin/users/${userId}/reset-password`, {
+    method: 'PUT',
+    body: JSON.stringify({ new_password: newPassword }),
+  });
+}
+
 // Quiz API functions
 import { Quiz, Question, PaginatedResponse } from '../types';
 

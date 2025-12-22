@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { User } from '../types';
-import { getUsers, createUser, deleteUser, lockUser, unlockUser, updateUserRole, CreateUserRequest } from '../services/api';
-import { UserPlus, Trash2, Lock, Unlock, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { getUsers, createUser, deleteUser, lockUser, unlockUser, updateUserRole, adminResetPassword, CreateUserRequest } from '../services/api';
+import { UserPlus, Trash2, Lock, Unlock, X, Search, ChevronLeft, ChevronRight, KeyRound } from 'lucide-react';
 
 export default function AdminUserManagement() {
   const { user: currentUser } = useAuth();
@@ -30,6 +30,11 @@ export default function AdminUserManagement() {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [userToResetPassword, setUserToResetPassword] = useState<{ id: string; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -177,6 +182,37 @@ export default function AdminUserManagement() {
     }
   };
 
+  const handleOpenResetPassword = (userId: string, userName: string) => {
+    setUserToResetPassword({ id: userId, name: userName });
+    setNewPassword('');
+    setShowResetPasswordModal(true);
+  };
+
+  const handleResetPassword = async () => {
+    if (!userToResetPassword || !newPassword) return;
+
+    if (newPassword.length < 6) {
+      showToast('Mật khẩu mới phải có ít nhất 6 ký tự', 'error');
+      return;
+    }
+
+    setIsResettingPassword(true);
+    setError(null);
+
+    try {
+      await adminResetPassword(userToResetPassword.id, newPassword);
+      showToast('Đặt lại mật khẩu thành công!', 'success');
+      setShowResetPasswordModal(false);
+      setUserToResetPassword(null);
+      setNewPassword('');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Không thể đặt lại mật khẩu';
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -297,6 +333,13 @@ export default function AdminUserManagement() {
                         </button>
                       )}
                       <button
+                        onClick={() => handleOpenResetPassword(user.id, user.name)}
+                        className="p-1.5 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 disabled:opacity-50"
+                        title="Đặt lại mật khẩu"
+                      >
+                        <KeyRound className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleDeleteUser(user.id)}
                         disabled={isDeleting === user.id}
                         className="p-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 disabled:opacity-50"
@@ -415,6 +458,14 @@ export default function AdminUserManagement() {
                                 <span className="text-xs font-medium">Khóa</span>
                               </button>
                             )}
+                            <button
+                              onClick={() => handleOpenResetPassword(user.id, user.name)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              title="Đặt lại mật khẩu"
+                            >
+                              <KeyRound className="w-4 h-4" />
+                              <span className="text-xs font-medium">Đặt lại</span>
+                            </button>
                             <button
                               onClick={() => handleDeleteUser(user.id)}
                               disabled={isDeleting === user.id}
@@ -636,6 +687,73 @@ export default function AdminUserManagement() {
                   className="px-3 md:px-4 py-2 bg-red-600 text-white rounded-lg text-xs md:text-sm hover:bg-red-700 disabled:opacity-50"
                 >
                   {isDeleting ? 'Đang xóa...' : 'Xóa'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {showResetPasswordModal && userToResetPassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <KeyRound className="w-5 h-5 text-orange-500" />
+                Đặt lại mật khẩu
+              </h3>
+              <button
+                onClick={() => {
+                  setShowResetPasswordModal(false);
+                  setUserToResetPassword(null);
+                  setNewPassword('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6">
+              <p className="text-xs md:text-sm text-gray-600 mb-4">
+                Đặt lại mật khẩu cho người dùng: <span className="font-semibold text-[#124874]">{userToResetPassword.name}</span>
+              </p>
+
+              <div className="mb-4">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                  Mật khẩu mới * (tối thiểu 6 ký tự)
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Nhập mật khẩu mới"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#124874] text-sm"
+                  minLength={6}
+                  maxLength={128}
+                />
+              </div>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowResetPasswordModal(false);
+                    setUserToResetPassword(null);
+                    setNewPassword('');
+                  }}
+                  className="px-3 md:px-4 py-2 border border-gray-300 rounded-lg text-xs md:text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetPassword}
+                  disabled={isResettingPassword || newPassword.length < 6}
+                  className="px-3 md:px-4 py-2 bg-orange-500 text-white rounded-lg text-xs md:text-sm hover:bg-orange-600 disabled:opacity-50"
+                >
+                  {isResettingPassword ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
                 </button>
               </div>
             </div>
