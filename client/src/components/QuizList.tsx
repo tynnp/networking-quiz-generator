@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
+import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight, MessageSquarePlus, Printer, X, FileText, FileCheck } from 'lucide-react';
 import { addQuizToDiscussion } from '../services/api';
+import { Quiz } from '../types';
 
 interface QuizListProps {
   onTakeQuiz: (quizId: string) => void;
@@ -15,6 +16,7 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
   const { user } = useAuth();
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [printModalQuiz, setPrintModalQuiz] = useState<Quiz | null>(null);
 
   const filteredQuizzes = useMemo(() => {
     if (!searchQuery.trim()) return quizzes;
@@ -68,6 +70,200 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
         'error'
       );
     }
+  };
+
+  const getOptionLabel = (index: number) => String.fromCharCode(65 + index);
+
+  const getDifficultyLabel = (difficulty: string | undefined) => {
+    if (difficulty === 'easy') return 'Dễ';
+    if (difficulty === 'medium') return 'Trung bình';
+    if (difficulty === 'hard') return 'Khó';
+    return 'Hỗn hợp';
+  };
+
+  const printQuiz = (quiz: Quiz, showAnswers: boolean) => {
+    setPrintModalQuiz(null);
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      showToast('Không thể mở cửa sổ in. Vui lòng cho phép popup.', 'error');
+      return;
+    }
+
+    const questionsHtml = quiz.questions.map((q, idx) => `
+      <div class="question">
+        <div class="question-header">
+          <span class="question-number">Câu ${idx + 1}:</span>
+          <span class="question-content">${q.content}</span>
+        </div>
+        <div class="options">
+          ${q.options.map((opt, optIdx) => `
+            <div class="option ${showAnswers && optIdx === q.correctAnswer ? 'correct' : ''}">
+              <span class="option-label">${getOptionLabel(optIdx)}.</span>
+              <span class="option-content">${opt}</span>
+            </div>
+          `).join('')}
+        </div>
+        ${showAnswers && q.explanation ? `
+          <div class="explanation">
+            <strong>Giải thích:</strong> ${q.explanation}
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+
+    const answerKeyHtml = showAnswers ? `
+      <div class="answer-key">
+        <h3>ĐÁP ÁN</h3>
+        <div class="answer-grid">
+          ${quiz.questions.map((q, idx) => `
+            <div class="answer-item">
+              <span class="answer-number">Câu ${idx + 1}:</span>
+              <span class="answer-value">${getOptionLabel(q.correctAnswer)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="vi">
+      <head>
+        <meta charset="UTF-8">
+        <title>${quiz.title}${showAnswers ? ' - Có đáp án' : ''}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            padding: 20mm;
+            max-width: 210mm;
+            margin: 0 auto;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+          }
+          .header h1 {
+            font-size: 16pt;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+          }
+          .header .subtitle {
+            font-size: 11pt;
+            color: #333;
+          }
+          .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 11pt;
+          }
+          .meta-item {
+            padding: 4px 8px;
+            background: #f5f5f5;
+            border-radius: 4px;
+          }
+          .question {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+          }
+          .question-header {
+            margin-bottom: 8px;
+          }
+          .question-number {
+            font-weight: bold;
+            margin-right: 8px;
+          }
+          .options {
+            margin-left: 20px;
+          }
+          .option {
+            margin: 4px 0;
+            padding: 4px 8px;
+          }
+          .option.correct {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+            font-weight: bold;
+          }
+          .option-label {
+            font-weight: bold;
+            margin-right: 8px;
+          }
+          .explanation {
+            margin-top: 8px;
+            margin-left: 20px;
+            padding: 8px;
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            font-size: 11pt;
+            font-style: italic;
+          }
+          .answer-key {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #000;
+            page-break-before: auto;
+          }
+          .answer-key h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14pt;
+          }
+          .answer-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+          }
+          .answer-item {
+            padding: 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+          }
+          .answer-number {
+            font-weight: bold;
+          }
+          .answer-value {
+            color: #28a745;
+            font-weight: bold;
+          }
+          @media print {
+            body { padding: 10mm; }
+            .question { page-break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>${quiz.title}</h1>
+          ${quiz.description ? `<div class="subtitle">${quiz.description}</div>` : ''}
+        </div>
+        <div class="meta">
+          <span class="meta-item">Số câu hỏi: ${quiz.questions.length}</span>
+          <span class="meta-item">Thời gian: ${quiz.duration} phút</span>
+          ${quiz.settings.chapter ? `<span class="meta-item">${quiz.settings.chapter}</span>` : ''}
+          <span class="meta-item">Độ khó: ${getDifficultyLabel(quiz.settings.difficulty)}</span>
+        </div>
+        <div class="questions">
+          ${questionsHtml}
+        </div>
+        ${answerKeyHtml}
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   };
 
   return (
@@ -161,6 +357,16 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                             title="Xem câu hỏi"
                           >
                             <Eye className="w-4 h-4" />
+                          </button>
+
+                          {/* Print Button */}
+                          <button
+                            type="button"
+                            onClick={() => setPrintModalQuiz(quiz)}
+                            className="px-2 md:px-3 py-1.5 rounded-lg border border-orange-400 text-orange-600 hover:bg-orange-50 transition-colors"
+                            title="In đề"
+                          >
+                            <Printer className="w-4 h-4" />
                           </button>
 
                           {user && (
@@ -260,6 +466,71 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
           </div>
         )}
       </div>
+
+      {/* Print Modal */}
+      {printModalQuiz && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Printer className="w-5 h-5 text-orange-500" />
+                In đề thi
+              </h3>
+              <button
+                onClick={() => setPrintModalQuiz(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6">
+              <p className="text-sm text-gray-600 mb-2">
+                Đề thi: <span className="font-semibold text-[#124874]">{printModalQuiz.title}</span>
+              </p>
+              <p className="text-xs md:text-sm text-gray-500 mb-6">
+                Chọn chế độ in đề thi:
+              </p>
+
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => printQuiz(printModalQuiz, false)}
+                  className="w-full flex items-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                >
+                  <FileText className="w-5 h-5 text-gray-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Không có đáp án</p>
+                    <p className="text-xs text-gray-500">In đề thi sạch để làm bài</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => printQuiz(printModalQuiz, true)}
+                  className="w-full flex items-center gap-3 px-4 py-3 border border-green-300 rounded-lg hover:bg-green-50 transition-colors text-left"
+                >
+                  <FileCheck className="w-5 h-5 text-green-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Có đáp án</p>
+                    <p className="text-xs text-gray-500">In đề kèm đáp án và giải thích</p>
+                  </div>
+                </button>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPrintModalQuiz(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
