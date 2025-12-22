@@ -43,6 +43,7 @@ networking-quiz-generator/
 - Làm bài thi thời gian thực với bộ đếm ngược
 - Tính điểm tự động và hiển thị kết quả chi tiết
 - Quản lý đề thi (xem, sửa, xóa câu hỏi)
+- In đề thi, hỗ trợ 2 chế độ in (có đáp án và không đáp án)
 
 ### Phân tích AI
 - Phân tích chi tiết bài làm (điểm mạnh, điểm yếu, gợi ý cải thiện)
@@ -59,6 +60,12 @@ networking-quiz-generator/
 - Chọn model AI (Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
 - Cấu hình API Key Gemini riêng cho từng người dùng
 - Hướng dẫn lấy API Key và xử lý lỗi thường gặp
+
+### Quản lý người dùng (Admin)
+- Thêm/Xóa người dùng
+- Khóa/Mở khóa tài khoản
+- Thay đổi vai trò người dùng
+- Reset mật khẩu cho người dùng
 
 ## Công nghệ sử dụng
 

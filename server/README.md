@@ -138,6 +138,8 @@ server/
 - `DELETE /api/admin/users/{user_id}` - Xóa người dùng (chỉ admin)
 - `PUT /api/admin/users/{user_id}/lock` - Khóa người dùng (chỉ admin)
 - `PUT /api/admin/users/{user_id}/unlock` - Mở khóa người dùng (chỉ admin)
+- `PUT /api/admin/users/{user_id}/role` - Cập nhật vai trò người dùng (chỉ admin)
+- `PUT /api/admin/users/{user_id}/reset-password` - Đặt lại mật khẩu người dùng (chỉ admin)
 
 ### Tính năng AI
 

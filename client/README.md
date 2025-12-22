@@ -91,8 +91,8 @@ Client kết nối đến backend API tại `http://localhost:8000` theo mặc �
 
 Tất cả các lời gọi API được xử lý thông qua `src/services/api.ts` cung cấp:
 - Các hàm xác thực (Đăng nhập, Đăng ký, Gửi mã OTP)
-- Các hàm quản lý đề thi
-- Các hàm quản lý người dùng (chỉ admin)
+- Các hàm quản lý đề thi (CRUD, in đề thi)
+- Các hàm quản lý người dùng (CRUD, phân quyền, reset mật khẩu - chỉ admin)
 - Các hàm quản lý bài làm
 - Các dịch vụ AI (Gemini) và WebSocket (Chat)
 
