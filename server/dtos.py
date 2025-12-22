@@ -109,6 +109,9 @@ class CreateUserRequest(BaseModel):
     name: str = Field(..., max_length=100)
     role: Literal["student", "admin"] = "student"
 
+class UpdateUserRoleRequest(BaseModel):
+    role: Literal["student", "admin"]
+
 class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

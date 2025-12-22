@@ -226,6 +226,13 @@ export async function unlockUser(userId: string): Promise<{ message: string }> {
   });
 }
 
+export async function updateUserRole(userId: string, role: 'student' | 'admin'): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>(`/api/admin/users/${userId}/role`, {
+    method: 'PUT',
+    body: JSON.stringify({ role }),
+  });
+}
+
 // Quiz API functions
 import { Quiz, Question, PaginatedResponse } from '../types';
 

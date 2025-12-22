@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { User } from '../types';
-import { getUsers, createUser, deleteUser, lockUser, unlockUser, CreateUserRequest } from '../services/api';
+import { getUsers, createUser, deleteUser, lockUser, unlockUser, updateUserRole, CreateUserRequest } from '../services/api';
 import { UserPlus, Trash2, Lock, Unlock, X, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function AdminUserManagement() {
@@ -15,6 +15,7 @@ export default function AdminUserManagement() {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isLocking, setIsLocking] = useState<string | null>(null);
+  const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -158,6 +159,24 @@ export default function AdminUserManagement() {
     }
   };
 
+  const handleRoleChange = async (userId: string, newRole: 'student' | 'admin') => {
+    setIsUpdatingRole(userId);
+    setError(null);
+
+    try {
+      await updateUserRole(userId, newRole);
+      await loadUsers();
+      const roleLabel = newRole === 'admin' ? 'Quản trị viên' : 'Người dùng';
+      showToast(`Đã cập nhật vai trò thành ${roleLabel}!`, 'success');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Không thể cập nhật vai trò';
+      setError(errorMessage);
+      showToast(errorMessage, 'error');
+    } finally {
+      setIsUpdatingRole(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -221,14 +240,29 @@ export default function AdminUserManagement() {
                   <p className="font-medium text-gray-900 text-sm truncate">{user.name}</p>
                   <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${user.role === 'admin'
-                        ? 'bg-purple-100 text-purple-800'
-                        : 'bg-blue-100 text-blue-800'
-                        }`}
-                    >
-                      {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
-                    </span>
+                    {user.id !== currentUser?.id ? (
+                      <select
+                        value={user.role}
+                        onChange={(e) => handleRoleChange(user.id, e.target.value as 'student' | 'admin')}
+                        disabled={isUpdatingRole === user.id}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium border-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${user.role === 'admin'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-blue-100 text-blue-800'
+                          }`}
+                      >
+                        <option value="student">Người dùng</option>
+                        <option value="admin">Quản trị viên</option>
+                      </select>
+                    ) : (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${user.role === 'admin'
+                          ? 'bg-purple-100 text-purple-800'
+                          : 'bg-blue-100 text-blue-800'
+                          }`}
+                      >
+                        {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
+                      </span>
+                    )}
                     {user.isLocked ? (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-100 text-red-800">
                         Đã khóa
@@ -321,14 +355,29 @@ export default function AdminUserManagement() {
                       {user.email}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-blue-100 text-blue-800'
-                          }`}
-                      >
-                        {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
-                      </span>
+                      {user.id !== currentUser?.id ? (
+                        <select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value as 'student' | 'admin')}
+                          disabled={isUpdatingRole === user.id}
+                          className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${user.role === 'admin'
+                            ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
+                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                            }`}
+                        >
+                          <option value="student">Người dùng</option>
+                          <option value="admin">Quản trị viên</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === 'admin'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-blue-100 text-blue-800'
+                            }`}
+                        >
+                          {user.role === 'admin' ? 'Quản trị viên' : 'Người dùng'}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       {user.isLocked ? (

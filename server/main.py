@@ -29,6 +29,7 @@ from dtos import (
     UpdateProfileRequest,
     ChangePasswordRequest,
     CreateUserRequest,
+    UpdateUserRoleRequest,
     CreateQuizRequest,
     UpdateQuizRequest,
     QuizResponse,
@@ -618,6 +619,24 @@ def unlock_user_admin(
         raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
     
     return {"message": "Mở khóa người dùng thành công"}
+
+@app.put("/api/admin/users/{user_id}/role", tags=["Quản lý người dùng"])
+def update_user_role_admin(
+    user_id: str,
+    request: UpdateUserRoleRequest,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Update a user's role (admin only)"""
+    if user_id == admin_user["id"]:
+        raise HTTPException(status_code=400, detail="Không thể thay đổi vai trò của chính bạn")
+    
+    updated_user = update_user(db, user_id, {"role": request.role})
+    if not updated_user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
+    
+    role_label = "Quản trị viên" if request.role == "admin" else "Người dùng"
+    return {"message": f"Đã cập nhật vai trò thành {role_label}"}
 
 @app.get("/api/settings/gemini", response_model=GeminiSettingsResponse, tags=["Cài đặt"])
 def get_gemini_settings(
