@@ -192,3 +192,22 @@ def save_user_settings(db: Database, user_id: str, settings: dict) -> dict:
         upsert=True
     )
     return data
+
+def get_system_settings(db: Database) -> dict:
+    """Get system settings"""
+    settings = db.system_settings.find_one({"_id": "system"})
+    return settings or {}
+
+def save_system_settings(db: Database, settings: dict) -> dict:
+    """Save or update system settings"""
+    data = {
+        "_id": "system",
+        **settings,
+        "updatedAt": datetime.now().isoformat()
+    }
+    db.system_settings.update_one(
+        {"_id": "system"},
+        {"$set": data},
+        upsert=True
+    )
+    return data

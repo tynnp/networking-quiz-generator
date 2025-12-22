@@ -66,6 +66,7 @@ networking-quiz-generator/
 - Khóa/Mở khóa tài khoản
 - Thay đổi vai trò người dùng
 - Reset mật khẩu cho người dùng
+- Khóa API key mặc định (buộc user phải dùng key riêng)
 
 ## Công nghệ sử dụng
 

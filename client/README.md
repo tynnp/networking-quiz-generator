@@ -16,6 +16,7 @@ client/
 │   │   ├── AttemptDetail.tsx
 │   │   ├── CommunityChat.tsx
 │   │   ├── CreateQuiz.tsx
+│   │   ├── DefaultKeyLockedModal.tsx
 │   │   ├── ForgotPassword.tsx 
 │   │   ├── Layout.tsx
 │   │   ├── Login.tsx
@@ -95,6 +96,7 @@ Tất cả các lời gọi API được xử lý thông qua `src/services/api.t
 - Các hàm quản lý người dùng (CRUD, phân quyền, reset mật khẩu - chỉ admin)
 - Các hàm quản lý bài làm
 - Các dịch vụ AI (Gemini) và WebSocket (Chat)
+- Các hàm cài đặt hệ thống (khóa API key mặc định - chỉ admin)
 
 ## Quản lý trạng thái
 

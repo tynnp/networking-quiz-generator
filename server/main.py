@@ -46,6 +46,8 @@ from dtos import (
     DiscussionMessageResponse,
     GeminiSettingsRequest,
     GeminiSettingsResponse,
+    SystemSettingsResponse,
+    LockDefaultKeyRequest,
 )
 
 from database import (
@@ -67,6 +69,8 @@ from database import (
     delete_otp,
     get_user_settings,
     save_user_settings,
+    get_system_settings,
+    save_system_settings,
 )
 
 from email_service import generate_otp, send_otp_email, send_reset_password_otp_email
@@ -688,35 +692,95 @@ def update_gemini_settings(
 ):
     """Update user's Gemini AI settings"""
     settings_data = {}
+    unset_fields = []
     
     if request.model is not None:
         settings_data["geminiModel"] = request.model
     
     if request.apiKey is not None:
         if not request.apiKey.startswith("•"):
-            settings_data["geminiApiKey"] = request.apiKey if request.apiKey else None
+            if request.apiKey:
+                settings_data["geminiApiKey"] = request.apiKey
+            else:
+                unset_fields.append("geminiApiKey")
     
-    save_user_settings(db, current_user["id"], settings_data)
+    if settings_data:
+        save_user_settings(db, current_user["id"], settings_data)
+    
+    if unset_fields:
+        db.user_settings.update_one(
+            {"userId": current_user["id"]},
+            {"$unset": {field: "" for field in unset_fields}}
+        )
+    
     return {"message": "Đã lưu cài đặt thành công"}
 
+@app.get("/api/admin/settings", response_model=SystemSettingsResponse, tags=["Cài đặt"])
+def get_admin_settings(
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Get system settings (admin only)"""
+    settings = get_system_settings(db)
+    return SystemSettingsResponse(
+        defaultKeyLocked=settings.get("defaultKeyLocked", False)
+    )
+
+@app.put("/api/admin/settings/lock-default-key", tags=["Cài đặt"])
+def toggle_default_key_lock(
+    request: LockDefaultKeyRequest,
+    admin_user: dict = Depends(get_admin_user),
+    db: Database = Depends(get_db)
+):
+    """Lock or unlock default API key (admin only)"""
+    save_system_settings(db, {"defaultKeyLocked": request.locked})
+    status = "đã khóa" if request.locked else "đã mở khóa"
+    return {"message": f"API key mặc định {status}"}
+
+@app.get("/api/settings/default-key-status", tags=["Cài đặt"])
+def get_default_key_status(
+    current_user: dict = Depends(get_current_user),
+    db: Database = Depends(get_db)
+):
+    """Get default API key lock status"""
+    system_settings = get_system_settings(db)
+    is_locked = system_settings.get("defaultKeyLocked", False)
+    
+    user_settings = get_user_settings(db, current_user["id"])
+    has_personal_key = bool(user_settings and user_settings.get("geminiApiKey"))
+    
+    return {
+        "defaultKeyLocked": is_locked,
+        "hasPersonalKey": has_personal_key,
+        "canUseAI": has_personal_key or not is_locked
+    }
+
 def get_gemini_client_for_user(db: Database, user_id: str) -> tuple:
-    """Get Gemini client and model name for a user based on their settings"""
+    """Get Gemini client and model name for a user based on their settings
+    Returns: (client, model_name) or raises HTTPException if default key is locked
+    """
     settings = get_user_settings(db, user_id)
     
     user_api_key = settings.get("geminiApiKey") if settings else None
     user_model = settings.get("geminiModel") if settings else None
     
-    active_api_key = user_api_key if user_api_key else API_KEY
-    active_model = user_model if user_model else MODEL_NAME
-    
-    if not active_api_key:
-        return None, None
-    
     if user_api_key:
         user_client = genai.Client(api_key=user_api_key)
+        active_model = user_model if user_model else MODEL_NAME
         return user_client, active_model
-    else:
-        return client, active_model
+    
+    system_settings = get_system_settings(db)
+    if system_settings.get("defaultKeyLocked", False):
+        raise HTTPException(
+            status_code=403, 
+            detail="DEFAULT_KEY_LOCKED:Quản trị viên đã khóa API key mặc định. Vui lòng thiết lập API key cá nhân trong phần Cài đặt."
+        )
+    
+    if not API_KEY:
+        return None, None
+    
+    active_model = user_model if user_model else MODEL_NAME
+    return client, active_model
 
 def handle_gemini_error(exc: Exception):
     print("Error calling Gemini API:", exc)

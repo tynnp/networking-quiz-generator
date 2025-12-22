@@ -232,3 +232,9 @@ class GeminiSettingsRequest(BaseModel):
 class GeminiSettingsResponse(BaseModel):
     model: Optional[str] = None
     apiKey: Optional[str] = None
+
+class SystemSettingsResponse(BaseModel):
+    defaultKeyLocked: bool = False
+
+class LockDefaultKeyRequest(BaseModel):
+    locked: bool

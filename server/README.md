@@ -173,6 +173,9 @@ server/
 
 - `GET /api/settings/gemini` - Lấy cài đặt Gemini AI của người dùng
 - `PUT /api/settings/gemini` - Cập nhật cài đặt Gemini AI (model, API key)
+- `GET /api/settings/default-key-status` - Kiểm tra trạng thái khóa API key mặc định
+- `GET /api/admin/settings` - Lấy cài đặt hệ thống (chỉ admin)
+- `PUT /api/admin/settings/lock-default-key` - Khóa/mở khóa API key mặc định (chỉ admin)
 
 ### Phân trang
 

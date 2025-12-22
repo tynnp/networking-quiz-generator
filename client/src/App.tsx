@@ -100,6 +100,18 @@ function AppContent() {
     };
   }, [showToast]);
 
+  useEffect(() => {
+    const handleNavigateEvent = (e: CustomEvent<string>) => {
+      setCurrentView(e.detail);
+      setSelectedQuizId(null);
+      setSelectedAttemptId(null);
+      setSelectedDiscussionQuiz(null);
+    };
+
+    window.addEventListener('navigate', handleNavigateEvent as EventListener);
+    return () => window.removeEventListener('navigate', handleNavigateEvent as EventListener);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

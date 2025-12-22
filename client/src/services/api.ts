@@ -517,3 +517,32 @@ export async function getDiscussionOnlineUsers(quizId: string): Promise<{ users:
     method: 'GET',
   });
 }
+
+export interface SystemSettings {
+  defaultKeyLocked: boolean;
+}
+
+export interface DefaultKeyStatus {
+  defaultKeyLocked: boolean;
+  hasPersonalKey: boolean;
+  canUseAI: boolean;
+}
+
+export async function getSystemSettings(): Promise<SystemSettings> {
+  return apiRequest<SystemSettings>('/api/admin/settings', {
+    method: 'GET',
+  });
+}
+
+export async function toggleDefaultKeyLock(locked: boolean): Promise<{ message: string }> {
+  return apiRequest<{ message: string }>('/api/admin/settings/lock-default-key', {
+    method: 'PUT',
+    body: JSON.stringify({ locked }),
+  });
+}
+
+export async function getDefaultKeyStatus(): Promise<DefaultKeyStatus> {
+  return apiRequest<DefaultKeyStatus>('/api/settings/default-key-status', {
+    method: 'GET',
+  });
+}

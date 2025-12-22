@@ -7,6 +7,7 @@ import { analyzeOverall, analyzeProgress } from '../services/gemini';
 import { getQuizzes } from '../services/api';
 import ReactMarkdown from 'react-markdown';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import DefaultKeyLockedModal from './DefaultKeyLockedModal';
 
 interface AnalyticsProps {
   onAiAnalyzeAttempt?: (attemptId: string) => void;
@@ -33,6 +34,12 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
   const [progressFeedback, setProgressFeedback] = useState<AiResultFeedbackType | null>(null);
   const [progressLoading, setProgressLoading] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [showKeyLockedModal, setShowKeyLockedModal] = useState(false);
+
+  const handleGoToSettings = () => {
+    setShowKeyLockedModal(false);
+    window.dispatchEvent(new CustomEvent('navigate', { detail: 'settings' }));
+  };
 
   const availableChapters = useMemo(() => {
     const chapters = new Set<string>();
@@ -245,8 +252,13 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
       showToast('Phân tích tổng quan thành công!', 'success');
     } catch (error) {
       console.error('Error analyzing overall results with AI:', error);
-      setOverallError('Không thể phân tích tổng quan bằng AI. Vui lòng thử lại sau.');
-      showToast('Không thể phân tích tổng quan. Vui lòng thử lại sau.', 'error');
+      const errorMessage = error instanceof Error ? error.message : '';
+      if (errorMessage.includes('DEFAULT_KEY_LOCKED')) {
+        setShowKeyLockedModal(true);
+      } else {
+        setOverallError('Không thể phân tích tổng quan bằng AI. Vui lòng thử lại sau.');
+        showToast('Không thể phân tích tổng quan. Vui lòng thử lại sau.', 'error');
+      }
     } finally {
       setOverallLoading(false);
     }
@@ -586,8 +598,13 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                     showToast('Phân tích tiến triển thành công!', 'success');
                   } catch (error) {
                     console.error('Error analyzing progress:', error);
-                    setProgressError('Không thể phân tích tiến triển. Vui lòng thử lại sau.');
-                    showToast('Không thể phân tích tiến triển. Vui lòng thử lại sau.', 'error');
+                    const errorMessage = error instanceof Error ? error.message : '';
+                    if (errorMessage.includes('DEFAULT_KEY_LOCKED')) {
+                      setShowKeyLockedModal(true);
+                    } else {
+                      setProgressError('Không thể phân tích tiến triển. Vui lòng thử lại sau.');
+                      showToast('Không thể phân tích tiến triển. Vui lòng thử lại sau.', 'error');
+                    }
                   } finally {
                     setProgressLoading(false);
                   }
@@ -755,6 +772,12 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
           </div>
         )}
       </div>
+
+      <DefaultKeyLockedModal
+        isOpen={showKeyLockedModal}
+        onClose={() => setShowKeyLockedModal(false)}
+        onGoToSettings={handleGoToSettings}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { Quiz } from '../types';
 import { generateQuestions } from '../services/gemini';
+import DefaultKeyLockedModal from './DefaultKeyLockedModal';
 
 const chapters = [
   'Chương 1 - Tổng quan về mạng máy tính',
@@ -101,6 +102,12 @@ export default function CreateQuiz() {
   const [questionCount, setQuestionCount] = useState(10);
   const [duration, setDuration] = useState(30);
   const [generating, setGenerating] = useState(false);
+  const [showKeyLockedModal, setShowKeyLockedModal] = useState(false);
+
+  const handleGoToSettings = () => {
+    setShowKeyLockedModal(false);
+    window.dispatchEvent(new CustomEvent('navigate', { detail: 'settings' }));
+  };
 
   const handleGenerateQuiz = async () => {
     if (!title) {
@@ -165,10 +172,13 @@ export default function CreateQuiz() {
       showToast('Tạo đề thành công!', 'success');
       resetForm();
     } catch (error) {
-      showToast(
-        error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo đề. Vui lòng thử lại.',
-        'error'
-      );
+      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo đề. Vui lòng thử lại.';
+
+      if (errorMessage.includes('DEFAULT_KEY_LOCKED')) {
+        setShowKeyLockedModal(true);
+      } else {
+        showToast(errorMessage, 'error');
+      }
       console.error('Error creating quiz:', error);
     } finally {
       setGenerating(false);
@@ -401,6 +411,13 @@ export default function CreateQuiz() {
           </button>
         </div>
       </div>
+
+      {/* Default Key Locked Modal */}
+      <DefaultKeyLockedModal
+        isOpen={showKeyLockedModal}
+        onClose={() => setShowKeyLockedModal(false)}
+        onGoToSettings={handleGoToSettings}
+      />
     </div>
   );
 }

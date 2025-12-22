@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Settings as SettingsIcon, Eye, EyeOff, ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle, Info, Key, Cpu } from 'lucide-react';
-import { getGeminiSettings, saveGeminiSettings, GeminiSettings } from '../services/api';
+import { Settings as SettingsIcon, Eye, EyeOff, ChevronDown, ChevronUp, ExternalLink, AlertTriangle, CheckCircle, Info, Key, Cpu, Shield, Lock, Unlock, Loader2 } from 'lucide-react';
+import { getGeminiSettings, saveGeminiSettings, GeminiSettings, getSystemSettings, toggleDefaultKeyLock } from '../services/api';
 
 const AVAILABLE_MODELS = [
     { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Mới nhất)' },
@@ -24,7 +24,9 @@ export default function Settings() {
     const [showApiKeyGuide, setShowApiKeyGuide] = useState(false);
     const [showErrorGuide, setShowErrorGuide] = useState(false);
 
-    // Load settings on mount
+    const [defaultKeyLocked, setDefaultKeyLocked] = useState(false);
+    const [isTogglingLock, setIsTogglingLock] = useState(false);
+
     useEffect(() => {
         const loadSettings = async () => {
             try {
@@ -43,7 +45,14 @@ export default function Settings() {
         loadSettings();
     }, []);
 
-    // Track changes
+    useEffect(() => {
+        if (user?.role === 'admin') {
+            getSystemSettings().then(settings => {
+                setDefaultKeyLocked(settings.defaultKeyLocked);
+            }).catch(console.error);
+        }
+    }, [user]);
+
     useEffect(() => {
         if (savedSettings) {
             const modelChanged = selectedModel !== (savedSettings.model || 'gemini-2.5-flash');
@@ -59,7 +68,7 @@ export default function Settings() {
         try {
             const settings: GeminiSettings = {
                 model: selectedModel,
-                apiKey: apiKey || undefined,
+                apiKey: apiKey,
             };
             await saveGeminiSettings(settings);
             setSavedSettings(settings);
@@ -74,6 +83,25 @@ export default function Settings() {
 
     const handleClearApiKey = async () => {
         setApiKey('');
+    };
+
+    const handleToggleDefaultKeyLock = async () => {
+        setIsTogglingLock(true);
+        try {
+            await toggleDefaultKeyLock(!defaultKeyLocked);
+            setDefaultKeyLocked(!defaultKeyLocked);
+            showToast(
+                defaultKeyLocked ? 'Đã mở khóa API key mặc định' : 'Đã khóa API key mặc định',
+                'success'
+            );
+        } catch (error) {
+            showToast(
+                error instanceof Error ? error.message : 'Có lỗi xảy ra',
+                'error'
+            );
+        } finally {
+            setIsTogglingLock(false);
+        }
     };
 
     if (!user) {
@@ -195,7 +223,7 @@ export default function Settings() {
                         >
                             {isSaving ? (
                                 <>
-                                    <span className="animate-spin">⏳</span>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
                                     Đang lưu...
                                 </>
                             ) : (
@@ -203,6 +231,43 @@ export default function Settings() {
                             )}
                         </button>
                     </div>
+
+                    {/* Admin Settings Section */}
+                    {user?.role === 'admin' && (
+                        <div className="pt-4 border-t border-gray-200">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Shield className="w-5 h-5 text-purple-600" />
+                                <h3 className="text-sm font-semibold text-gray-800">Cài đặt Quản trị viên</h3>
+                            </div>
+                            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-purple-900">Khóa API Key mặc định</p>
+                                        <p className="text-xs text-purple-700 mt-1">
+                                            Khi bật, người dùng phải tự thiết lập API Key cá nhân để sử dụng các tính năng AI.
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={handleToggleDefaultKeyLock}
+                                        disabled={isTogglingLock}
+                                        className={`ml-4 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 ${defaultKeyLocked
+                                            ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                            : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                            }`}
+                                    >
+                                        {isTogglingLock ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : defaultKeyLocked ? (
+                                            <Lock className="w-4 h-4" />
+                                        ) : (
+                                            <Unlock className="w-4 h-4" />
+                                        )}
+                                        {defaultKeyLocked ? 'Đang khóa' : 'Đang mở'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* API Key Guide */}
                     <div className="pt-4 border-t border-gray-200">
