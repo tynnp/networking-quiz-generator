@@ -104,6 +104,41 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
                 <button
                   type="button"
                   onClick={() => {
+                    handleNavigate('my-results');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  <ClipboardList className="w-4 h-4 text-[#124874]" />
+                  <span>Kết quả của tôi</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleNavigate('settings');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  <Settings className="w-4 h-4 text-[#124874]" />
+                  <span>Cài đặt cấu hình</span>
+                </button>
+                <div className="border-t border-gray-200 my-1"></div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleNavigate('about-team');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  <Info className="w-4 h-4 text-[#124874]" />
+                  <span>Giới thiệu tác giả</span>
+                </button>
+                <div className="border-t border-gray-200 my-1"></div>
+                <button
+                  type="button"
+                  onClick={() => {
                     setIsUserMenuOpen(false);
                     logout();
                   }}
