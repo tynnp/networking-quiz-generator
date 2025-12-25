@@ -18,7 +18,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
-## [2.1.0] - 2024-12-22
+## [2.1.0] - 2025-12-22
 
 ### Thêm mới
 - Thêm tính năng khóa/mở khóa API Key của hệ thống, buộc người dùng sử dụng Key cá nhân
@@ -28,7 +28,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
-## [2.0.0] - 2024-12-21
+## [2.0.0] - 2025-12-21
 
 ### Thêm mới
 - Thêm tính năng đăng ký, quên mật khẩu, gửi OTP
@@ -39,7 +39,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
-## [1.2.0] - 2024-12-18
+## [1.2.0] - 2025-12-17
 
 ### Thêm mới
 - Thêm tính năng lưu lịch sử đánh giá của AI
@@ -47,7 +47,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
-## [1.1.0] - 2024-12-17
+## [1.1.0] - 2025-12-17
 
 ### Thêm mới
 - Hoàn thiện chức năng
@@ -57,7 +57,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
-## [1.1.0-beta] - 2024-12-16
+## [1.1.0-beta] - 2025-12-01
 
 ### Thêm mới
 - Hoàn thiện chức năng cơ bản hơn so với v1.0.0-beta
@@ -69,7 +69,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
-## [1.0.0-beta] - 2024-12-15
+## [1.0.0-beta] - 2025-11-30
 
 ### Thêm mới
 - Tạo đề thi trắc nghiệm tự động bằng AI (Google Gemini)
