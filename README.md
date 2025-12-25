@@ -169,4 +169,4 @@ Xem [`server/README.md`](server/README.md) để biết hướng dẫn phát tri
 
 ## Giấy phép
 
-Dự án này được cấp phép theo Giấy phép MIT. Xem tệp [LICENSE](LICENSE) để biết chi tiết.
+Dự án này được cấp phép theo Giấy phép Apache-2.0. Xem tệp [LICENSE](LICENSE) để biết chi tiết.

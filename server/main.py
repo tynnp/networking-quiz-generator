@@ -1,3 +1,17 @@
+# Copyright 2025 Nguyễn Ngọc Phú Tỷ
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from fastapi import FastAPI, HTTPException, Depends, Header, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -164,9 +178,7 @@ def build_prompt(params: GenerateQuestionsRequest) -> str:
         types = [mapping.get(t, t) for t in params.knowledgeTypes]
         prompt += "Loại kiến thức: " + ", ".join(types) + "\n"
 
-    # Xử lý độ khó
     if not params.difficulty or params.difficulty == "":
-        # Hỗn hợp
         prompt += "Độ khó: Hỗn hợp (Yêu cầu: 30% Dễ, 40% Trung bình, 30% Khó). Các câu hỏi phải xuất hiện ngẫu nhiên theo độ khó, không gom nhóm.\n"
     else:
         diff_mapping = {
@@ -536,7 +548,6 @@ def change_password(
     
     return {"message": "Đổi mật khẩu thành công"}
 
-# Admin endpoints
 @app.get("/api/admin/users", response_model=List[UserResponse], tags=["Quản lý người dùng"])
 def get_all_users_admin(
     admin_user: dict = Depends(get_admin_user),
@@ -955,7 +966,6 @@ def analyze_overall(
             suggestedNextActions=data.get("suggestedNextActions", []),
         )
         
-        # Save to analysis history
         history_data = {
             "id": f"analysis-{int(time.time() * 1000)}",
             "userId": current_user["id"],
@@ -1073,7 +1083,6 @@ def analyze_progress(
     except Exception as exc:
         handle_gemini_error(exc)
 
-# Analysis History endpoints
 @app.get("/api/analysis-history", response_model=PaginatedResponse[AnalysisHistoryResponse], tags=["Lịch sử phân tích"])
 def get_analysis_history(
     page: int = Query(1, ge=1),
@@ -1356,7 +1365,6 @@ def delete_question_endpoint(
         settings=QuizSettings(**updated_quiz.get("settings", {"questionCount": len(updated_quiz.get("questions", []))}))
     )
 
-# Attempt endpoints
 @app.post("/api/attempts", response_model=AttemptResponse, tags=["Làm bài thi"])
 def create_attempt_endpoint(
     request: CreateAttemptRequest,

@@ -1,3 +1,19 @@
+﻿/*
+ * Copyright 2025 Nguyễn Ngọc Phú Tỷ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
@@ -20,7 +36,6 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
 
-    // Delete confirmation modal
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{ quizId: string; quizTitle: string } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -65,7 +80,6 @@ export default function QuizDiscussion({ onOpenChat }: QuizDiscussionProps) {
             await removeQuizFromDiscussion(deleteTarget.quizId);
             showToast('Đã xóa thảo luận thành công!', 'success');
             closeDeleteModal();
-            // If we deleted the last item on the current page and it's not the first page, go back
             if (discussions.length === 1 && page > 1) {
                 loadDiscussions(page - 1);
             } else {

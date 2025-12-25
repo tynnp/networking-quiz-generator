@@ -1,3 +1,19 @@
+﻿/*
+ * Copyright 2025 Nguyễn Ngọc Phú Tỷ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getAuthToken, getDiscussionMessages, getDiscussionQuiz } from '../services/api';
@@ -20,13 +36,11 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
     const [isConnected, setIsConnected] = useState(false);
     const [isConnecting, setIsConnecting] = useState(true);
 
-    // Quiz data
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [loadingQuiz, setLoadingQuiz] = useState(true);
     const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
     const [showQuestions, setShowQuestions] = useState(true);
 
-    // Mobile panel visibility
     const [showMobileQuestions, setShowMobileQuestions] = useState(false);
     const [showMobileOnline, setShowMobileOnline] = useState(false);
 
@@ -39,7 +53,6 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, []);
 
-    // Load quiz data
     useEffect(() => {
         const loadQuiz = async () => {
             try {
@@ -55,7 +68,6 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
         loadQuiz();
     }, [quizId]);
 
-    // Load initial messages
     useEffect(() => {
         const loadMessages = async () => {
             try {
@@ -68,7 +80,6 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
         loadMessages();
     }, [quizId]);
 
-    // WebSocket connection
     useEffect(() => {
         const token = getAuthToken();
         if (!token) {
@@ -185,14 +196,12 @@ export default function QuizDiscussionChat({ quizId, quizTitle, onBack }: QuizDi
         }
     };
 
-    // Render message with question references highlighted and markdown support
     const renderMessageContent = (content: string, isOwnMessage: boolean) => {
         const parts = content.split(/(\[Câu \d+\])/g);
         return parts.map((part, i) => {
             if (part.match(/\[Câu \d+\]/)) {
                 return <span key={i} className={`font-semibold ${isOwnMessage ? 'text-blue-200' : 'text-blue-600'}`}>{part}</span>;
             }
-            // Use ReactMarkdown for text parts to support markdown/formatting
             return (
                 <ReactMarkdown
                     key={i}

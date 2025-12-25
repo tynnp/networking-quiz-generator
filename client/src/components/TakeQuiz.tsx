@@ -1,3 +1,19 @@
+﻿/*
+ * Copyright 2025 Nguyễn Ngọc Phú Tỷ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useToast } from '../contexts/ToastContext';
@@ -154,7 +170,6 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
       const score = (correctCount / quiz.questions.length) * 100;
       const timeSpent = (quiz.duration * 60) - timeLeft;
 
-      // Save attempt to server
       const createdAttempt = await createAttempt({
         quizId: quiz.id,
         answers,
@@ -162,7 +177,6 @@ export default function TakeQuiz({ quizId, onComplete }: TakeQuizProps) {
         timeSpent
       });
 
-      // Also add to local state for immediate UI update
       addAttempt(createdAttempt);
       showToast('Nộp bài thành công!', 'success');
       onComplete(createdAttempt.id);

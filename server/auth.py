@@ -1,3 +1,17 @@
+# Copyright 2025 Nguyễn Ngọc Phú Tỷ
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from datetime import datetime, timedelta
 from typing import Optional, List
 from jose import JWTError, jwt
@@ -85,7 +99,6 @@ def unlock_user(db: Database, user_id: str) -> bool:
     )
     return result.modified_count > 0
 
-# Quiz functions
 def create_quiz(db: Database, quiz_data: dict) -> dict:
     """Create a new quiz"""
     db.quizzes.insert_one(quiz_data)
@@ -166,7 +179,6 @@ def delete_question_from_quiz(db: Database, quiz_id: str, question_id: str) -> O
     questions = quiz.get("questions", [])
     updated_questions = [q for q in questions if q.get("id") != question_id]
     
-    # Update questionCount in settings
     settings = quiz.get("settings", {})
     settings["questionCount"] = len(updated_questions)
     
@@ -179,7 +191,6 @@ def delete_question_from_quiz(db: Database, quiz_id: str, question_id: str) -> O
         return get_quiz_by_id(db, quiz_id)
     return None
 
-# Attempt functions
 def create_attempt(db: Database, attempt_data: dict) -> dict:
     """Create a new quiz attempt"""
     db.attempts.insert_one(attempt_data)
@@ -199,7 +210,6 @@ def get_attempts_by_quiz(db: Database, quiz_id: str) -> List[dict]:
 
 def update_user(db: Database, user_id: str, updates: dict) -> Optional[dict]:
     """Update user information"""
-    # Remove None values and id from updates
     update_data = {k: v for k, v in updates.items() if v is not None and k != "id"}
     
     if not update_data:

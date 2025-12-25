@@ -1,3 +1,17 @@
+# Copyright 2025 Nguyễn Ngọc Phú Tỷ
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import List, Optional, Literal, Dict, Generic, TypeVar, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -129,7 +143,6 @@ class ChangePasswordRequest(BaseModel):
     current_password: str = Field(..., max_length=128)
     new_password: str = Field(..., min_length=6, max_length=128)
 
-# Quiz DTOs
 class QuizSettings(BaseModel):
     chapter: Optional[str] = Field(None, max_length=200)
     topic: Optional[str] = Field(None, max_length=200)
@@ -170,7 +183,6 @@ class UpdateQuestionRequest(BaseModel):
     difficulty: Optional[str] = Field(None, max_length=20)
     explanation: Optional[str] = Field(None, max_length=1000)
 
-# Quiz Attempt DTOs
 class CreateAttemptRequest(BaseModel):
     quizId: str = Field(..., max_length=100)
     answers: Dict[str, int]
@@ -186,7 +198,6 @@ class AttemptResponse(BaseModel):
     completedAt: str
     timeSpent: int
 
-# Analysis History DTOs
 class AnalysisResultData(BaseModel):
     overallFeedback: str
     strengths: List[str]
@@ -203,7 +214,6 @@ class AnalysisHistoryResponse(BaseModel):
     context: Optional[Dict[str, Any]] = None
     createdAt: str
 
-# Quiz Discussion DTOs
 class AddToDiscussionRequest(BaseModel):
     quizId: str = Field(..., max_length=100)
 

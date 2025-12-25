@@ -1,3 +1,19 @@
+﻿/*
+ * Copyright 2025 Nguyễn Ngọc Phú Tỷ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useState, useEffect } from 'react';
 import { AnalysisHistory as AnalysisHistoryType, PaginatedResponse } from '../types';
 import { getAnalysisHistory, deleteAnalysisHistoryItem } from '../services/api';
@@ -49,7 +65,6 @@ export default function AnalysisHistory() {
             await deleteAnalysisHistoryItem(id);
             showToast('Đã xóa bản ghi phân tích', 'success');
 
-            // Reload current page
             if (history.length === 1 && page > 1) {
                 loadHistory(page - 1);
             } else {
@@ -60,7 +75,6 @@ export default function AnalysisHistory() {
                 setSelectedItem(null);
             }
         } catch (error) {
-            console.error('Error deleting analysis:', error);
             showToast('Không thể xóa bản ghi phân tích', 'error');
         } finally {
             setDeleting(null);

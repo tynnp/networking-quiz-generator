@@ -1,3 +1,17 @@
+# Copyright 2025 Nguyễn Ngọc Phú Tỷ
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from pymongo import MongoClient
 from pymongo.database import Database
 from typing import Optional
@@ -56,32 +70,25 @@ def init_db():
     db.attempts.create_index("id", unique=True)
     db.attempts.create_index("quizId")
     db.attempts.create_index("studentId")
-    # Analysis history indexes
     db.analysis_history.create_index("id", unique=True)
     db.analysis_history.create_index("userId")
     db.analysis_history.create_index("analysisType")
     db.analysis_history.create_index("createdAt")
-    # Chat message indexes
     db.chat_messages.create_index("id", unique=True)
     db.chat_messages.create_index("timestamp")
-    # Private message indexes
     db.private_messages.create_index("id", unique=True)
     db.private_messages.create_index([("fromUserId", 1), ("toUserId", 1)])
     db.private_messages.create_index("timestamp")
-    # Quiz discussion indexes
     db.quiz_discussions.create_index("id", unique=True)
     db.quiz_discussions.create_index("quizId", unique=True)
     db.quiz_discussions.create_index("addedAt")
-    # Discussion message indexes
     db.discussion_messages.create_index("id", unique=True)
     db.discussion_messages.create_index("quizId")
     db.discussion_messages.create_index("timestamp")
-    # OTP indexes
     db.otp_codes.create_index("email", unique=True)
     db.otp_codes.create_index("expiresAt", expireAfterSeconds=0)  
     seed_admin_user()
 
-# Analysis History CRUD functions
 def create_analysis_history(db: Database, data: dict) -> dict:
     """Create a new analysis history record"""
     db.analysis_history.insert_one(data)
@@ -103,7 +110,6 @@ def delete_analysis_history(db: Database, id: str, user_id: str) -> bool:
     result = db.analysis_history.delete_one({"id": id, "userId": user_id})
     return result.deleted_count > 0
 
-# Quiz Discussion CRUD functions
 def add_quiz_to_discussion(db: Database, data: dict) -> dict:
     """Add a quiz to discussions"""
     db.quiz_discussions.insert_one(data)

@@ -1,3 +1,19 @@
+﻿/*
+ * Copyright 2025 Nguyễn Ngọc Phú Tỷ
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -140,7 +156,7 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
 
           <div className="text-right">
             <div className={`text-3xl font-bold ${attempt.score >= 80 ? 'text-green-600' :
-                attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600'
+              attempt.score >= 50 ? 'text-yellow-600' : 'text-red-600'
               }`}>
               {attempt.score.toFixed(1)}
             </div>
@@ -221,10 +237,10 @@ export default function AttemptDetail({ attemptId, onBack }: AttemptDetailProps)
                     >
                       <div className="flex items-center gap-2">
                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center text-[10px] ${isCorrectAnswer
-                            ? 'border-green-500 bg-green-500 text-white'
-                            : isUserChoice
-                              ? 'border-red-500 bg-red-500 text-white'
-                              : 'border-gray-300 text-gray-500'
+                          ? 'border-green-500 bg-green-500 text-white'
+                          : isUserChoice
+                            ? 'border-red-500 bg-red-500 text-white'
+                            : 'border-gray-300 text-gray-500'
                           }`}>
                           {String.fromCharCode(65 + optionIndex)}
                         </div>
