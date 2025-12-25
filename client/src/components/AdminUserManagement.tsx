@@ -222,7 +222,7 @@ export default function AdminUserManagement() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-5xl mx-auto">
       <div className="mb-4 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
         <div>
           <h2 className="block-title__title">QUẢN LÝ NGƯỜI DÙNG</h2>

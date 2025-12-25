@@ -113,7 +113,7 @@ export default function AnalysisHistory() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
             <div className="mb-2">
                 <h2 className="block-title__title">LỊCH SỬ PHÂN TÍCH AI</h2>
             </div>

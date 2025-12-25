@@ -118,7 +118,7 @@ export default function Settings() {
 
     if (isLoading) {
         return (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-5xl mx-auto">
                 <div className="mb-2">
                     <h2 className="block-title__title">CÀI ĐẶT CẤU HÌNH</h2>
                 </div>
@@ -132,7 +132,7 @@ export default function Settings() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
             <div className="mb-2">
                 <h2 className="block-title__title">CÀI ĐẶT CẤU HÌNH</h2>
             </div>
