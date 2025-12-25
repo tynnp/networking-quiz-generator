@@ -12,6 +12,7 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 - Thêm một số tùy chọn vào menu trên góc phải
 
 ### Thay đổi
+- Đổi giấy phép từ MIT sang Apache-2.0
 - Xóa hiệu ứng tuyết rơi
 - Cập nhật gif demo
 
