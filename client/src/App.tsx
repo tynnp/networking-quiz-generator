@@ -30,7 +30,7 @@ function AppContent() {
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
   const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(null);
   const [selectedDiscussionQuiz, setSelectedDiscussionQuiz] = useState<{ id: string; title: string } | null>(null);
-  const [isSnowEnabled, setIsSnowEnabled] = useState(true);
+
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot-password'>('login');
 
   useEffect(() => {
@@ -249,8 +249,6 @@ function AppContent() {
     <Layout
       currentView={currentView}
       onNavigate={handleNavigate}
-      isSnowEnabled={isSnowEnabled}
-      onToggleSnow={() => setIsSnowEnabled(prev => !prev)}
     >
       {renderContent()}
     </Layout>

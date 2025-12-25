@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { forgotPassword, resetPassword } from '../services/api';
 import { Check, Eye, EyeOff } from 'lucide-react';
-import Snowfall from './Snowfall';
 
 interface ForgotPasswordProps {
     onBackToLogin: () => void;
@@ -106,7 +105,6 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBackToLogin }) => {
 
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 relative">
-            <Snowfall />
             {/* Left: large image (2/3 on desktop) */}
             <div className="hidden md:block md:w-2/3">
                 <img
