@@ -7,7 +7,6 @@ import {
   BarChart3,
   User,
   UserCircle,
-  Sparkles,
   Users,
   Menu,
   X,
@@ -18,17 +17,14 @@ import {
   Info,
   Settings
 } from 'lucide-react';
-import Snowfall from './Snowfall';
 
 interface LayoutProps {
   children: ReactNode;
   currentView: string;
   onNavigate: (view: string) => void;
-  isSnowEnabled: boolean;
-  onToggleSnow: () => void;
 }
 
-export default function Layout({ children, currentView, onNavigate, isSnowEnabled, onToggleSnow }: LayoutProps) {
+export default function Layout({ children, currentView, onNavigate }: LayoutProps) {
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -108,17 +104,6 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
                 <button
                   type="button"
                   onClick={() => {
-                    onToggleSnow();
-                    setIsUserMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100"
-                >
-                  <Sparkles className="w-4 h-4 text-[#124874]" />
-                  <span>{isSnowEnabled ? 'Tắt tuyết rơi' : 'Bật tuyết rơi'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
                     setIsUserMenuOpen(false);
                     logout();
                   }}
@@ -181,7 +166,6 @@ export default function Layout({ children, currentView, onNavigate, isSnowEnable
           {children}
         </main>
       </div>
-      {isSnowEnabled && <Snowfall />}
     </div>
   );
 }

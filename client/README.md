@@ -28,7 +28,6 @@ client/
 │   │   ├── QuizPreview.tsx
 │   │   ├── Register.tsx        
 │   │   ├── Settings.tsx        
-│   │   ├── Snowfall.tsx
 │   │   └── TakeQuiz.tsx
 │   ├── contexts/               # React Context providers
 │   │   ├── AuthContext.tsx

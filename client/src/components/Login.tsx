@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
-import Snowfall from './Snowfall';
+
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -31,7 +31,6 @@ export default function Login({ onSwitchToRegister, onSwitchToForgotPassword }: 
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 relative">
-      <Snowfall />
       {/* Left: large image (3/5 on desktop) */}
       <div className="hidden md:block md:w-2/3">
         <img
