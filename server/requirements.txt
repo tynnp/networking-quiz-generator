@@ -1,7 +1,7 @@
 fastapi==0.118.2
 uvicorn[standard]==0.37.0
 requests==2.32.5
-google-genai==1.50.1
+google-genai==1.56.0
 python-dotenv==1.0.1
 python-jose[cryptography]==3.5.0
 bcrypt==5.0.0
