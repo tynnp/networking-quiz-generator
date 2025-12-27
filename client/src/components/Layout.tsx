@@ -31,7 +31,14 @@ import {
   ClipboardList,
   MessagesSquare,
   Info,
-  Settings
+  Settings,
+  BookOpen,
+  TrendingUp,
+  MessageSquare,
+  Cog,
+  Shield,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -40,24 +47,81 @@ interface LayoutProps {
   onNavigate: (view: string) => void;
 }
 
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+interface MenuCategory {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: MenuItem[];
+}
+
 export default function Layout({ children, currentView, onNavigate }: LayoutProps) {
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<string[]>(['community', 'settings', 'admin']);
 
-  const menuItems = [
-    { id: 'quiz-list', label: 'Danh sách đề', icon: FileText },
-    { id: 'create-quiz', label: 'Tạo đề mới', icon: PlusCircle },
-    { id: 'analytics', label: 'Phân tích kiến thức', icon: BarChart3 },
-    { id: 'analysis-history', label: 'Lịch sử phân tích', icon: History },
-    { id: 'my-results', label: 'Kết quả của tôi', icon: ClipboardList },
-    { id: 'community-chat', label: 'Chat với cộng đồng', icon: MessageCircle },
-    { id: 'quiz-discussion', label: 'Thảo luận đề thi', icon: MessagesSquare },
-    { id: 'settings', label: 'Cài đặt cấu hình', icon: Settings },
-    { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
-    { id: 'about-team', label: 'Giới thiệu tác giả', icon: Info },
-    ...(user?.role === 'admin' ? [{ id: 'admin-users', label: 'Quản lý người dùng', icon: Users }] : [])
+  const menuCategories: MenuCategory[] = [
+    {
+      id: 'exam',
+      label: 'Đề thi',
+      icon: BookOpen,
+      items: [
+        { id: 'quiz-list', label: 'Danh sách đề', icon: FileText },
+        { id: 'create-quiz', label: 'Tạo đề mới', icon: PlusCircle },
+      ]
+    },
+    {
+      id: 'analysis',
+      label: 'Phân tích',
+      icon: TrendingUp,
+      items: [
+        { id: 'analytics', label: 'Phân tích kiến thức', icon: BarChart3 },
+        { id: 'analysis-history', label: 'Lịch sử phân tích', icon: History },
+        { id: 'my-results', label: 'Kết quả của tôi', icon: ClipboardList },
+      ]
+    },
+    {
+      id: 'community',
+      label: 'Cộng đồng',
+      icon: MessageSquare,
+      items: [
+        { id: 'community-chat', label: 'Chat cộng đồng', icon: MessageCircle },
+        { id: 'quiz-discussion', label: 'Thảo luận đề thi', icon: MessagesSquare },
+      ]
+    },
+    {
+      id: 'settings',
+      label: 'Cài đặt',
+      icon: Cog,
+      items: [
+        { id: 'settings', label: 'Cấu hình AI', icon: Settings },
+        { id: 'profile', label: 'Thông tin cá nhân', icon: UserCircle },
+        { id: 'about-team', label: 'Giới thiệu tác giả', icon: Info },
+      ]
+    },
+    ...(user?.role === 'admin' ? [{
+      id: 'admin',
+      label: 'Quản trị',
+      icon: Shield,
+      items: [
+        { id: 'admin-users', label: 'Quản lý người dùng', icon: Users },
+      ]
+    }] : [])
   ];
+
+  const toggleCategory = (categoryId: string) => {
+    setCollapsedCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   const handleNavigate = (view: string) => {
     onNavigate(view);
@@ -65,7 +129,7 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
   };
 
   return (
-    <div className="relative h-screen bg-gray-50 pt-14 md:pt-16 overflow-hidden">
+    <div className="relative h-screen bg-gray-50 pt-12 md:pt-16 overflow-hidden">
       <header className="fixed top-0 left-0 right-0 bg-[#124874] text-white shadow-md z-20">
         <div className="px-3 md:px-4 py-2 flex items-center justify-between">
           <div className="flex items-center gap-2 md:gap-3">
@@ -169,7 +233,7 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
         </div>
       </header>
 
-      <div className="relative flex h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] z-10">
+      <div className="relative flex h-[calc(100vh-3rem)] md:h-[calc(100vh-4rem)] z-10">
         {/* Mobile overlay */}
         {isMobileMenuOpen && (
           <div
@@ -180,34 +244,70 @@ export default function Layout({ children, currentView, onNavigate }: LayoutProp
 
         {/* Sidebar - responsive */}
         <aside className={`
-          fixed top-14 md:top-16 left-0 w-64 bg-[#124874] shadow-md h-[calc(100vh-3.5rem)] md:h-[calc(100vh-4rem)] overflow-y-auto border-r border-black/40 z-20
+          fixed top-12 md:top-16 left-0 w-64 bg-[#124874] shadow-md h-[calc(100vh-3rem)] md:h-[calc(100vh-4rem)] overflow-y-auto border-r border-black/40 z-20
           transition-transform duration-300 ease-in-out flex flex-col justify-between
+          scrollbar-hide
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           md:translate-x-0
         `}>
-          <nav className="p-3">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
+          <nav className="p-2 space-y-1">
+            {menuCategories.map((category) => {
+              const CategoryIcon = category.icon;
+              const isCollapsed = collapsedCategories.includes(category.id);
+              const hasActiveItem = category.items.some(item => currentView === item.id);
 
               return (
-                <button
-                  key={item.id}
-                  onClick={() => handleNavigate(item.id)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded mb-1 transition-colors text-sm ${isActive
-                    ? 'bg-white text-[#124874]'
-                    : 'text-white hover:bg-[#0d3351]'
-                    }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </button>
+                <div key={category.id}>
+                  {/* Category Header */}
+                  <button
+                    onClick={() => toggleCategory(category.id)}
+                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded transition-colors text-sm font-medium ${hasActiveItem ? 'bg-white/10 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <CategoryIcon className="w-4 h-4" />
+                      <span>{category.label}</span>
+                    </div>
+                    {isCollapsed ? (
+                      <ChevronRight className="w-4 h-4" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  {/* Category Items */}
+                  {!isCollapsed && (
+                    <div className="ml-3 mt-0.5 space-y-0.5">
+                      {category.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = currentView === item.id;
+
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => handleNavigate(item.id)}
+                            className={`w-full flex items-center gap-2 px-2 py-1 rounded transition-colors text-sm ${isActive
+                              ? 'bg-white text-[#124874] font-medium'
+                              : 'text-white/70 hover:bg-white/10 hover:text-white'
+                              }`}
+                          >
+                            <Icon className="w-3.5 h-3.5" />
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </nav>
 
-          <div className="p-4 border-t border-white/10">
-            <p className="text-xs text-white/60 text-center leading-relaxed">
+          <div
+            className="p-4 border-t border-white/10 cursor-pointer hover:bg-white/5 transition-colors"
+            onClick={() => handleNavigate('about-team')}
+          >
+            <p className="text-xs text-white/60 text-center leading-relaxed hover:text-white/80">
               © 2025 Nhóm đồ án Trí tuệ nhân tạo của Nguyễn Ngọc Phú Tỷ
             </p>
           </div>
