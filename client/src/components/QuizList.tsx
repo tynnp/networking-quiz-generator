@@ -18,7 +18,7 @@ import { useState, useMemo } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight, MessageSquarePlus, Printer, X, FileText, FileCheck } from 'lucide-react';
+import { Eye, PlayCircle, Trash2, Search, ChevronLeft, ChevronRight, MessageSquarePlus, Printer, X, FileText, FileCheck, AlertTriangle } from 'lucide-react';
 import { addQuizToDiscussion } from '../services/api';
 import { Quiz } from '../types';
 
@@ -33,6 +33,8 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
   const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [printModalQuiz, setPrintModalQuiz] = useState<Quiz | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null);
 
   const filteredQuizzes = useMemo(() => {
     if (!searchQuery.trim()) return quizzes;
@@ -57,17 +59,23 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
     });
   }, [quizzes, searchQuery]);
 
-  const handleDeleteQuiz = async (quizId: string) => {
-    const quiz = quizzes.find(q => q.id === quizId);
-    if (!quiz) return;
+  const openDeleteModal = (quizId: string, quizTitle: string) => {
+    setDeleteTarget({ id: quizId, title: quizTitle });
+    setShowDeleteModal(true);
+  };
 
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa đề "${quiz.title}"?`)) {
-      return;
-    }
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
+
+  const handleDeleteQuiz = async () => {
+    if (!deleteTarget) return;
 
     try {
-      await deleteQuiz(quizId);
+      await deleteQuiz(deleteTarget.id);
       showToast('Xóa đề thành công!', 'success');
+      closeDeleteModal();
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa đề.',
@@ -406,7 +414,7 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                               {quiz.createdBy === user.id && (
                                 <button
                                   type="button"
-                                  onClick={() => handleDeleteQuiz(quiz.id)}
+                                  onClick={() => openDeleteModal(quiz.id, quiz.title)}
                                   className="px-2 md:px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 transition-colors"
                                   title="Xóa đề"
                                 >
@@ -541,6 +549,52 @@ export default function QuizList({ onTakeQuiz, onPreviewQuiz }: QuizListProps) {
                   className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
                 >
                   Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deleteTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                Xác nhận xóa đề thi
+              </h3>
+              <button
+                onClick={closeDeleteModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6">
+              <p className="text-sm text-gray-600 mb-4">
+                Bạn có chắc chắn muốn xóa đề thi "<span className="font-semibold text-[#124874]">{deleteTarget.title}</span>"?
+              </p>
+              <p className="text-xs md:text-sm text-red-500 mb-6">
+                Hành động này không thể hoàn tác.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteQuiz}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors"
+                >
+                  Xóa đề thi
                 </button>
               </div>
             </div>
