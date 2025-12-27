@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from pymongo.database import Database
+from email_service import generate_otp, send_otp_email, send_reset_password_otp_email
 
 from dtos import (
     AnalyzeOverallRequest,
@@ -88,8 +89,6 @@ from database import (
     save_system_settings,
 )
 
-from email_service import generate_otp, send_otp_email, send_reset_password_otp_email
-
 from auth import (
     verify_password,
     create_access_token,
@@ -117,6 +116,7 @@ from auth import (
 )
 
 load_dotenv()
+security_scheme = HTTPBearer()
 
 tags_metadata = [
     {"name": "Xác thực", "description": "Đăng nhập, đăng ký và quản lý hồ sơ người dùng"},
@@ -359,14 +359,14 @@ def parse_generated_questions(
         raise
 
 def get_current_user(
-    authorization: Optional[str] = Header(None),
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
     db: Database = Depends(get_db)
 ) -> dict:
-    if not authorization:
+    token = credentials.credentials
+    if not token:
         raise HTTPException(status_code=401, detail="Chưa xác thực")
     
     try:
-        token = authorization.replace("Bearer ", "") if authorization.startswith("Bearer ") else authorization
         payload = verify_token(token)
         if not payload:
             raise HTTPException(status_code=401, detail="Token không hợp lệ")
