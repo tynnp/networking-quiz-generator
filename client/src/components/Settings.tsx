@@ -21,7 +21,9 @@ import { Settings as SettingsIcon, Eye, EyeOff, ChevronDown, ChevronUp, External
 import { getGeminiSettings, saveGeminiSettings, GeminiSettings, getSystemSettings, toggleDefaultKeyLock } from '../services/api';
 
 const AVAILABLE_MODELS = [
-    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (Mới nhất)' },
+    { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro Preview (Mới nhất)' },
+    { value: 'gemini-3-flash-preview', label: 'Gemini 3 Flash Preview' },
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
     { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
 ];
 
