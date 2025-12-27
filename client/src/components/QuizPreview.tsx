@@ -18,7 +18,7 @@ import { useState } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
-import { Pencil, Trash2, X, Save } from 'lucide-react';
+import { Pencil, Trash2, X, Save, AlertTriangle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface QuizPreviewProps {
@@ -44,6 +44,8 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
   const [editingExplanation, setEditingExplanation] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; content: string } | null>(null);
 
   const startEditQuestion = (questionId: string) => {
     if (!quiz) return;
@@ -84,20 +86,28 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
     }
   };
 
-  const handleDeleteQuestion = async (questionId: string) => {
-    if (!quiz) return;
-    if (!window.confirm('Bạn có chắc chắn muốn xóa câu hỏi này khỏi đề thi?')) {
-      return;
-    }
+  const openDeleteModal = (questionId: string, questionContent: string) => {
+    setDeleteTarget({ id: questionId, content: questionContent });
+    setShowDeleteModal(true);
+  };
 
-    setIsDeleting(questionId);
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
+
+  const handleDeleteQuestion = async () => {
+    if (!quiz || !deleteTarget) return;
+
+    setIsDeleting(deleteTarget.id);
     try {
-      await deleteQuestion(quiz.id, questionId);
+      await deleteQuestion(quiz.id, deleteTarget.id);
       await refreshQuizzes();
-      if (editingQuestionId === questionId) {
+      if (editingQuestionId === deleteTarget.id) {
         setEditingQuestionId(null);
       }
       showToast('Xóa câu hỏi thành công!', 'success');
+      closeDeleteModal();
     } catch (error) {
       showToast(
         error instanceof Error ? error.message : 'Có lỗi xảy ra khi xóa câu hỏi.',
@@ -262,7 +272,7 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                     )}
                     <button
                       type="button"
-                      onClick={() => handleDeleteQuestion(question.id)}
+                      onClick={() => openDeleteModal(question.id, question.content)}
                       disabled={isDeleting === question.id}
                       className="px-3 py-1.5 rounded-lg border border-red-400 text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                       title="Xóa câu hỏi"
@@ -463,6 +473,56 @@ export default function QuizPreview({ quizId, onBack }: QuizPreviewProps) {
                 >
                   <X className="w-4 h-4 mr-2" />
                   Hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Question Confirmation Modal */}
+      {showDeleteModal && deleteTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h3 className="text-base md:text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-red-500" />
+                Xác nhận xóa câu hỏi
+              </h3>
+              <button
+                onClick={closeDeleteModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 md:p-6">
+              <p className="text-sm text-gray-600 mb-2">
+                Bạn có chắc chắn muốn xóa câu hỏi này?
+              </p>
+              <p className="text-xs text-gray-500 mb-4 line-clamp-2 italic">
+                "{deleteTarget.content}"
+              </p>
+              <p className="text-xs md:text-sm text-red-500 mb-6">
+                Hành động này không thể hoàn tác.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeDeleteModal}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteQuestion}
+                  disabled={isDeleting !== null}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700 transition-colors disabled:opacity-50"
+                >
+                  {isDeleting ? 'Đang xóa...' : 'Xóa câu hỏi'}
                 </button>
               </div>
             </div>
