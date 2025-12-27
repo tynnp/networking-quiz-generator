@@ -4,6 +4,23 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
+## [2.3.0] - 2025-12-28
+
+### Thêm mới
+- Thêm lựa chọn model Gemini 3 Pro Preview và Gemini 3 Flash Preview
+- Thêm modal xác nhận khi xóa đề thi và xóa câu hỏi trong đề
+- Thêm ghi chú cảnh báo AI có thể mắc lỗi vào giao diện
+- Thêm nút Authorize ở đầu trang Swagger Docs (xác thực token một lần cho tất cả API)
+- Nâng cấp deploy.sh với các lệnh CLI: start, stop, restart, logs, status, cleanup, update
+
+### Thay đổi
+- Cải thiện prompt để tăng độ chính xác khi tạo câu hỏi bằng AI (thêm các quy tắc về tính chính xác kỹ thuật)
+- Tổ chức lại sidebar: gom nhóm chức năng theo category, hỗ trợ thu gọn/mở rộng
+- Cập nhật thư viện google-genai lên phiên bản 1.56.0
+- Cập nhật README: chú thích gif demo, cập nhật hướng dẫn deploy
+
+---
+
 ## [2.2.0] - 2025-12-25
 
 ### Thêm mới
