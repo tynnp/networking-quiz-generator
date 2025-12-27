@@ -23,6 +23,7 @@ import re
 import time
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 from pymongo.database import Database
 
 from dtos import (
@@ -153,6 +154,18 @@ MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-2.5-flash")
 print("GOOGLE_API_KEY configured:", bool(API_KEY))
 print("GEMINI_MODEL_NAME configured:", MODEL_NAME)
 
+GENERATION_CONFIG_QUESTIONS = types.GenerateContentConfig(
+    temperature=0.3,
+    top_p=0.95,
+    top_k=40,
+)
+
+GENERATION_CONFIG_ANALYSIS = types.GenerateContentConfig(
+    temperature=0.5,
+    top_p=0.95,
+    top_k=40,
+)
+
 client: genai.Client | None = None
 if API_KEY:
     client = genai.Client(api_key=API_KEY)
@@ -199,20 +212,29 @@ def build_prompt(params: GenerateQuestionsRequest) -> str:
         "explanation": "Giải thích ngắn gọn vì sao đáp án đúng"
     }}
 
-    YÊU CẦU BẮT BUỘC:
-    1. Chỉ trả về JSON THUẦN — không thêm mô tả, không thêm giải thích bên ngoài.
-    2. "correctAnswer" là chỉ số (index) của đáp án đúng trong mảng "options", bắt đầu từ 0.
-    3. Các đáp án phải:
-    - Có độ dài tương đương nhau (tránh trường hợp câu dài nhất là câu đúng).
-    - Tránh bị đoán bằng cấu trúc bề ngoài (không quá chung chung, không quá đặc thù).
-    - Không theo thứ tự cố định hoặc pattern nhận biết.
-    - Nội dung các lựa chọn phải cùng kiểu (không trộn số liệu, định nghĩa, mô tả…).
-    4. Đáp án đúng phải được đặt ở vị trí ngẫu nhiên.
-    5. Không được để đáp án đúng nổi bật bằng các từ khóa như “tất cả”, “đúng nhất”, “chính xác nhất”, “câu trên đều sai”, trừ khi thuộc tính logic của kiến thức yêu cầu.
-    6. "explanation" phải ngắn gọn, khách quan, chỉ giải thích tại sao đáp án đúng là đúng.
-    7. TRẢ VỀ ĐÚNG giá trị "difficulty" tương ứng cho mỗi câu hỏi ("easy", "medium", hoặc "hard").
+    YÊU CẦU VỀ TÍNH CHÍNH XÁC (BẮT BUỘC):
+    1. Mọi thông tin kỹ thuật PHẢI dựa trên chuẩn RFC, IEEE, hoặc tài liệu chính thống.
+    2. KHÔNG ĐƯỢC bịa số port, địa chỉ IP, số liệu băng thông, hoặc thông số kỹ thuật.
+       - Ví dụ: DHCP dùng port 67/68, HTTP dùng port 80, HTTPS dùng port 443.
+    3. Với câu hỏi tính toán (subnet, bandwidth, delay):
+       - PHẢI kiểm tra lại phép tính trước khi đưa vào đáp án.
+       - Trong "explanation" PHẢI trình bày cách tính để xác minh kết quả.
+    4. KHÔNG được nhầm lẫn giữa các giao thức (TCP vs UDP, IPv4 vs IPv6).
+    5. Các lớp mạng (Layer) phải chính xác theo mô hình OSI hoặc TCP/IP.
 
-    Chỉ xuất JSON, không bọc trong dấu ``` và không thêm bất kỳ văn bản nào khác.
+    YÊU CẦU VỀ CẤU TRÚC ĐÁP ÁN:
+    6. "correctAnswer" là chỉ số (index) của đáp án đúng, bắt đầu từ 0.
+    7. Các đáp án phải:
+       - Có độ dài tương đương nhau (tránh câu dài nhất là đáp án đúng).
+       - Không quá chung chung hoặc quá đặc thù.
+       - Nội dung cùng kiểu (không trộn số liệu, định nghĩa, mô tả).
+    8. Đáp án đúng phải ở vị trí NGẪU NHIÊN (không luôn là A hoặc C).
+    9. KHÔNG dùng từ khóa như "tất cả", "đúng nhất", "chính xác nhất", "câu trên đều sai".
+    
+    YÊU CẦU KHÁC:
+    10. "explanation" ngắn gọn, khách quan, giải thích tại sao đáp án đúng là đúng.
+    11. TRẢ VỀ ĐÚNG "difficulty" cho mỗi câu ("easy", "medium", "hard").
+    12. Chỉ trả về JSON THUẦN, không bọc trong ``` và không thêm text khác.
     """
 
     return prompt
@@ -854,6 +876,7 @@ def generate_questions(
         gemini_response = user_client.models.generate_content(
             model=user_model,
             contents=prompt,
+            config=GENERATION_CONFIG_QUESTIONS,
         )
 
         generated_text = gemini_response.text
@@ -884,6 +907,7 @@ def analyze_result(
         gemini_response = user_client.models.generate_content(
             model=user_model,
             contents=prompt,
+            config=GENERATION_CONFIG_ANALYSIS,
         )
 
         generated_text = gemini_response.text or ""
@@ -906,7 +930,6 @@ def analyze_result(
             suggestedNextActions=data.get("suggestedNextActions", []),
         )
         
-        # Save to analysis history
         history_data = {
             "id": f"analysis-{int(time.time() * 1000)}",
             "userId": current_user["id"],
@@ -944,6 +967,7 @@ def analyze_overall(
         gemini_response = user_client.models.generate_content(
             model=user_model,
             contents=prompt,
+            config=GENERATION_CONFIG_ANALYSIS,
         )
 
         generated_text = gemini_response.text or ""
@@ -1043,6 +1067,7 @@ def analyze_progress(
         gemini_response = user_client.models.generate_content(
             model=user_model,
             contents=prompt,
+            config=GENERATION_CONFIG_ANALYSIS,
         )
 
         generated_text = gemini_response.text or ""
