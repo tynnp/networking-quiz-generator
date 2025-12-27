@@ -22,7 +22,7 @@ import { KnowledgeAnalysis, QuizAttempt, AiResultFeedback as AiResultFeedbackTyp
 import { analyzeOverall, analyzeProgress } from '../services/gemini';
 import { getQuizzes } from '../services/api';
 import ReactMarkdown from 'react-markdown';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertTriangle } from 'lucide-react';
 import DefaultKeyLockedModal from './DefaultKeyLockedModal';
 
 interface AnalyticsProps {
@@ -554,6 +554,11 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                     </ul>
                   </div>
                 )}
+
+                <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-4">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  <span>Lưu ý: Phân tích do AI tạo ra có thể chứa sai sót. Kết quả chỉ mang tính chất tham khảo.</span>
+                </div>
               </div>
             )}
           </div>
@@ -760,6 +765,11 @@ export default function Analytics({ onAiAnalyzeAttempt }: AnalyticsProps) {
                   </ul>
                 </div>
               )}
+
+              <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-4">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                <span>Lưu ý: Phân tích do AI tạo ra có thể chứa sai sót. Kết quả chỉ mang tính chất tham khảo.</span>
+              </div>
             </div>
           )}
 

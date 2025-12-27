@@ -21,6 +21,7 @@ import { useToast } from '../contexts/ToastContext';
 import { Quiz } from '../types';
 import { generateQuestions } from '../services/gemini';
 import DefaultKeyLockedModal from './DefaultKeyLockedModal';
+import { AlertTriangle } from 'lucide-react';
 
 const chapters = [
   'Chương 1 - Tổng quan về mạng máy tính',
@@ -423,6 +424,11 @@ export default function CreateQuiz() {
           >
             {generating ? 'Đang tạo đề...' : 'Tạo đề thi tự động'}
           </button>
+
+          <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+            <span>Lưu ý: Nội dung do AI tạo ra có thể chứa sai sót. Vui lòng lưu ý trước khi sử dụng.</span>
+          </div>
         </div>
       </div>
 
