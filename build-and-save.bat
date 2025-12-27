@@ -64,6 +64,14 @@ dir docker-images\*.tar /b 2>nul
 echo.
 echo Buoc tiep theo:
 echo 1. Copy thu muc docker-images sang server
-echo 2. Chay: chmod +x deploy.sh ^&^& ./deploy.sh
+echo 2. Chay: chmod +x deploy.sh
+echo 3. Cac lenh deploy:
+echo    ./deploy.sh load     - Load images tu file .tar
+echo    ./deploy.sh start    - Khoi dong containers
+echo    ./deploy.sh stop     - Dung containers
+echo    ./deploy.sh status   - Xem trang thai
+echo    ./deploy.sh logs     - Xem logs
+echo    ./deploy.sh update   - Cap nhat images va khoi dong lai
+echo    ./deploy.sh help     - Xem tat ca lenh
 echo.
 pause

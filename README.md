@@ -118,15 +118,25 @@ Script này sẽ:
 
 #### 3. Triển khai (Trên Linux Server)
 1. Copy toàn bộ thư mục `docker-images/` lên server của bạn.
-2. Truy cập vào thư mục và chạy script deploy:
+2. Truy cập vào thư mục và cấp quyền cho script:
    ```bash
    cd docker-images
    chmod +x deploy.sh
-   ./deploy.sh
    ```
-3. Script sẽ tự động:
-   - Load các docker images
-   - Khởi động containers bằng Docker Compose
+3. Sử dụng các lệnh deploy:
+   ```bash
+   ./deploy.sh load      # Load images từ file .tar
+   ./deploy.sh start     # Khởi động containers
+   ./deploy.sh stop      # Dừng containers
+   ./deploy.sh restart   # Khởi động lại containers
+   ./deploy.sh status    # Xem trạng thái containers
+   ./deploy.sh logs      # Xem logs (thêm tên container để xem riêng)
+   ./deploy.sh update    # Cập nhật images mới và khởi động lại
+   ./deploy.sh cleanup   # Dọn dẹp - xóa containers, images
+   ./deploy.sh help      # Xem tất cả lệnh
+   ```
+
+4. Sau khi khởi động:
    - Frontend sẽ chạy tại port 80 (hoặc port cấu hình trong `docker-compose.yml`)
    - Backend sẽ chạy tại port 8000
 
