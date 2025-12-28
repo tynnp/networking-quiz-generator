@@ -103,7 +103,7 @@ networking-quiz-generator/
 - Reset mật khẩu cho người dùng
 - Khóa API key mặc định (buộc user phải dùng key riêng)
 
-## Bắt đầu
+## Cài đặt chương trình
 
 ### Cách 1: Chạy thủ công
 Xem hướng dẫn cài đặt chi tiết trong:
