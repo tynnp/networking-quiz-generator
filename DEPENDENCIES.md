@@ -17,6 +17,11 @@ Tài liệu này liệt kê tất cả các thư viện và gói phụ thuộc �
 | bcrypt | 5.0.0 | Apache-2.0 | Thư viện mã hóa mật khẩu bcrypt | https://github.com/pyca/bcrypt |
 | python-multipart | 0.0.20 | Apache-2.0 | Streaming multipart parser cho Python | https://github.com/andrew-d/python-multipart |
 | pymongo | 4.15.4 | Apache-2.0 | Driver Python chính thức cho MongoDB | https://pymongo.readthedocs.io/ |
+| pytest | 8.3.4 | MIT | Framework testing cho Python | https://docs.pytest.org/ |
+| pytest-asyncio | 0.24.0 | Apache-2.0 | Thư viện hỗ trợ testing bất đồng bộ cho pytest | https://github.com/pytest-dev/pytest-asyncio |
+| pytest-cov | 6.0.0 | MIT | Plugin pytest để đo code coverage | https://pytest-cov.readthedocs.io/ |
+| httpx | 0.28.1 | BSD-3-Clause | Client HTTP thế hệ mới, hỗ trợ async (dùng cho test) | https://www.python-httpx.org/ |
+| mongomock | 4.3.0 | ISC | Thư viện mock MongoDB cho testing | https://github.com/mongomock/mongomock |
 
 ---
 
