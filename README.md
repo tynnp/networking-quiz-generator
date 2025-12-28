@@ -8,7 +8,7 @@
 
 <br/>
 
-**Hệ thống trắc nghiệm thông minh sử dụng AI, hỗ trợ phân tích kết quả, định hướng học tập và tương tác cộng đồng**
+**Hệ thống tạo đề thi trắc nghiệm thông minh sử dụng AI cho môn Mạng máy tính, hỗ trợ phân tích kết quả học tập, định hướng cải thiện và tương tác cộng đồng**
 
 ---
 
@@ -196,9 +196,9 @@ Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến th�
 
 ### Giấy phép
 
-Dự án được cấp phép theo **Apache License 2.0**
+Kho mã nguồn được cấp phép theo **Apache License 2.0**
 
-<img src="https://img.shields.io/badge/Apache-2.0-D22128?style=flat-square&logo=apache&logoColor=white" alt="Apache 2.0" />
+<sub>Đồ án học phần Trí tuệ nhân tạo</sub>
 
 ---
 
