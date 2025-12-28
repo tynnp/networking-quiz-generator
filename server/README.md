@@ -12,7 +12,21 @@ server/
 ├── database.py                 # Kết nối và khởi tạo database
 ├── dtos.py                     # Pydantic models cho validation request/response
 ├── requirements.txt            # Python dependencies
-└── README.md                   # File này
+├── README.md                   # File này
+└── tests/                      # Thư mục chứa tests
+    ├── conftest.py             # Shared fixtures cho tests
+    ├── unit/                   # Unit tests
+    │   ├── test_auth.py        # Auth module tests
+    │   ├── test_database.py    # Database module tests
+    │   ├── test_dtos.py        # DTOs validation tests
+    │   └── test_email_service.py # Email service tests
+    └── integration/            # Integration tests
+        ├── test_api_auth.py    # Auth API endpoints
+        ├── test_api_quizzes.py # Quiz API endpoints
+        ├── test_api_users.py   # User management API
+        ├── test_api_attempts.py# Attempt API endpoints
+        ├── test_api_analysis.py# Analysis API endpoints
+        └── test_api_discussions.py # Discussion API endpoints
 ```
 
 ## Công nghệ
@@ -88,16 +102,41 @@ API sẽ có sẵn tại `http://localhost:8000`
 
 Tài liệu API (Swagger UI) sẽ có sẵn tại `http://localhost:8000/docs`
 
-## Cấu trúc dự án
+## Testing
 
+### Cài đặt test dependencies
+
+```bash
+pip install pytest pytest-asyncio pytest-cov httpx mongomock
 ```
-server/
-├── main.py              # Ứng dụng FastAPI và các API endpoints
-├── auth.py              # Các hàm xác thực và quản lý người dùng
-├── database.py          # Kết nối và khởi tạo database
-├── dtos.py              # Pydantic models cho validation request/response
-└── requirements.txt     # Python dependencies
+
+### Chạy tests
+
+```bash
+# Chạy tất cả tests
+pytest
+
+# Chạy với verbose output
+pytest -v
+
+# Chạy chỉ unit tests
+pytest tests/unit/
+
+# Chạy chỉ integration tests
+pytest tests/integration/
 ```
+
+### Code coverage
+
+```bash
+# Chạy với coverage report
+pytest --cov=. --cov-report=term-missing
+
+# Tạo HTML coverage report
+pytest --cov=. --cov-report=html
+```
+
+Xem chi tiết tại [tests/README.md](tests/README.md).
 
 ## API endpoints
 
