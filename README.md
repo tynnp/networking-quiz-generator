@@ -59,7 +59,7 @@ networking-quiz-generator/
 - Thảo luận về từng đề thi với cộng đồng
 
 ### Cài đặt cấu hình AI
-- Chọn model AI (Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
+- Chọn model AI (Gemini 3 Pro Preview, Gemini 3 Flash Preview, Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
 - Cấu hình API Key Gemini riêng cho từng người dùng
 - Hướng dẫn lấy API Key và xử lý lỗi thường gặp
 
