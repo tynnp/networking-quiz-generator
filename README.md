@@ -64,6 +64,7 @@ networking-quiz-generator/
 │   ├── email_service.py    # Dịch vụ gửi email OTP
 │   ├── database.py         # Kết nối database
 │   ├── dtos.py             # Pydantic models
+│   ├── tests/              # Unit & Integration Tests
 │   └── README.md
 ├── build-and-save.bat      # Script build docker images (Windows)
 ├── deploy.sh               # Script deploy (Linux)
@@ -186,6 +187,7 @@ Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến th�
 
 - [`client/README.md`](client/README.md) - Hướng dẫn cài đặt và phát triển Frontend
 - [`server/README.md`](server/README.md) - Hướng dẫn cài đặt và phát triển Backend
+- [`server/tests/README.md`](server/tests/README.md) - Hướng dẫn chạy và viết Tests
 - [`CHANGELOG.md`](CHANGELOG.md) - Lịch sử thay đổi các phiên bản
 - [`DEPENDENCIES.md`](DEPENDENCIES.md) - Danh sách thư viện và dependencies
 - [`LICENSE`](LICENSE) - Giấy phép Apache 2.0
