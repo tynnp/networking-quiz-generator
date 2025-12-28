@@ -1,16 +1,49 @@
-# Hệ thống trắc nghiệm môn Mạng Máy Tính
+<div align="center">
 
-<p align="center">
-  <img src="assets/dashboard.png" width="100%" />
-  <br/>
-  <em>Giao diện hệ thống (v2.3.0)</em>
-</p>
+# Hệ thống Trắc nghiệm môn Mạng Máy Tính
 
-Hệ thống tạo và quản lý đề thi trắc nghiệm cho môn học mạng máy tính, sử dụng AI để tạo câu hỏi, cho phép học sinh làm bài và phân tích kết quả.
+<img src="https://img.shields.io/badge/version-2.3.0-blue?style=for-the-badge" alt="Version" />
+<img src="https://img.shields.io/badge/license-Apache%202.0-green?style=for-the-badge" alt="License" />
+<img src="https://img.shields.io/badge/status-Active-success?style=for-the-badge" alt="Status" />
 
-## Tổng quan
+<br/>
 
-Đây là một ứng dụng web full-stack được thiết kế để giúp sinh viên luyện tập và kiểm tra kiến thức về mạng máy tính. Hệ thống sử dụng Google Gemini AI để tạo câu hỏi dựa trên các chương và chủ đề của khóa học, đồng thời cung cấp phân tích và phản hồi chi tiết.
+**Hệ thống trắc nghiệm thông minh sử dụng AI, hỗ trợ phân tích kết quả, định hướng học tập và tương tác cộng đồng**
+
+---
+
+<img src="assets/dashboard.png" width="90%" alt="Dashboard Preview" />
+
+<sub>Giao diện chính của hệ thống (v2.3.0)</sub>
+
+</div>
+
+## Công nghệ Sử dụng
+
+<table>
+<tr>
+<td align="center" width="50%">
+
+### Frontend
+
+<img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React" />
+<img src="https://img.shields.io/badge/TypeScript-5.5.3-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
+<img src="https://img.shields.io/badge/Vite-5.4.2-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
+<img src="https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind" />
+
+</td>
+<td align="center" width="50%">
+
+### Backend
+
+<img src="https://img.shields.io/badge/FastAPI-0.118.2-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
+<img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
+<img src="https://img.shields.io/badge/PyMongo-4.15.4-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="PyMongo" />
+<img src="https://img.shields.io/badge/Google_Gemini-1.56.0-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini AI" />
+
+</td>
+</tr>
+</table>
 
 ## Cấu trúc dự án
 
@@ -59,7 +92,7 @@ networking-quiz-generator/
 - Thảo luận về từng đề thi với cộng đồng
 
 ### Cài đặt cấu hình AI
-- Chọn model AI (Gemini 3 Pro Preview, Gemini 3 Flash Preview, Gemini 2.5 Flash, Gemini 2.5 Flash Lite)
+- Chọn các model AI được tích hợp trên hệ thống
 - Cấu hình API Key Gemini riêng cho từng người dùng
 - Hướng dẫn lấy API Key và xử lý lỗi thường gặp
 
@@ -69,26 +102,6 @@ networking-quiz-generator/
 - Thay đổi vai trò người dùng
 - Reset mật khẩu cho người dùng
 - Khóa API key mặc định (buộc user phải dùng key riêng)
-
-## Công nghệ sử dụng
-
-### Frontend (Client)
-
-- React 18.3.1
-- TypeScript 5.5.3
-- Vite 5.4.2
-- Tailwind CSS 3.4.1
-- Lucide React (Icons)
-
-### Backend (Server)
-
-- FastAPI
-- Python 3.8+
-- MongoDB (PyMongo)
-- Google Gemini AI
-- JWT Authentication
-- Bcrypt password hashing
-- Google SMTP (cho gửi mã OTP xác nhận)
 
 ## Bắt đầu
 
@@ -169,16 +182,24 @@ Hệ thống hỗ trợ 8 chương về mạng máy tính:
 
 Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến thức và mức độ khó khác nhau.
 
-## Phát triển
+## Tài liệu
 
-### Frontend
+- [`client/README.md`](client/README.md) - Hướng dẫn cài đặt và phát triển Frontend
+- [`server/README.md`](server/README.md) - Hướng dẫn cài đặt và phát triển Backend
+- [`CHANGELOG.md`](CHANGELOG.md) - Lịch sử thay đổi các phiên bản
+- [`DEPENDENCIES.md`](DEPENDENCIES.md) - Danh sách thư viện và dependencies
+- [`LICENSE`](LICENSE) - Giấy phép Apache 2.0
 
-Xem [`client/README.md`](client/README.md) để biết hướng dẫn phát triển frontend.
+---
 
-### Backend
+<div align="center">
 
-Xem [`server/README.md`](server/README.md) để biết hướng dẫn phát triển backend.
+### Giấy phép
 
-## Giấy phép
+Dự án được cấp phép theo **Apache License 2.0**
 
-Dự án này được cấp phép theo Giấy phép Apache-2.0. Xem tệp [LICENSE](LICENSE) để biết chi tiết.
+<img src="https://img.shields.io/badge/Apache-2.0-D22128?style=flat-square&logo=apache&logoColor=white" alt="Apache 2.0" />
+
+---
+
+</div>
