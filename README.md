@@ -1,6 +1,6 @@
 <div align="center">
 
-# Hệ thống Trắc nghiệm môn Mạng Máy Tính
+# Hệ thống Trắc nghiệm Mạng máy tính
 
 <img src="https://img.shields.io/badge/version-2.3.0-blue?style=for-the-badge" alt="Version" />
 <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=for-the-badge" alt="License" />
