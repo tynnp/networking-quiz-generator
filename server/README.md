@@ -14,19 +14,6 @@ server/
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # File này
 └── tests/                      # Thư mục chứa tests
-    ├── conftest.py             # Shared fixtures cho tests
-    ├── unit/                   # Unit tests
-    │   ├── test_auth.py        # Auth module tests
-    │   ├── test_database.py    # Database module tests
-    │   ├── test_dtos.py        # DTOs validation tests
-    │   └── test_email_service.py # Email service tests
-    └── integration/            # Integration tests
-        ├── test_api_auth.py    # Auth API endpoints
-        ├── test_api_quizzes.py # Quiz API endpoints
-        ├── test_api_users.py   # User management API
-        ├── test_api_attempts.py# Attempt API endpoints
-        ├── test_api_analysis.py# Analysis API endpoints
-        └── test_api_discussions.py # Discussion API endpoints
 ```
 
 ## Công nghệ
