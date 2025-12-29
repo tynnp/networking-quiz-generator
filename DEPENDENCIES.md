@@ -48,5 +48,9 @@ Tài liệu này liệt kê tất cả các thư viện và gói phụ thuộc �
 | @types/react | 18.3.5 | MIT | Định nghĩa kiểu TypeScript cho React | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | @types/react-dom | 18.3.0 | MIT | Định nghĩa kiểu TypeScript cho React DOM | https://github.com/DefinitelyTyped/DefinitelyTyped |
 | @eslint/js | 9.9.1 | MIT | Cấu hình JavaScript cho ESLint | https://eslint.org/ |
+| vitest | 4.0.16 | MIT | Framework testing unit, tương thích Vite | https://vitest.dev/ |
+| @testing-library/react | 16.3.1 | MIT | Thư viện testing cho React components | https://testing-library.com/ |
+| @testing-library/jest-dom | 6.9.1 | MIT | Custom matchers cho Jest/Vitest để test DOM | https://github.com/testing-library/jest-dom |
+| jsdom | 27.4.0 | MIT | Môi trường giả lập browser cho Node.js | https://github.com/jsdom/jsdom |
 
 ---

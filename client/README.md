@@ -34,11 +34,13 @@ client/
 │   │   ├── DataContext.tsx
 │   │   └── ToastContext.tsx
 │   ├── services/               # API services
+│   │   ├── __tests__/          # Unit tests
 │   │   ├── api.ts
 │   │   ├── gemini.ts
 │   │   └── websocket.ts        
 │   ├── types/                  # Định nghĩa kiểu TypeScript
 │   │   └── index.ts
+│   ├── setupTests.ts           # Global test setup
 │   ├── App.tsx                 # Component ứng dụng chính
 │   ├── main.tsx                # Điểm vào ứng dụng
 │   └── index.css               # Styles toàn cục
@@ -47,6 +49,7 @@ client/
 ├── package.json                # Dependencies và scripts
 ├── tsconfig.json               # Cấu hình TypeScript
 ├── vite.config.ts              # Cấu hình Vite
+├── vitest.config.ts            # Cấu hình Vitest
 └── tailwind.config.js          # Cấu hình Tailwind CSS
 ```
 
@@ -82,6 +85,23 @@ Khởi động development server:
 npm run dev
 ```
 Ứng dụng sẽ có sẵn tại `http://localhost:5173`
+
+## Testing
+
+Dự án sử dụng **Vitest** để chạy unit tests cho các services và utilities.
+
+### Chạy tests
+```bash
+npm test            # Chạy chế độ watch
+npm run test:run    # Chạy 1 lần
+```
+
+### Coverage
+Để xem báo cáo coverage:
+```bash
+npm run test:coverage
+```
+Hiện tại đã cover các service chính: `api.ts`, `gemini.ts`, `websocket.ts`.
 
 ## Biến môi trường
 
