@@ -1,7 +1,7 @@
 {
-  "name": "networking-quiz-generator-tynnp",
+  "name": "networking-quiz-generator",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
