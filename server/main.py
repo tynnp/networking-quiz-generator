@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from pymongo.database import Database
-from email_service import generate_otp, send_otp_email, send_reset_password_otp_email
+from email_service import generate_otp, send_otp_email, send_reset_password_otp_email, validate_email_address
 
 from dtos import (
     AnalyzeOverallRequest,
@@ -444,13 +444,18 @@ def send_otp(request: SendOTPRequest, db: Database = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email đã được đăng ký")
     
+    # Kiểm tra địa chỉ mail
+    is_valid, error_msg = validate_email_address(request.email)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
+    
     otp = generate_otp()
     
     email_sent = send_otp_email(request.email, request.name, otp)
     if not email_sent:
         raise HTTPException(
-            status_code=500, 
-            detail="Không thể gửi email xác nhận. Vui lòng thử lại sau hoặc liên hệ quản trị viên."
+            status_code=400, 
+            detail="Không thể gửi email. Vui lòng kiểm tra lại địa chỉ email."
         )
     
     expires_at = datetime.now() + timedelta(minutes=5)

@@ -19,11 +19,26 @@ import os
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+from email_validator import validate_email, EmailNotValidError
 
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+
+def validate_email_address(email: str) -> tuple[bool, str]:
+    """Validate email address syntax and DNS MX record."""
+    try:
+        email_info = validate_email(email, check_deliverability=True)
+        return True, ""
+    except EmailNotValidError as e:
+        error_msg = str(e)
+        if "dns" in error_msg.lower() or "deliverability" in error_msg.lower():
+            return False, "Tên miền email không tồn tại hoặc không thể nhận email"
+        elif "syntax" in error_msg.lower() or "not valid" in error_msg.lower():
+            return False, "Địa chỉ email không đúng cú pháp"
+        else:
+            return False, "Email không hợp lệ"
 
 def generate_otp(length: int = 6) -> str:
     """Generate a random OTP code with specified length."""

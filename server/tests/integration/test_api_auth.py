@@ -121,10 +121,12 @@ class TestGetMeEndpoint:
 class TestSendOTPEndpoint:
     """Tests for POST /api/auth/send-otp endpoint."""
 
+    @patch("main.validate_email_address")
     @patch("main.send_otp_email")
     @patch("main.create_otp")
-    def test_send_otp_success(self, mock_create_otp, mock_send_email, test_client):
+    def test_send_otp_success(self, mock_create_otp, mock_send_email, mock_validate, test_client):
         """Test sending OTP for registration."""
+        mock_validate.return_value = (True, "")
         mock_send_email.return_value = True
         mock_create_otp.return_value = {"email": "new@example.com", "otp": "123456"}
         
@@ -149,6 +151,20 @@ class TestSendOTPEndpoint:
         )
         
         assert response.status_code == 400
+
+    def test_send_otp_invalid_domain(self, test_client):
+        """Test sending OTP with email having non-existent domain."""
+        response = test_client.post(
+            "/api/auth/send-otp",
+            json={
+                "email": "test@invalid-domain-xyz-12345.com",
+                "name": "Test User"
+            }
+        )
+        
+        assert response.status_code == 400
+        data = response.json()
+        assert "detail" in data
 
 class TestRegisterEndpoint:
     """Tests for POST /api/auth/register endpoint."""
