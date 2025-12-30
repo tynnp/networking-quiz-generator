@@ -166,6 +166,39 @@ class TestSendOTPEndpoint:
         data = response.json()
         assert "detail" in data
 
+    def test_send_otp_invalid_syntax(self, test_client):
+        """Test sending OTP with invalid email syntax."""
+        response = test_client.post(
+            "/api/auth/send-otp",
+            json={
+                "email": "invalid-email-syntax",
+                "name": "Test User"
+            }
+        )
+        
+        assert response.status_code == 400
+        data = response.json()
+        assert "detail" in data
+
+    @patch("main.validate_email_address")
+    @patch("main.send_otp_email")
+    def test_send_otp_email_send_failure(self, mock_send_email, mock_validate, test_client):
+        """Test sending OTP when email sending fails."""
+        mock_validate.return_value = (True, "")
+        mock_send_email.return_value = False
+        
+        response = test_client.post(
+            "/api/auth/send-otp",
+            json={
+                "email": "test@example.com",
+                "name": "Test User"
+            }
+        )
+        
+        assert response.status_code == 400
+        data = response.json()
+        assert "detail" in data
+
 class TestRegisterEndpoint:
     """Tests for POST /api/auth/register endpoint."""
 
