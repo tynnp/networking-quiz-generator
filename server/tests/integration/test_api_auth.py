@@ -291,9 +291,11 @@ class TestForgotPasswordEndpoint:
 class TestResetPasswordEndpoint:
     """Tests for POST /api/auth/reset-password endpoint."""
 
-    def test_reset_password_success(self, test_client, mock_db, student_user):
+    @patch("main.send_password_changed_email")
+    def test_reset_password_success(self, mock_send_email, test_client, mock_db, student_user):
         """Test successful password reset."""
-        # Create valid OTP
+        mock_send_email.return_value = True
+        
         mock_db.otp_codes.insert_one({
             "email": student_user["email"],
             "otp": "123456",
@@ -310,6 +312,7 @@ class TestResetPasswordEndpoint:
         )
         
         assert response.status_code == 200
+        mock_send_email.assert_called_once()
 
     def test_reset_password_invalid_otp(self, test_client, student_user):
         """Test password reset with invalid OTP."""
@@ -318,6 +321,19 @@ class TestResetPasswordEndpoint:
             json={
                 "email": student_user["email"],
                 "otp": "000000",
+                "new_password": "newpassword123"
+            }
+        )
+        
+        assert response.status_code == 400
+
+    def test_reset_password_user_not_found(self, test_client):
+        """Test password reset with non-existent email."""
+        response = test_client.post(
+            "/api/auth/reset-password",
+            json={
+                "email": "nonexistent@example.com",
+                "otp": "123456",
                 "new_password": "newpassword123"
             }
         )
@@ -354,10 +370,12 @@ class TestUpdateProfileEndpoint:
 class TestChangePasswordEndpoint:
     """Tests for POST /api/auth/change-password endpoint."""
 
+    @patch("main.send_password_changed_email")
     @patch("main.verify_password")
-    def test_change_password_success(self, mock_verify, test_client, auth_headers_student):
+    def test_change_password_success(self, mock_verify, mock_send_email, test_client, auth_headers_student):
         """Test successful password change."""
         mock_verify.return_value = True
+        mock_send_email.return_value = True
         
         response = test_client.put(
             "/api/auth/change-password",
@@ -369,6 +387,7 @@ class TestChangePasswordEndpoint:
         )
         
         assert response.status_code == 200
+        mock_send_email.assert_called_once()
 
     def test_change_password_wrong_current(self, test_client, auth_headers_student):
         """Test password change with wrong current password."""
@@ -382,3 +401,15 @@ class TestChangePasswordEndpoint:
         )
         
         assert response.status_code == 401
+
+    def test_change_password_no_auth(self, test_client):
+        """Test password change without authentication."""
+        response = test_client.put(
+            "/api/auth/change-password",
+            json={
+                "current_password": "password123",
+                "new_password": "newpassword123"
+            }
+        )
+        
+        assert response.status_code == 403

@@ -23,8 +23,10 @@ from email_validator import validate_email, EmailNotValidError
 
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587
-SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+
+def get_smtp_credentials():
+    """Lấy thông tin SMTP từ biến môi trường."""
+    return os.getenv("SMTP_EMAIL", ""), os.getenv("SMTP_PASSWORD", "")
 
 def validate_email_address(email: str) -> tuple[bool, str]:
     """Validate email address syntax and DNS MX record."""
@@ -45,14 +47,15 @@ def generate_otp(length: int = 6) -> str:
     return ''.join(random.choices(string.digits, k=length))
 
 def send_otp_email(to_email: str, user_name: str, otp: str) -> bool:
-    if not SMTP_EMAIL or not SMTP_PASSWORD:
-        print("SMTP credentials not configured")
+    smtp_email, smtp_password = get_smtp_credentials()
+    if not smtp_email or not smtp_password:
+        print("Chưa cấu hình thông tin SMTP")
         return False
     
     try:
         message = MIMEMultipart("alternative")
         message["Subject"] = "Mã xác nhận đăng ký - Hệ thống Trắc nghiệm Mạng Máy Tính"
-        message["From"] = f"Hệ thống Trắc nghiệm <{SMTP_EMAIL}>"
+        message["From"] = f"Hệ thống Trắc nghiệm <{smtp_email}>"
         message["To"] = to_email
 
         html_content = f"""
@@ -126,31 +129,32 @@ def send_otp_email(to_email: str, user_name: str, otp: str) -> bool:
         
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, message.as_string())
+            server.login(smtp_email, smtp_password)
+            server.sendmail(smtp_email, to_email, message.as_string())
         
-        print(f"OTP email sent successfully to {to_email}")
+        print(f"Đã gửi email OTP thành công đến {to_email}")
         return True
         
     except smtplib.SMTPAuthenticationError as e:
-        print(f"SMTP Authentication Error: {e}")
+        print(f"Lỗi xác thực SMTP: {e}")
         return False
     except smtplib.SMTPException as e:
-        print(f"SMTP Error: {e}")
+        print(f"Lỗi SMTP: {e}")
         return False
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"Lỗi gửi email: {e}")
         return False
 
 def send_reset_password_otp_email(to_email: str, user_name: str, otp: str) -> bool:
-    if not SMTP_EMAIL or not SMTP_PASSWORD:
-        print("SMTP credentials not configured")
+    smtp_email, smtp_password = get_smtp_credentials()
+    if not smtp_email or not smtp_password:
+        print("Chưa cấu hình thông tin SMTP")
         return False
     
     try:
         message = MIMEMultipart("alternative")
         message["Subject"] = "Mã xác nhận khôi phục mật khẩu - Hệ thống Trắc nghiệm Mạng Máy Tính"
-        message["From"] = f"Hệ thống Trắc nghiệm <{SMTP_EMAIL}>"
+        message["From"] = f"Hệ thống Trắc nghiệm <{smtp_email}>"
         message["To"] = to_email
 
         html_content = f"""
@@ -225,12 +229,94 @@ def send_reset_password_otp_email(to_email: str, user_name: str, otp: str) -> bo
         
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
             server.starttls()
-            server.login(SMTP_EMAIL, SMTP_PASSWORD)
-            server.sendmail(SMTP_EMAIL, to_email, message.as_string())
+            server.login(smtp_email, smtp_password)
+            server.sendmail(smtp_email, to_email, message.as_string())
         
-        print(f"Reset password OTP email sent successfully to {to_email}")
+        print(f"Đã gửi email OTP khôi phục mật khẩu đến {to_email}")
         return True
         
     except Exception as e:
-        print(f"Error sending reset password email: {e}")
+        print(f"Lỗi gửi email khôi phục mật khẩu: {e}")
+        return False
+
+def send_password_changed_email(to_email: str, user_name: str) -> bool:
+    """Gửi email thông báo mật khẩu đã được thay đổi."""
+    smtp_email, smtp_password = get_smtp_credentials()
+    if not smtp_email or not smtp_password:
+        print("Chưa cấu hình thông tin SMTP")
+        return False
+    
+    try:
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Thông báo đổi mật khẩu - Hệ thống Trắc nghiệm Mạng Máy Tính"
+        message["From"] = f"Hệ thống Trắc nghiệm <{smtp_email}>"
+        message["To"] = to_email
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                line-height: 1.8;
+                font-size: 18px;
+                color: #2d3748;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }}
+            .container {{
+                padding-top: 10px;
+            }}
+            .warning {{
+                background-color: #fff3cd;
+                border: 1px solid #ffc107;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 20px 0;
+                color: #856404;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <p>Xin chào <strong>{user_name}</strong>,</p>
+            <p>Mật khẩu tài khoản của bạn tại Hệ thống Trắc nghiệm Mạng Máy Tính đã được thay đổi thành công.</p>
+            <div class="warning">
+                <strong>Lưu ý:</strong> Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ quản trị viên ngay lập tức.
+            </div>
+            <p>© 2025 Nhóm đồ án Trí tuệ nhân tạo của Nguyễn Ngọc Phú Tỷ</p>
+        </div>
+    </body>
+    </html>
+    """
+        
+        text_content = f"""
+        Xin chào {user_name},
+        
+        Mật khẩu tài khoản của bạn tại Hệ thống Trắc nghiệm Mạng Máy Tính đã được thay đổi thành công.
+        
+        Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ quản trị viên ngay lập tức.
+        
+        ---
+        © 2025 Nhóm đồ án Trí tuệ nhân tạo của Nguyễn Ngọc Phú Tỷ
+        """
+        
+        part1 = MIMEText(text_content, "plain", "utf-8")
+        part2 = MIMEText(html_content, "html", "utf-8")
+        message.attach(part1)
+        message.attach(part2)
+        
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(smtp_email, smtp_password)
+            server.sendmail(smtp_email, to_email, message.as_string())
+        
+        print(f"Đã gửi email thông báo đổi mật khẩu đến {to_email}")
+        return True
+        
+    except Exception as e:
+        print(f"Lỗi gửi email thông báo đổi mật khẩu: {e}")
         return False

@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 from pymongo.database import Database
-from email_service import generate_otp, send_otp_email, send_reset_password_otp_email, validate_email_address
+from email_service import generate_otp, send_otp_email, send_reset_password_otp_email, validate_email_address, send_password_changed_email
 
 from dtos import (
     AnalyzeOverallRequest,
@@ -527,6 +527,7 @@ def reset_password(request: ResetPasswordRequest, db: Database = Depends(get_db)
         raise HTTPException(status_code=400, detail="Không thể cập nhật mật khẩu")
     
     delete_otp(db, request.email)
+    send_password_changed_email(user["email"], user["name"])
     
     return {"message": "Mật khẩu đã được đặt lại thành công"}
 
@@ -572,6 +573,8 @@ def change_password(
     success = update_user_password(db, current_user["id"], request.new_password)
     if not success:
         raise HTTPException(status_code=400, detail="Không thể cập nhật mật khẩu")
+    
+    send_password_changed_email(current_user["email"], current_user["name"])
     
     return {"message": "Đổi mật khẩu thành công"}
 
@@ -699,6 +702,8 @@ def admin_reset_user_password(
     success = update_user_password(db, user_id, request.new_password)
     if not success:
         raise HTTPException(status_code=400, detail="Không thể đặt lại mật khẩu")
+    
+    send_password_changed_email(target_user["email"], target_user["name"])
     
     return {"message": "Đặt lại mật khẩu thành công"}
 
