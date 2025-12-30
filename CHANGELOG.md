@@ -4,6 +4,18 @@ Tất cả các thay đổi quan trọng của dự án sẽ được ghi lại 
 
 ---
 
+## [2.4.0] - 2025-12-30
+
+### Thêm mới
+- Thêm xác thực email trước khi gửi OTP đăng ký (kiểm tra cú pháp và DNS)
+- Thêm gửi email thông báo khi mật khẩu được thay đổi
+
+### Thay đổi
+- Cải thiện xử lý lỗi email: trả về HTTP 400 thay vì 500 khi gửi email thất bại
+- Sửa lỗi SMTP credentials không được load đúng thời điểm
+
+---
+
 ## [2.3.0] - 2025-12-28
 
 ### Thêm mới
