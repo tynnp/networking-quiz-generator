@@ -187,7 +187,6 @@ Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến th�
 
 - [`client/README.md`](client/README.md) - Hướng dẫn cài đặt và phát triển Frontend
 - [`server/README.md`](server/README.md) - Hướng dẫn cài đặt và phát triển Backend
-- [`server/tests/README.md`](server/tests/README.md) - Hướng dẫn chạy và viết Tests
 - [`CHANGELOG.md`](CHANGELOG.md) - Lịch sử thay đổi các phiên bản
 - [`DEPENDENCIES.md`](DEPENDENCIES.md) - Danh sách thư viện và dependencies
 - [`LICENSE`](LICENSE) - Giấy phép Apache 2.0
