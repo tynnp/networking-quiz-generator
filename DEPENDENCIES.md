@@ -13,6 +13,7 @@ Tài liệu này liệt kê tất cả các thư viện và gói phụ thuộc �
 | requests | 2.32.5 | Apache-2.0 | Thư viện HTTP đơn giản và thân thiện cho Python | https://requests.readthedocs.io/ |
 | google-genai | 1.56.0 | Apache-2.0 | Thư viện Python cho Google Generative AI (Gemini) | https://github.com/google/generative-ai-python |
 | python-dotenv | 1.0.1 | BSD-3-Clause | Đọc các cặp key-value từ file .env | https://github.com/theskumar/python-dotenv |
+| email-validator | 2.2.0 | Unlicense | Xác thực địa chỉ email với kiểm tra DNS | https://github.com/JoshData/python-email-validator |
 | python-jose[cryptography] | 3.5.0 | MIT | Thư viện JOSE (JSON Object Signing and Encryption) cho Python | https://github.com/mpdavis/python-jose |
 | bcrypt | 5.0.0 | Apache-2.0 | Thư viện mã hóa mật khẩu bcrypt | https://github.com/pyca/bcrypt |
 | python-multipart | 0.0.20 | Apache-2.0 | Streaming multipart parser cho Python | https://github.com/andrew-d/python-multipart |
