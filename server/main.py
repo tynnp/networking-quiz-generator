@@ -134,7 +134,7 @@ tags_metadata = [
 app = FastAPI(
     title="Networking Quiz Generator API",
     description="API cho hệ thống trắc nghiệm môn Mạng Máy Tính",
-    version="2.3.0",
+    version="2.4.0",
     openapi_tags=tags_metadata
 )
 
