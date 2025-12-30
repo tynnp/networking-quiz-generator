@@ -193,7 +193,7 @@ Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến th�
 - [`LICENSE`](LICENSE) - Giấy phép Apache 2.0
 
 ---
-<br/>
+
 <div align="center">
 
 <img src="https://img.shields.io/badge/License-Apache%202.0-orange?style=for-the-badge&logo=apache&logoColor=white" alt="Apache 2.0 License" />
