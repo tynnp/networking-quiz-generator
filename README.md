@@ -197,7 +197,7 @@ Mỗi chương chứa nhiều chủ đề và hỗ trợ các loại kiến th�
 <div align="center">
 
 <img src="https://img.shields.io/badge/License-Apache%202.0-orange?style=for-the-badge&logo=apache&logoColor=white" alt="Apache 2.0 License" />
-
+<br/>
 <br/>
 
 Dự án này được phát hành theo giấy phép **[Apache License 2.0](LICENSE)**
