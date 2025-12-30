@@ -2,7 +2,7 @@
 
 # Hệ thống Trắc nghiệm Mạng máy tính
 
-<img src="https://img.shields.io/badge/version-2.3.0-blue?style=for-the-badge" alt="Version" />
+<img src="https://img.shields.io/badge/version-2.4.0-blue?style=for-the-badge" alt="Version" />
 <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=for-the-badge" alt="License" />
 <img src="https://img.shields.io/badge/status-Active-success?style=for-the-badge" alt="Status" />
 
