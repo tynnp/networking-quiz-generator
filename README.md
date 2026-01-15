@@ -8,42 +8,25 @@
 
 <br/>
 
+![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![WebSocket](https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=websocket&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+
 **Hệ thống tạo đề thi trắc nghiệm thông minh sử dụng AI cho môn Mạng máy tính, hỗ trợ phân tích kết quả học tập, định hướng cải thiện và tương tác cộng đồng**
 
 ---
 
-<img src="assets/dashboard.png" width="90%" alt="Dashboard Preview" />
+<kbd>
+  <img src="assets/dashboard.png" alt="Dashboard Preview" />
+</kbd>
 
 <sub>Giao diện chính của hệ thống (v2.3.0)</sub>
 
 </div>
-
-## Công nghệ Sử dụng
-
-<table>
-<tr>
-<td align="center" width="50%">
-
-### Frontend
-
-<img src="https://img.shields.io/badge/React-18.3.1-61DAFB?style=flat-square&logo=react&logoColor=white" alt="React" />
-<img src="https://img.shields.io/badge/TypeScript-5.5.3-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-<img src="https://img.shields.io/badge/Vite-5.4.2-646CFF?style=flat-square&logo=vite&logoColor=white" alt="Vite" />
-<img src="https://img.shields.io/badge/Tailwind_CSS-3.4.1-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind" />
-
-</td>
-<td align="center" width="50%">
-
-### Backend
-
-<img src="https://img.shields.io/badge/FastAPI-0.118.2-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI" />
-<img src="https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python" />
-<img src="https://img.shields.io/badge/PyMongo-4.15.4-47A248?style=flat-square&logo=mongodb&logoColor=white" alt="PyMongo" />
-<img src="https://img.shields.io/badge/Google_Gemini-1.56.0-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini AI" />
-
-</td>
-</tr>
-</table>
 
 ## Cấu trúc dự án
 
