@@ -17,14 +17,7 @@
 import { User } from '../types';
 
 const getApiBaseUrl = (): string => {
-  const hostname = window.location.hostname;
-  const protocol = window.location.protocol;
-
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://localhost:8000';
-  }
-
-  return `${protocol}//${hostname}:8000`;
+  return '';
 };
 
 const API_BASE_URL = getApiBaseUrl();

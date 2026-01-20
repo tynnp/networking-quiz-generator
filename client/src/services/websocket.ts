@@ -15,14 +15,8 @@
  */
 
 const getWsBaseUrl = (): string => {
-    const hostname = window.location.hostname;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'ws://localhost:8000';
-    }
-
-    return `${protocol}//${hostname}:8000`;
+    return `${protocol}//${window.location.host}`;
 };
 
 export const WS_BASE_URL = getWsBaseUrl();
